@@ -1,0 +1,37 @@
+# Upstream MobiVital: clone riêng lúc setup.
+# KHÔNG redistribute vì repo họ không có LICENSE.
+external/mobivital/
+
+# Dữ liệu. Để trên Google Drive, không commit.
+# Lưu ý: git KHÔNG cho chú thích cùng dòng với pattern, phải để riêng dòng.
+data/
+
+# Kết quả chạy: checkpoint, log, điểm.
+runs/
+
+# Định dạng dữ liệu và checkpoint
+*.npz
+*.npy
+*.pth
+*.pt
+*.ckpt
+
+# Thí nghiệm cũ, giữ ở máy không đưa lên GitHub
+old_expreiment_outdated_donotuse/
+
+# State của công cụ
+.superpowers/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
