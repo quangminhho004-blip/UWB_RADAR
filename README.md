@@ -1,77 +1,112 @@
 # MobiVital — đồ án tốt nghiệp
 
-Cải tiến mô hình dự báo dạng sóng nhịp thở cho MobiVital (radar UWB không tiếp
-xúc): thay LSTM baseline bằng TCN nhân quả có RevIN.
+Cải tiến mô hình dự báo sóng nhịp thở cho MobiVital (radar UWB không tiếp xúc):
+thay LSTM baseline bằng TCN nhân quả có RevIN.
 
-## Chuẩn bị
+Bài báo gốc: [arXiv 2503.11064](https://arxiv.org/abs/2503.11064) ·
+Code: [nesl/mobivital-public](https://github.com/nesl/mobivital-public) ·
+Dữ liệu: [Zenodo 10.5281/zenodo.15022885](https://doi.org/10.5281/zenodo.15022885)
 
-```bash
-pip install numpy
+---
 
-# Upstream MobiVital KHÔNG được sao chép vào repo này (họ không có LICENSE).
-# Tải riêng lúc setup:
-git clone https://github.com/nesl/mobivital-public.git external/mobivital
+## Bài toán
+
+Radar UWB đo phản hồi ở **120 khoảng cách** khác nhau. Người ngồi ở đâu đó trong 120
+khoảng cách đó, không biết trước. Với mỗi buổi ghi 30 giây phải tìm ra kênh nào bắt
+được nhịp thở rõ nhất — **mà không được nhìn nhịp thở thật**, vì ngoài đời không có
+cảm biến đo.
+
+Cách MobiVital giải: cho một model dự báo trước 25 mẫu tiếp theo của từng kênh, kênh
+nào model đoán chuẩn nhất thì chọn. Sóng thở đều đặn nên dễ đoán, sóng nhiễu lộn xộn
+nên đoán trật.
+
+Đồ án này thay model dự báo đó từ LSTM sang TCN.
+
+## Kết quả đã có
+
+Bảng 4 bài báo gốc:
+
+| Method | điểm |
+|---|---|
+| **MobiVital** | **0.819** |
+| SNR | 0.745 |
+| CFAR | 0.516 |
+| Variance | 0.514 |
+| **Oracle** (được nhìn nhịp thở thật) | **0.943** |
+
+Dựng lại bằng chính code của họ, không sửa dòng nào — xem
+[notebooks/TN0.md](notebooks/TN0.md):
+
+```
+TN0a  chấm file kết quả họ commit sẵn      0.819481   khớp bài báo
+TN0b  checkpoint của họ, mình tự chạy      0.822175
+TN0c  tự train lại từ đầu                  0.798748
 ```
 
-Bản upstream đang dùng: commit `4319731d2769d4134c92088dd846666e262f18e9`.
+`Oracle 0.943` là trần trên. MobiVital đạt `0.819`. **Dư địa là 0.124** — mọi cải tiến
+chỉ có thể ăn trong khoảng này.
 
-Đặt file CSV thô vào `data/raw/tripod/` (tải từ Zenodo, xem README upstream).
+## Chuẩn bị dữ liệu
 
-## Chạy lần lượt
+Chạy lần lượt, một lần duy nhất:
 
-| # | Lệnh | Việc |
+| # | lệnh | ra cái gì |
 |---|---|---|
-| 1 | `python scripts/1_organize_raw.py` | Gom CSV chung → thư mục theo người (`data/raw/A/`, `data/raw/B/`, ...) |
-| 2 | `python scripts/2_make_npz.py` | **Pipeline train/validate**: mỗi người → 1 file `.npz` |
-| 3 | `python scripts/3_run_mobivital_prep.py` | **Pipeline test**: chạy `prep_breath_final.py` của MobiVital, nguyên bản |
-| 4 | `python scripts/4_check_data.py` | Kiểm tra: số session, 4 fold, đối chiếu 2 pipeline |
+| 1 | `python scripts/1_organize_raw.py` | gom CSV thô thành `data/raw/A/` … `L/` |
+| 2 | `python scripts/2_make_npz.py` | `data/processed/by_user/*.npz` — **pipeline dev** |
+| 3 | `python scripts/3_run_mobivital_prep.py` | `data/processed/mobivital_original/*.npy` — **pipeline gốc** |
+| 4 | `python scripts/4_check_data.py` | đối chiếu hai pipeline, sai lệch phải bằng 0 |
+| 5 | `python scripts/5_make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
 
-Muốn đổi đường dẫn hay tuỳ chọn thì sửa thẳng các hằng số ở đầu mỗi script.
+Bước 3 chạy `prep_breath_final.py` của MobiVital **nguyên bản, 0 dòng sửa**, bằng cách
+dựng một thư mục tạm có đúng cấu trúc mà code họ đòi rồi `cd` vào đó.
 
-## Dữ liệu sau khi chạy
-
-```
-data/raw/
-├── A/  (225 csv)   ...   L/  (119 csv)
-
-data/processed/
-├── by_user/                           ◄── PIPELINE TRAIN / VALIDATE
-│   ├── A.npz   uwb (224, 1500, 120) complex64   gt (224, 1500) float32
-│   ├── ...
-│   └── L.npz
-│
-└── mobivital_original/                ◄── PIPELINE TEST
-    ├── training_breath_tripod_data.npy    X (1289,1500,120) + y (1289,1500)
-    └── testing_breath_tripod_data.npy     X  (537,1500,120) + y  (537,1500)
-```
-
-`gt` / `y_breath` ở cả hai pipeline đều đã chuẩn hoá về `[-1, 1]` bằng đúng công
-thức `self_normalize` của MobiVital.
-
-Session hợp lệ = file CSV đúng 1500 dòng; 48/1874 file bị loại vì thiếu dòng,
-còn 1826 (pool `ABCDEFKL` 1289 + test `GHIJ` 537).
+Bước 4 in ra `sai lệch gt lớn nhất = 0.00e+00` — bằng chứng dữ liệu của mình giống hệt
+dữ liệu MobiVital dùng.
 
 ## Cấu trúc
 
 ```
-scripts/                   chuẩn bị và kiểm tra dữ liệu (chạy ở máy)
-notebooks/                 chạy trên COLAB: train, thí nghiệm
-data/raw/                  CSV thô                       (không commit)
-data/processed/by_user/            pipeline train/validate   (không commit → lên Drive)
-data/processed/mobivital_original/ pipeline test             (không commit → lên Drive)
-external/mobivital/        upstream clone                (không commit)
-docs/PROTOCOL.md           LUẬT thí nghiệm: chia fold, cách chấm điểm, cách chọn
-docs/RUNBOOK.md            chạy toàn bộ dự án từ đầu đến cuối
-docs/PLAN.md               kế hoạch cấu trúc thư mục + luồng máy ↔ Colab
-docs/superpowers/          spec thiết kế ban đầu
+scripts/     chuẩn bị dữ liệu, chạy một lần
+src/         pipeline của đồ án
+notebooks/   thí nghiệm, chạy trên Colab
+docs/        luật thí nghiệm và lý do thiết kế
+
+data/        KHÔNG commit, để trên Google Drive
+runs/        KHÔNG commit, checkpoint và kết quả
+external/mobivital/   KHÔNG commit, clone riêng
 ```
 
-- **Chạy toàn bộ dự án từ đầu đến cuối**: [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
-- **Trước khi chạy bất kỳ thí nghiệm nào**, đọc [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
-- Luồng làm việc máy ↔ Colab, cấu trúc thư mục: [`docs/PLAN.md`](docs/PLAN.md).
+Repo MobiVital **không có LICENSE** nên tuyệt đối không chép vào đây. Clone riêng:
+
+```bash
+git clone https://github.com/nesl/mobivital-public.git external/mobivital
+```
+
+Bản đang dùng: commit `4319731d2769d4134c92088dd846666e262f18e9`.
+
+## Ranh giới — cái gì của ai
+
+| Mượn lại từ MobiVital | Tự viết ở đồ án này |
+|---|---|
+| `generate_dataset` cắt cửa sổ train | TCN, DS-TCN, RevIN |
+| `sequence_transforms`, `transform` | loss MSE + Pearson |
+| `self_normalize` | vòng train, checkpoint, resume |
+| `invert_detector` | 4-fold CV trên ABCDEFKL |
+| `LSTMMultiStep` làm baseline | bộ chọn kênh dùng chung cho LSTM và TCN |
+
+[`src/mobivital_reference.py`](src/mobivital_reference.py) là chỗ duy nhất chạm vào code
+MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file script nào của họ.
+
+## Đọc tiếp
+
+- [`docs/PROTOCOL.md`](docs/PROTOCOL.md) — luật thí nghiệm. Đọc trước khi chạy bất cứ gì.
+- [`docs/WHY_SPLIT_BY_USER.md`](docs/WHY_SPLIT_BY_USER.md) — vì sao chia dữ liệu theo người.
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — chạy toàn bộ trên Colab.
+- [`notebooks/TN0.md`](notebooks/TN0.md) — dựng lại kết quả MobiVital.
 
 ## Nguyên tắc
 
-- **Không trộn code upstream với code của đồ án.**
-- **`GHIJ` là tập test**, chỉ chạm một lần ở bước cuối. Pool phát triển là
-  `ABCDEFKL` (8 người).
+- **Không sửa code MobiVital.** `git diff external/mobivital` phải trống.
+- **`GHIJ` là tập test**, không dùng để chọn cấu hình. Pool phát triển là `ABCDEFKL`.
+- Mọi lựa chọn cấu hình quyết định bằng `cv_score` trên 4 fold, `test_GHIJ` chỉ để nhìn.

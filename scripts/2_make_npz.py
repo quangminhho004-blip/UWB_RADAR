@@ -3,9 +3,13 @@
     python scripts/2_make_npz.py
 
 Trước:  data/raw/A/*.csv
-Sau:    data/processed/by_user/A.npz   gồm 2 mảng:
-            uwb  -- tín hiệu radar dạng số phức, (số_session, 1500, 120)
-            gt   -- respiration ground truth,     (số_session, 1500), đã chuẩn hoá [-1, 1]
+Sau:    data/processed/by_user/A.npz   gồm 3 mảng:
+            uwb   -- tín hiệu radar dạng số phức, (số_session, 1500, 120)
+            gt    -- respiration ground truth,     (số_session, 1500), đã chuẩn hoá [-1, 1]
+            files -- tên file CSV của từng session, (số_session,)
+
+Lưu tên file để sau này ghi ra bảng kết quả đối chiếu được với bảng của
+MobiVital, vốn ghi theo tên file.
 
 Mỗi file CSV là một session, có 1500 dòng.
     cột  12..131  = phần thực của UWB   (120 kênh)
@@ -76,6 +80,7 @@ for user in users:
 
     uwb_list = [] # raw signal dạng số phức (complex-valued I/Q samples)
     gt_list = [] # Ground truth
+    file_list = [] # tên file CSV, để đối chiếu về sau
     for path in csv_files:
         result = read_one_csv(path)
         if result is None:
@@ -83,14 +88,17 @@ for user in users:
         uwb, gt = result
         uwb_list.append(uwb)
         gt_list.append(gt)
+        file_list.append(os.path.basename(path))
 
     uwb_all = np.stack(uwb_list)
     gt_all = np.stack(gt_list)
+    files_all = np.array(file_list)
 
     out_file = OUT_DIR + "/" + user + ".npz"
-    np.savez(out_file, uwb=uwb_all, gt=gt_all)
+    np.savez(out_file, uwb=uwb_all, gt=gt_all, files=files_all)
 
     print("user", user, "->", out_file,
-          "| uwb", uwb_all.shape, "| gt", gt_all.shape)
+          "| uwb", uwb_all.shape, "| gt", gt_all.shape,
+          "| files", files_all.shape)
 
 print("Xong")

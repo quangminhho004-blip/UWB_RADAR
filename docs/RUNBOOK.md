@@ -1,217 +1,163 @@
-# Hướng dẫn chạy toàn bộ dự án, từ đầu đến cuối
+# Chạy toàn bộ dự án
 
-Đọc kèm:
-- `docs/PROTOCOL.md` — luật thí nghiệm (chia fold, cách chấm điểm, cách chọn)
-- `docs/PLAN.md` — cấu trúc thư mục, luồng máy ↔ Colab
+Máy cá nhân chỉ để **viết code và đẩy lên GitHub**. Mọi thứ chạy trên **Google Colab**,
+dữ liệu và kết quả để trên **Google Drive**.
 
-Ký hiệu: **[máy]** = chạy trên máy cá nhân (CPU đủ). **[Colab]** = chạy trên
-Google Colab (cần GPU). ✅ = đã có. ⏳ = chưa viết.
-
----
-
-## Phần 0 — Chuẩn bị một lần [máy]
-
-```bash
-# 0.1  Lấy code
-git clone https://github.com/<ban>/THESIS_GRADUATE.git
-cd THESIS_GRADUATE
-
-# 0.2  Cài thư viện
-pip install numpy scipy matplotlib tqdm torch
-
-# 0.3  Lấy code upstream MobiVital (KHÔNG commit vào repo — họ không có LICENSE)
-git clone https://github.com/nesl/mobivital-public.git external/mobivital
-#     commit đang dùng: 4319731d2769d4134c92088dd846666e262f18e9
-
-# 0.4  Tải dataset tripod (CSV thô) từ Zenodo, giải nén vào:
-#      data/raw/tripod/*.csv        (1874 file, ~13 GB)
+```
+GitHub      code + notebook + docs                     vài MB
+Drive       dữ liệu đã xử lý + checkpoint + kết quả    ~4.5 GB
+Colab       clone code, clone MobiVital, chạy          xoá sạch sau mỗi phiên
 ```
 
 ---
 
-## Phần 1 — Dữ liệu cho PIPELINE TRAIN / VALIDATE [máy]
+## Phần 0 — Phiên Colab đầu tiên: chuẩn bị dữ liệu
 
-Đây là pipeline của mình: `.npz` theo từng người, để chia 4 fold.
-
-```bash
-# 1.1  Gom CSV chung vào thư mục theo người        ✅ scripts/1_organize_raw.py
-python scripts/1_organize_raw.py
-#      data/raw/tripod/*.csv  ->  data/raw/A/  data/raw/B/  ...  data/raw/L/
-
-# 1.2  Mỗi thư mục người -> một file .npz            ✅ scripts/2_make_npz.py
-python scripts/2_make_npz.py
-#      data/raw/A/*.csv  ->  data/processed/by_user/A.npz   (keys: uwb, gt)
-#      ... tới L.npz
-#      gt đã chuẩn hoá về [-1, 1] bằng đúng công thức self_normalize của MobiVital
-```
-
-Kết quả: `data/processed/by_user/A.npz … L.npz` (12 file, ~2.5 GB).
-
----
-
-## Phần 2 — Dữ liệu cho PIPELINE TEST [máy]
-
-Đây là pipeline MobiVital: chạy `prep_breath_final.py` **nguyên bản, 0 dòng sửa**.
-
-```bash
-# 2.1  Dựng sân riêng + chạy script MobiVital        ✅ scripts/3_run_mobivital_prep.py
-python scripts/3_run_mobivital_prep.py
-```
-
-Script này làm 3 việc, không đụng file của MobiVital:
-
-1. Dựng thư mục tạm `_workdir/` bên trong thư mục kết quả, chứa
-   `dataset/mobivital/tripod/*.csv` là **symlink** trỏ về `data/raw/*/*.csv`
-   (0 byte thêm). Script MobiVital cần một thư mục phẳng vì nó gọi `os.listdir()`.
-2. `cd` vào `_workdir/` rồi gọi `prep_breath_final.py`. Script MobiVital dùng
-   đường dẫn tương đối (`./dataset/mobivital/tripod/`, `./data_final/`) nên chỉ
-   cần đứng đúng chỗ là nó tự tìm ra.
-3. Chuyển 2 file `.npy` nó sinh ra lên thư mục kết quả, xoá `_workdir/`.
-
-Kết quả:
-
-```
-data/processed/mobivital_original/training_breath_tripod_data.npy   (8 người ABCDEFKL, gộp)
-data/processed/mobivital_original/testing_breath_tripod_data.npy    (GHIJ, gộp)
-```
-
-Mỗi `.npy` chứa 2 mảng ghi nối tiếp: `X_uwb` (phức) rồi `y_breath` (đã
-`self_normalize`). Đọc lại phải gọi `np.load` hai lần trên cùng file.
-
----
-
-## Phần 2b — Kiểm tra dữ liệu [máy]
-
-```bash
-python scripts/4_check_data.py     # ✅
-```
-
-In ra shape/dtype/khoảng giá trị của cả hai pipeline, rồi đối chiếu xem có khớp
-nhau không. Chạy xong nên thấy:
-
-```
-dev set  (ABCDEFKL) = 1289 session
-test set (GHIJ)     =  537 session
-tổng cộng           = 1826 session
-
-                       by_user      mobivital
-  dev set              1289         1289         KHỚP
-  test set             537          537          KHỚP
-
-  Sai lệch gt lớn nhất trên 1500 mẫu: 0.00e+00
-
-KẾT LUẬN: dữ liệu OK, không phát hiện lỗi nào.
-```
-
----
-
-## Phần 3 — Đưa dữ liệu lên Google Drive [máy]
-
-Upload một lần, Colab đọc thẳng, không xử lý lại.
-
-```
-Google Drive/
-└── mobivital/
-    └── processed/
-        ├── by_user/                <- copy từ data/processed/by_user/
-        │   ├── A.npz … L.npz
-        └── mobivital_original/     <- copy từ data/processed/mobivital_original/
-            ├── training_breath_tripod_data.npy
-            └── testing_breath_tripod_data.npy
-```
-
----
-
-## Phần 4 — Đưa code lên GitHub [máy]
-
-```bash
-git add -A
-git commit -m "..."
-git push
-```
-
-`.gitignore` đã chặn `data/`, `external/mobivital/`, `runs/`, `*.npz`, `*.npy` —
-chỉ code lên GitHub, dữ liệu ở Drive.
-
----
-
-## Phần 5 — Chạy thí nghiệm trên Colab [Colab]
-
-Mỗi notebook đầu phiên chạy phần setup (mount Drive + git clone + import).
+Chạy **một lần duy nhất**, mất 30–45 phút. Tải dataset thẳng từ Zenodo xuống Colab,
+không upload từ máy — mạng Colab nhanh hơn nhiều.
 
 ```python
-# ô setup, đầu MỌI notebook                          ⏳ notebooks/0_setup.ipynb
 from google.colab import drive
 drive.mount('/content/drive')
 
-!git clone https://github.com/<ban>/THESIS_GRADUATE.git
+!git clone https://github.com/<ban>/THESIS_GRADUATE.git /content/THESIS_GRADUATE
 %cd /content/THESIS_GRADUATE
 !git clone https://github.com/nesl/mobivital-public.git external/mobivital
-!pip install -q numpy scipy matplotlib tqdm torch
+!pip install -q einops
 
-DRIVE     = '/content/drive/MyDrive/mobivital'
-DEV_DATA  = DRIVE + '/processed/by_user'             # A.npz … L.npz
-TEST_DATA = DRIVE + '/processed/mobivital_original'  # 2 file .npy
-RUN_DIR   = DRIVE + '/runs'                          # nơi lưu kết quả
+# Tải dataset (5.7 GB) rồi giải nén (13 GB)
+!mkdir -p data/raw/tripod
+!wget -q --show-progress -O tripod.zip https://zenodo.org/records/15022885/files/tripod.zip
+!unzip -q tripod.zip -d data/raw/tripod/
+
+# Năm bước chuẩn bị
+!python scripts/1_organize_raw.py
+!python scripts/2_make_npz.py
+!python scripts/3_run_mobivital_prep.py
+!python scripts/4_check_data.py
+!python scripts/5_make_windows.py
+
+# Cất những gì cần giữ sang Drive
+!mkdir -p /content/drive/MyDrive/mobivital
+!tar -czf /content/drive/MyDrive/mobivital/windows.tar.gz -C data/processed windows
+!tar -czf /content/drive/MyDrive/mobivital/by_user.tar.gz -C data/processed by_user
 ```
 
-### Thứ tự notebook
+Bước 4 phải in ra `sai lệch gt lớn nhất = 0.00e+00`. Không phải thì dừng lại.
 
-| notebook | pipeline | việc | ghi ra |
-|---|---|---|---|
-| ⏳ `1_explore.ipynb` | dev | xem dữ liệu, vẽ session, sinh hình cho slide | `docs/figures/*.png` |
-| ⏳ `tn0_reproduce.ipynb` | **test** | TN0a (checkpoint MobiVital → eval GHIJ, so paper) + TN0b (train lại LSTM 3–4 seed → test GHIJ) | `runs/tn0/` |
-| ⏳ `tn1_architecture.ipynb` | dev | TCN thường vs DS-TCN, 4 fold × seed | `runs/tn1/` |
-| ⏳ `tn2_revin.ipynb` | dev | người thắng TN1, có/không RevIN | `runs/tn2/` |
-| ⏳ `tn3_loss.ipynb` | dev | MSE vs MSE+Pearson (alpha) | `runs/tn3/` |
-| ⏳ `tn4_threshold.ipynb` | dev | quét corr-threshold 0.70…0.95 | `runs/tn4/` |
-| ⏳ `tn5_hparam.ipynb` | dev | Optuna: channels/kernel/blocks/dropout/lr/wd | `runs/tn5/` |
-| ⏳ `tn6_confirm.ipynb` | dev | chạy lại 2 so sánh then chốt TN1–3 ở threshold + HP cuối | `runs/tn6/` |
-| ⏳ `final_compare.ipynb` | **test** | LSTM + TCN (cấu hình đã khóa) train full pool → test GHIJ | `runs/final/` |
+### Trên Drive sẽ có
 
-Mỗi notebook TN1–TN6 ghi lại: cấu hình đầy đủ, seed, commit git, `cv_score`,
-`cv_std`, bảng điểm 8 người, `test_GHIJ` — vào file trong `runs/`, không chỉ để
-trong output notebook (`docs/PROTOCOL.md` mục 7).
-
-### Luật khi chạy (nhắc lại từ PROTOCOL)
-
-- Mỗi thí nghiệm đổi **đúng một biến**, kế thừa người thắng của thí nghiệm trước.
-- Chọn người thắng bằng `cv_score`. `test_GHIJ` chỉ để nhìn xu hướng.
-- `test_GHIJ` lúc phát triển thấp hơn số công bố (model fold chỉ train 6 người) —
-  bình thường.
+```
+MyDrive/mobivital/
+├── windows.tar.gz     ~200 MB   cửa sổ cắt sẵn, để train
+├── by_user.tar.gz     ~2 GB     uwb phức thô, để chấm điểm
+└── runs/                        checkpoint và kết quả, sinh ra dần
+```
 
 ---
 
-## Phần 6 — Kết quả cuối [Colab]
+## Phần 1 — Mọi phiên Colab sau: ô setup
 
-`final_compare.ipynb`, chạy **một lần** sau khi TN1–TN6 đã khóa hết cấu hình:
+Dán vào đầu mọi notebook. Mất khoảng 2 phút.
+
+```python
+from google.colab import drive
+drive.mount('/content/drive')
+
+!git clone https://github.com/<ban>/THESIS_GRADUATE.git /content/THESIS_GRADUATE
+%cd /content/THESIS_GRADUATE
+!git clone https://github.com/nesl/mobivital-public.git external/mobivital
+!pip install -q einops
+
+!mkdir -p data/processed
+!tar -xzf /content/drive/MyDrive/mobivital/windows.tar.gz -C data/processed/
+!tar -xzf /content/drive/MyDrive/mobivital/by_user.tar.gz -C data/processed/
+
+# runs/ trỏ thẳng vào Drive: Colab ngắt phiên thì checkpoint vẫn còn
+!mkdir -p /content/drive/MyDrive/mobivital/runs
+!ln -s /content/drive/MyDrive/mobivital/runs runs
+
+import sys
+sys.path.insert(0, '/content/THESIS_GRADUATE')
+from src import mobivital_reference as mv
+mv.info()
+```
+
+`src/mobivital_reference.py` tự nhận biết Colab qua sự tồn tại của `/content`, không phải
+sửa gì.
+
+**Điểm quan trọng:** `runs/` là lối tắt vào Drive. Colab hay ngắt phiên giữa chừng —
+checkpoint ghi vào đó thì phiên sau chạy tiếp được.
+
+### Kiểm tra GPU
+
+```python
+import torch
+print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))
+```
+
+Phải ra `True`. Không thì **Runtime → Change runtime type → T4 GPU**.
+
+---
+
+## Phần 2 — Thứ tự notebook
+
+| notebook | việc | pipeline |
+|---|---|---|
+| `tn0.ipynb` | dựng lại kết quả MobiVital bằng code gốc | gốc |
+| `tn0_1.ipynb` | chứng minh pipeline mình cho ra đúng kết quả TN0 | — |
+| `tn1_cv.ipynb` | TCN vs DS-TCN | dev, 4 fold |
+| `tn2_revin.ipynb` | có / không RevIN | dev, 4 fold |
+| `tn3_loss.ipynb` | MSE vs MSE + Pearson | dev, 4 fold |
+| `tn4_threshold.ipynb` | quét ngưỡng lọc 0.70 … 0.95 | dev, 4 fold |
+| `tn5_hparam.ipynb` | Optuna | dev, 4 fold |
+| `tn6_confirm.ipynb` | kiểm lại kết luận TN1–TN3 ở cấu hình cuối | dev, 4 fold |
+| `final_test.ipynb` | train đủ 8 người rồi test GHIJ | gốc |
+
+Luật khi chạy, chi tiết ở `docs/PROTOCOL.md`:
+
+- mỗi thí nghiệm đổi **đúng một biến**, kế thừa người thắng của thí nghiệm trước
+- chọn người thắng bằng `cv_score` (4 fold trên `ABCDEFKL`)
+- `test_GHIJ` chỉ để nhìn xu hướng, **không được dùng để chọn**
+
+---
+
+## Phần 3 — Lấy kết quả về máy
+
+Tuỳ ý, chỉ khi cần. Mọi thứ đã nằm trên Drive.
 
 ```
-cấu hình TCN đã chốt (từ TN1–TN6)
-        |
-   train lại trên ĐỦ 8 người ABCDEFKL      <- PIPELINE TEST (data từ TEST_DATA)
-   train LSTM  trên ĐỦ 8 người ABCDEFKL      <- cùng pipeline
-        |
-   cả hai test GHIJ  ->  BẢNG SO SÁNH CUỐI
-        |
-   + hình scatter cv_score vs test_GHIJ (mọi cấu hình đã thử)
+MyDrive/mobivital/runs/
+├── tn1/checkpoints/*.pth
+├── tn1/scores.csv
+├── tn2/...
+└── final/...
 ```
 
-Báo cáo 3 số: MobiVital công bố (X) · mình dựng lại TN0b (Y ± Z) · TCN của mình
-(W ± V).
+---
+
+## Phần 4 — Riêng TN0 và TN0.1 nên chạy ở máy
+
+Hai thí nghiệm này **đối chiếu số với nhau**, mà bước chọn kênh là `argmax`: hai ứng viên
+gần bằng điểm nhau thì GPU và CPU cho thứ hạng khác nhau, vì cộng số theo thứ tự khác.
+
+Đã đo ở TN0: cùng checkpoint, bản chạy GPU và bản chạy CPU chọn khác kênh ở 251/537 buổi ghi.
+
+Nên muốn so `trùng 537/537` thì phải **cùng loại thiết bị**. Chạy ở máy (CPU) là đơn giản
+nhất. Nếu buộc phải chạy trên Colab thì ép CPU trước khi chấm.
+
+Sau khi TN0.1 xanh thì mọi thí nghiệm sau chạy Colab GPU thoải mái.
 
 ---
 
 ## Tóm tắt một trang
 
 ```
-[máy]  0  git clone repo + upstream, cài lib, tải CSV vào data/raw/tripod/
-[máy]  1  python scripts/1_organize_raw.py      -> data/raw/A..L/
-[máy]  1  python scripts/2_make_npz.py          -> data/processed/by_user/*.npz     (pipeline dev)
-[máy]  2  python scripts/3_run_mobivital_prep.py    -> data/processed/mobivital_original/*.npy  (pipeline test)
-[máy]  2b python scripts/4_check_data.py         -> in bảng kiểm tra, đối chiếu 2 pipeline
-[máy]  3  upload data/processed/ lên Google Drive
-[máy]  4  git push  (code lên GitHub, data ở Drive)
-[Colab]5  0_setup -> 1_explore -> tn0 -> tn1 -> tn2 -> tn3 -> tn4 -> tn5 -> tn6
-[Colab]6  final_compare  -> bảng so sánh + hình
+[máy]   viết code -> git push
+
+[Colab] phiên 1  tải Zenodo -> scripts 1..5 -> cất .tar.gz lên Drive     45 phút
+[Colab] mọi phiên sau  ô setup 2 phút -> chạy notebook
+
+[máy]   tn0.ipynb, tn0_1.ipynb   (cần CPU để đối chiếu số)
+[Colab] tn1 -> tn2 -> tn3 -> tn4 -> tn5 -> tn6 -> final_test
 ```
