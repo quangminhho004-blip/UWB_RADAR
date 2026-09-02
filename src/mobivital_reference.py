@@ -40,7 +40,7 @@ import sys
 
 # Thư mục gốc dự án. Trên Colab khác với ở máy nên phải hỏi.
 if os.path.exists("/content"):
-    PROJECT_DIR = "/content/THESIS_GRADUATE"
+    PROJECT_DIR = "/content/UWB_RADAR"
 else:
     PROJECT_DIR = "/Users/udnb/Desktop/THESIS_GRADUATE"
 

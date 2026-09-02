@@ -20,8 +20,8 @@ không upload từ máy — mạng Colab nhanh hơn nhiều.
 from google.colab import drive
 drive.mount('/content/drive')
 
-!git clone https://github.com/<ban>/THESIS_GRADUATE.git /content/THESIS_GRADUATE
-%cd /content/THESIS_GRADUATE
+!git clone https://github.com/quangminhho004-blip/UWB_RADAR.git /content/UWB_RADAR
+%cd /content/UWB_RADAR
 !git clone https://github.com/nesl/mobivital-public.git external/mobivital
 !pip install -q einops
 
@@ -64,8 +64,8 @@ Dán vào đầu mọi notebook. Mất khoảng 2 phút.
 from google.colab import drive
 drive.mount('/content/drive')
 
-!git clone https://github.com/<ban>/THESIS_GRADUATE.git /content/THESIS_GRADUATE
-%cd /content/THESIS_GRADUATE
+!git clone https://github.com/quangminhho004-blip/UWB_RADAR.git /content/UWB_RADAR
+%cd /content/UWB_RADAR
 !git clone https://github.com/nesl/mobivital-public.git external/mobivital
 !pip install -q einops
 
@@ -78,7 +78,7 @@ drive.mount('/content/drive')
 !ln -s /content/drive/MyDrive/mobivital/runs runs
 
 import sys
-sys.path.insert(0, '/content/THESIS_GRADUATE')
+sys.path.insert(0, '/content/UWB_RADAR')
 from src import mobivital_reference as mv
 mv.info()
 ```
