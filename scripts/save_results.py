@@ -2,11 +2,14 @@
 
     python scripts/save_results.py tn0
 
-Mỗi thực nghiệm có thư mục riêng, nén thành một tệp riêng:
+Mỗi thực nghiệm một thư mục riêng, nén thành một tệp riêng:
 
-    results/tn0/    -> Drive/mobivital/tn0.tar.gz
-    results/cv/     -> Drive/mobivital/cv.tar.gz
-    results/final/  -> Drive/mobivital/final.tar.gz
+    results/tn0/  -> Drive/mobivital/tn0.tar.gz     notebooks/TN0.ipynb
+    results/tn1/  -> Drive/mobivital/tn1.tar.gz     run_cv.py --experiment tn1
+    results/tn2/  -> Drive/mobivital/tn2.tar.gz     run_cv.py --experiment tn2
+    results/tn7/  -> Drive/mobivital/tn7.tar.gz     run_final_test.py --experiment tn7
+
+`.tar.gz` giống `.zip`: `tar` gộp cả thư mục thành một tệp, `gz` nén lại.
 
 Bung ở máy vào đúng chỗ cũ:
 

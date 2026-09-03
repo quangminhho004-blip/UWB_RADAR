@@ -53,9 +53,10 @@ from src import training
 TEST_USERS = ["G", "H", "I", "J"]
 
 WINDOWS_DIR = "data/processed/windows/final_train"
-RUNS_DIR = "runs/final"
-RESULTS_DIR = "results/final"
 SUMMARY_FILE = "runs/summary.csv"
+
+# RUNS_DIR và RESULTS_DIR đặt theo --experiment: mỗi thực nghiệm một thư mục
+# riêng, không dùng chung thùng. Xem phần argparse bên dưới.
 
 # ===============================================================
 
@@ -68,16 +69,23 @@ parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE k
 parser.add_argument("--corr", type=float, default=mv.CORR_THRESHOLD)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--epochs", type=int, default=mv.EPOCHS)
+parser.add_argument("--experiment", required=True,
+                    help="tên thực nghiệm, ví dụ tn7 — quyết định results/<tên>/ và runs/<tên>/")
 args = parser.parse_args()
+
+# Mỗi thực nghiệm một thư mục riêng.
+RUNS_DIR = "runs/" + args.experiment
+RESULTS_DIR = "results/" + args.experiment
 
 revin = args.revin.lower() == "true"
 
-run_id = "final_%s%s_%s_corr%s_seed%d" % (
+run_id = "%s%s_%s_corr%s_seed%d" % (
     args.model, "_revin" if revin else "", args.loss, args.corr, args.seed)
 
 run_dir = RUNS_DIR + "/" + run_id
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
+print("thực nghiệm", args.experiment, " ->", RESULTS_DIR + "/", "và", RUNS_DIR + "/")
 print("run_id  ", run_id)
 print("thiết bị", results.device_name())
 print()
@@ -125,7 +133,7 @@ micro = float(np.mean([row["pearson"] for row in rows]))
 n_negative = sum(1 for row in rows if row["pearson"] < 0)
 
 results.add_summary({"run_id": run_id,
-                     "experiment": "final_test",
+                     "experiment": args.experiment,
                      "model": args.model,
                      "revin": int(revin),
                      "loss": args.loss,

@@ -119,12 +119,21 @@ Bản đang dùng: commit `4319731d2769d4134c92088dd846666e262f18e9`.
 ## Chạy thí nghiệm
 
 ```bash
-python scripts/run_cv.py --model ds_tcn --revin true          # chọn cấu hình
-python scripts/run_final_test.py --model ds_tcn --revin true  # số công bố
+python scripts/run_cv.py         --experiment tn1 --model ds_tcn --revin true  # chọn cấu hình
+python scripts/run_final_test.py --experiment tn7 --model ds_tcn --revin true  # số công bố
 ```
 
-Cả hai nhận chung một bộ cờ: `--model lstm|tcn|ds_tcn`, `--revin true|false`,
-`--loss mse|mse_pearson`, `--alpha`, `--corr`, `--seed`, `--epochs`.
+`--experiment` **bắt buộc** — nó quyết định thư mục kết quả, mỗi thực nghiệm
+một thư mục riêng, không dùng chung:
+
+```
+--experiment tn1  ->  results/tn1/  và  runs/tn1/
+--experiment tn2  ->  results/tn2/  và  runs/tn2/
+```
+
+Ngoài ra hai script nhận chung bộ cờ: `--model lstm|tcn|ds_tcn`,
+`--revin true|false`, `--loss mse|mse_pearson`, `--alpha`, `--corr`, `--seed`,
+`--epochs`.
 
 ```
 run_cv.py           ABCDEFKL -> 4 fold (train 6, chấm 2) -> cv_score

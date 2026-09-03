@@ -3,13 +3,20 @@
 Mỗi thực nghiệm một thư mục riêng, nén thành một tệp riêng khi cất lên Drive:
 
 ```
-results/tn0/     <- notebooks/TN0.ipynb          -> Drive/mobivital/tn0.tar.gz
-results/cv/      <- scripts/run_cv.py            -> Drive/mobivital/cv.tar.gz
-results/final/   <- scripts/run_final_test.py    -> Drive/mobivital/final.tar.gz
+results/tn0/   <- notebooks/TN0.ipynb                        -> Drive/mobivital/tn0.tar.gz
+results/tn1/   <- run_cv.py --experiment tn1                 -> Drive/mobivital/tn1.tar.gz
+results/tn2/   <- run_cv.py --experiment tn2                 -> Drive/mobivital/tn2.tar.gz
+...                                                             ...
+results/tn7/   <- run_final_test.py --experiment tn7         -> Drive/mobivital/tn7.tar.gz
+
 results/checksums.txt   băm dữ liệu, không thuộc thực nghiệm nào
 ```
 
-Nén bằng `python scripts/save_results.py <tên thư mục>`.
+`--experiment` là **bắt buộc** ở cả `run_cv.py` và `run_final_test.py`: nó quyết
+định `results/<tên>/` và `runs/<tên>/`. Không có thùng dùng chung, không thực
+nghiệm nào ghi đè kết quả của thực nghiệm khác.
+
+Nén lên Drive bằng `python scripts/save_results.py <tên thư mục>`.
 
 
 ## results/tn0/
