@@ -33,6 +33,30 @@ của họ, chạy lần hai lại đè lần một. Nên ngay sau mỗi lần c
 Cuối mỗi lần chạy có đụng repo họ, script kiểm `git status --porcelain` phải
 trống và dừng hẳn nếu không.
 
+BƯỚC CHỌN KÊNH CHẠY TRÊN CPU
+
+`inference/mobivital_gen.py` nạp model xong KHÔNG gọi `model.eval()` — không có
+`.eval()` ở đâu trong `inference/`. LSTM ở chế độ train nên cuDNN cấp thêm vùng
+nhớ dự trữ cho backward. Với lô 12.480 cửa sổ x 200 mẫu x 352 hidden x 2 lớp,
+một buổi ghi đòi 21 GB, cộng 12 GB đang dùng là ~33 GB. Đo thật trên Colab:
+
+    L4 22 GB   -> chết ngay ở buổi ghi 1/1874, CUDA out of memory
+    A100 40 GB -> vẫn sát nút
+
+Không sửa được vì đó là code của tác giả. Nên script ép `CUDA_VISIBLE_DEVICES=""`:
+trên CPU, PyTorch dùng cài đặt LSTM gốc, không cần vùng dự trữ đó. Chậm hơn —
+khoảng 2-4 giây một buổi ghi, tổng ~1 giờ 20 cho 537 buổi.
+
+Việc thiếu `.eval()` KHÔNG đổi kết quả: LSTM này `dropout=0`, không có BatchNorm,
+forward ở train và eval giống hệt. Chỉ tốn bộ nhớ.
+
+VÌ SAO PIPELINE ĐỒ ÁN CŨNG PHẢI CHẤM TRÊN CPU
+
+Bước chọn kênh kết thúc bằng `argmax`. Hai ứng viên gần bằng điểm nhau thì đổi
+kernel là đảo thứ hạng. Đo thật: cùng một tệp trọng số, GPU và CPU chọn khác kênh
+ở 251/537 buổi ghi. Nên `scripts/run_tn0.py` phải chạy với `--device cpu` thì
+TN0b mới so được. Vòng train vẫn dùng GPU, chỉ bước chấm điểm mới ép CPU.
+
 DỪNG NGAY KHI LỖI
 
 Mọi lệnh chạy qua `run()`; lệnh nào trả mã khác 0 là dừng cả script. Nhờ vậy
@@ -68,15 +92,22 @@ NPY_FILES = ["data_final/training_breath_tripod_data.npy",   # ABCDEFKL
 # ===============================================================
 
 
-def run(cmd):
+def run(cmd, force_cpu=False):
     """Chạy một lệnh trong thư mục MobiVital. In nguyên văn rồi chạy.
+
+    force_cpu -- ẩn GPU khỏi tiến trình con. Cần cho mobivital_gen.py, xem phần
+                 "BƯỚC CHỌN KÊNH CHẠY TRÊN CPU" ở đầu tệp.
 
     Dừng cả script nếu lệnh trả mã khác 0 — không để bước sau chạy tiếp trên
     dữ liệu của lần trước.
     """
+    env = dict(os.environ)
+    if force_cpu:
+        env["CUDA_VISIBLE_DEVICES"] = ""
+
     print()
-    print("$ " + cmd, flush=True)
-    if subprocess.run(cmd, shell=True, cwd=MOBIVITAL_DIR).returncode != 0:
+    print("$ " + cmd + ("        # ép CPU" if force_cpu else ""), flush=True)
+    if subprocess.run(cmd, shell=True, cwd=MOBIVITAL_DIR, env=env).returncode != 0:
         sys.exit("DỪNG — lệnh trên trả mã lỗi")
 
 
@@ -154,7 +185,7 @@ def case_a():
 
 def case_b():
     """TN0b — chọn kênh bằng tệp trọng số tác giả phát hành."""
-    run("python -m inference.mobivital_gen")
+    run("python -m inference.mobivital_gen", force_cpu=True)
     save_txt("TN0b")
     run("python -m inference.evaluate -m TN0b.txt --save_file scores_TN0b.csv")
     collect_scores("TN0b")
@@ -164,7 +195,7 @@ def case_b():
 def case_c():
     """TN0c — train lại LSTM từ đầu bằng chính vòng train của tác giả."""
     run("python -m training.autoreg_training --model_name lstm_retrained")
-    run("python -m inference.mobivital_gen --model_name lstm_retrained")
+    run("python -m inference.mobivital_gen --model_name lstm_retrained", force_cpu=True)
     save_txt("TN0c")
     run("python -m inference.evaluate -m TN0c.txt --save_file scores_TN0c.csv")
     collect_scores("TN0c")
