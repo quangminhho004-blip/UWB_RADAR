@@ -306,3 +306,93 @@ là TXT dùng tên file cũ (`231003`), tức nó ra đời trước khi dataset
 
 Không cản trở gì: hai bên đồng thuận về việc kênh nào tốt (top 2–4 trong 120), chênh điểm
 cuối chỉ 0.003, và bài báo đã được dựng lại đúng.
+
+---
+
+## TN0 nối với TN0.1 như thế nào
+
+**TN0 chạy ở máy cá nhân, không chạy trên Colab.** Lý do: bước chọn kênh là
+`argmax`, mà GPU và CPU cộng số theo thứ tự khác nhau nên hai ứng viên gần bằng
+điểm có thể đảo thứ hạng. Đã đo ở chính TN0: cùng checkpoint, bản chạy GPU và
+bản chạy CPU chọn khác kênh ở **251/537** buổi ghi. Muốn đối chiếu từng dòng thì
+phải cùng loại thiết bị.
+
+### TN0 sinh ra cái gì
+
+Chạy **code MobiVital bản gốc, 0 dòng sửa**, ba lần với ba checkpoint khác nhau:
+
+| | checkpoint | sinh ra | điểm |
+|---|---|---|---|
+| TN0a | không cần — dùng file MobiVital commit sẵn | — | 0.819481 |
+| TN0b | MobiVital phát hành | `TN0b.txt` + `scores_TN0b.csv` | **0.822175** |
+| TN0c | mình train lại 7h06 | `TN0c.txt` + `scores_TN0c.csv` | 0.798748 |
+
+Mỗi lần chạy đẻ ra **hai** file, đúng như pipeline gốc:
+
+```
+mobivital_gen.py:147   ghi lua chon kenh   ->  TN0b.txt          537 dong
+evaluate.py:68         ghi diem            ->  scores_TN0b.csv   537 dong
+```
+
+Bốn file này đã commit vào `results/`. Chúng là **mốc đối chiếu** cho mọi thứ về sau.
+
+### TN0.1 dùng mốc đó thế nào
+
+TN0 chỉ chạy được LSTM — `mobivital_gen.py:152` ghi cứng `LSTMMultiStep(...)`,
+không nạp được TCN. Nên phải viết bộ chọn kênh riêng, `src/scoring.py`, nhận
+model bất kỳ.
+
+TN0.1 kiểm bộ chọn kênh đó:
+
+```
+checkpoint LSTM cua MobiVital  (lstm_pred_tripod_0.9.pth)
+        |
+        +--> mobivital_gen.py cua HO   ->  results/TN0b.txt        <- lam o TN0
+        |                                  results/scores_TN0b.csv
+        |
+        +--> src/scoring.py cua MINH   ->  results/TN0_1.txt       <- lam o TN0.1
+                                           results/scores_TN0_1.csv
+                        |
+              doi chieu tung dong va tung diem
+```
+
+Cùng checkpoint, cùng dữ liệu, cùng thuật toán, không có gì ngẫu nhiên → phải ra
+y hệt. Kết quả:
+
+```
+lua chon kenh        TRUNG 537 / 537,  khac 0
+diem tung buoi ghi   lech lon nhat 1.11e-16  = 1 don vi lam tron cuoi cua float64
+                     so buoi ghi lech > 1e-12:  0
+diem trung binh      0.8221751511496862  vs  0.8221751511496864
+```
+
+Xem output đầy đủ trong `notebooks/TN0_1.ipynb`.
+
+### Vì sao chỉ cần một phép kiểm này
+
+Trùng 537/537 chứng minh cùng lúc ba thứ:
+
+| | vì sao suy ra được |
+|---|---|
+| dữ liệu `by_user/*.npz` đúng | `scoring.py` đọc `.npz` còn `mobivital_gen.py` đọc CSV. Khác dữ liệu thì kênh chọn ra đã lệch |
+| bộ chọn kênh đúng | 537/537 |
+| hàm chấm điểm đúng | 537 điểm khớp tới chữ số 15 |
+
+Từ đây thay LSTM bằng TCN, mọi khâu còn lại giữ nguyên. Câu trả lời cho hội đồng:
+
+> Bộ chọn kênh của chúng em cho kết quả trùng khớp hoàn toàn 537/537 với mã nguồn
+> gốc khi dùng cùng checkpoint. Sau đó chỉ thay bộ dự báo LSTM bằng TCN, còn dữ
+> liệu, cách chọn waveform và cách chấm điểm giữ cố định.
+
+### Chuỗi bằng chứng, chạy ở đâu
+
+```
+[may]   TN0      code MobiVital ban goc      -> results/TN0b.txt, TN0c.txt + scores
+[may]   TN0.1    src/scoring.py cua minh     -> results/TN0_1.txt + scores
+                 doi chieu voi TN0b          -> 537/537
+[Colab] DATA_PREPARE   du lieu tu Zenodo     -> by_user, windows, checksums
+[Colab] TN1..TN6       TCN, 4 fold           <- tu day tro di
+```
+
+TN0 và TN0.1 phải chạy CPU vì chúng **đối chiếu số với nhau**. Từ TN1 trở đi so
+các cấu hình với nhau chứ không so với số cũ, nên chạy GPU thoải mái.

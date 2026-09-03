@@ -98,6 +98,56 @@ Bản đang dùng: commit `4319731d2769d4134c92088dd846666e262f18e9`.
 [`src/mobivital_reference.py`](src/mobivital_reference.py) là chỗ duy nhất chạm vào code
 MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file script nào của họ.
 
+
+## Chuỗi bằng chứng
+
+```
+[máy]   TN0            code MobiVital bản gốc, 0 dòng sửa
+                       -> results/TN0b.txt · TN0c.txt + scores_*.csv
+                       -> 0.8195 / 0.8222 / 0.7987      khớp Table 4 bài báo (0.819)
+
+[máy]   TN0.1          src/scoring.py của mình, cùng checkpoint LSTM
+                       -> results/TN0_1.txt + scores_TN0_1.csv
+                       -> TRÙNG 537/537 với TN0b, điểm lệch 1e-16
+
+[Colab] DATA_PREPARE   dữ liệu từ Zenodo -> by_user, windows
+                       -> sai lệch hai pipeline = 0.0
+                       -> results/checksums.txt
+
+[Colab] TN1..TN6       TCN, 4 fold                       <- từ đây trở đi
+```
+
+TN0 và TN0.1 chạy ở máy cá nhân, **không chạy trên Colab**. Bước chọn kênh là
+`argmax`, GPU và CPU cộng số theo thứ tự khác nên hai ứng viên gần bằng điểm có
+thể đảo thứ hạng — đã đo: cùng checkpoint, GPU và CPU chọn khác kênh ở 251/537
+buổi ghi. Muốn đối chiếu từng dòng thì phải cùng thiết bị.
+
+Từ TN1 trở đi so các cấu hình với nhau chứ không so với số cũ, nên chạy GPU.
+
+Chi tiết: [`notebooks/TN0.md`](notebooks/TN0.md) mục "TN0 nối với TN0.1".
+
+## Dữ liệu
+
+Dữ liệu thô 13 GB nằm trên Zenodo, **không đưa lên GitHub** (GitHub chặn file quá
+100 MB). Thay vào đó repo giữ:
+
+- [`notebooks/DATA_PREPARE.ipynb`](notebooks/DATA_PREPARE.ipynb) — đi từ DOI Zenodo
+  tới dữ liệu đã xử lý, có đủ output
+- [`results/checksums.txt`](results/checksums.txt) — mã băm **nội dung mảng** của 21
+  file, để ai chạy lại cũng đối chiếu được
+
+Đo được khi chạy ở hai máy khác nhau:
+
+```
+by_user/*.npz     12/12 giong TUNG SO
+windows/*.npz     so cua so giong het, gia tri lech ~2e-8
+```
+
+`by_user` chỉ dùng `+ - x :` nên chính xác tuyệt đối. `windows` lệch vì phép
+`phase` dùng `np.unwrap`: cộng `2pi` 22 lần trong `float32` làm `max-min` lệch
+`1e-6`, rồi `self_normalize` **chia** cho số đó nên khuếch đại ra toàn mảng.
+Ba phép `abs`, `real`, `imag` khớp tới chữ số 13.
+
 ## Đọc tiếp
 
 - [`docs/PROTOCOL.md`](docs/PROTOCOL.md) — luật thí nghiệm. Đọc trước khi chạy bất cứ gì.
