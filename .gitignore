@@ -4,10 +4,17 @@ external/mobivital/
 
 # Dữ liệu. Để trên Google Drive, không commit.
 # Lưu ý: git KHÔNG cho chú thích cùng dòng với pattern, phải để riêng dòng.
-data/
+data/*
 
-# Kết quả chạy: checkpoint, log, điểm.
-runs/
+# Trừ mã băm dữ liệu — nhỏ, và là bằng chứng dựng lại được đúng bộ dữ liệu.
+!data/checksums.txt
+
+# Kết quả chạy. Mỗi thực nghiệm một thư mục runs/<tên>/.
+# Tệp nhỏ (điểm, bảng lựa chọn kênh, đường cong loss) VẪN commit để hội đồng
+# xem được trên GitHub; chỉ chặn trọng số và tệp nén.
+runs/**/*.pth
+runs/*.zip
+runs/*.tar.gz
 
 # Định dạng dữ liệu và checkpoint
 *.npz

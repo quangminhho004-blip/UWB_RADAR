@@ -20,8 +20,12 @@ BA VIỆC SCRIPT NÀY LÀM
        Repo họ không có LICENSE nên không chép vào repo đồ án, phải clone riêng
        mỗi phiên Colab.
     2. cài thư viện thiếu (einops)
-    3. biến runs/ thành lối tắt vào Drive — Colab hay ngắt phiên, checkpoint ghi
-       vào đó thì phiên sau chạy tiếp được (xem src/training.py)
+
+runs/ là thư mục THẬT, không phải lối tắt vào Drive. Lý do: thư mục lối tắt thì
+git không track được tệp bên trong, mà bằng chứng thực nghiệm (bảng lựa chọn
+kênh, điểm từng buổi ghi) cần commit lên GitHub cho hội đồng xem. Muốn giữ kết
+quả sau khi Colab ngắt phiên thì chạy `python scripts/save_results.py <tên>` rồi
+tải tệp .zip về.
 
 Lệnh nào lỗi là dừng hẳn, không chạy tiếp sang bước sau.
 """
@@ -36,8 +40,6 @@ import sys
 MOBIVITAL_DIR = "external/mobivital"
 MOBIVITAL_URL = "https://github.com/nesl/mobivital-public.git"
 MOBIVITAL_COMMIT = "4319731d2769d4134c92088dd846666e262f18e9"
-
-DRIVE = "/content/drive/MyDrive/mobivital"
 
 # ===============================================================
 
@@ -83,17 +85,7 @@ run("git -C %s checkout -q %s" % (MOBIVITAL_DIR, MOBIVITAL_COMMIT))
 run("pip install -q einops")
 
 
-# --- 3. runs/ trỏ vào Drive ---
-
-if os.path.isdir(DRIVE):
-    os.makedirs(DRIVE + "/runs", exist_ok=True)
-    if not os.path.islink("runs"):
-        run("rm -rf runs")
-        os.symlink(DRIVE + "/runs", "runs")
-    print("runs/ -> " + os.readlink("runs"))
-else:
-    os.makedirs("runs", exist_ok=True)
-    print("chưa mount Drive — runs/ nằm trong máy ảo, mất khi Colab ngắt phiên")
+os.makedirs("runs", exist_ok=True)
 
 
 # --- Thông tin phiên chạy ---

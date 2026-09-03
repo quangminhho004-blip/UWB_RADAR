@@ -92,11 +92,11 @@ scripts/     gọi src/ theo đúng thứ tự; notebook chỉ chạy một dòn
   make_npz.py          đọc CSV trong thư mục MobiVital -> by_user/*.npz
   check_data.py        so dữ liệu đồ án với dữ liệu MobiVital, từng byte
   make_windows.py      -> data/processed/windows/
-  checksums.py         -> results/checksums.txt
+  checksums.py         -> data/checksums.txt
   run_tn0.py           TN0 pipeline đồ án: --case a|b|c, --compare
   run_cv.py            4 fold trên ABCDEFKL, chọn cấu hình
   run_final_test.py    train đủ ABCDEFKL, test GHIJ một lần duy nhất
-  save_results.py      nén results/<thực nghiệm>/ lên Drive
+  save_results.py      nén runs/<thực nghiệm>/ thành runs/<thực nghiệm>.zip
   mobivital/           chạy code tác giả nguyên bản
     setup_dataset.py   vá 52 tên tệp lỗi thời, giấu dữ liệu khỏi git của họ
     run_tn0.py         TN0 pipeline MobiVital: --case prep|a|b|c
@@ -127,8 +127,16 @@ python scripts/run_final_test.py --experiment tn7 --model ds_tcn --revin true  #
 một thư mục riêng, không dùng chung:
 
 ```
---experiment tn1  ->  results/tn1/  và  runs/tn1/
---experiment tn2  ->  results/tn2/  và  runs/tn2/
+--experiment tn1  ->  runs/tn1/
+--experiment tn2  ->  runs/tn2/
+```
+
+Trong `runs/<tên>/` có đủ checkpoint, đường cong loss, bảng lựa chọn kênh, điểm
+từng buổi ghi và metric. Xong thì nén lại mang đi:
+
+```bash
+python scripts/save_results.py tn1     # -> runs/tn1.zip
+unzip tn1.zip -d runs/                 # bung lại đúng chỗ cũ
 ```
 
 Ngoài ra hai script nhận chung bộ cờ: `--model lstm|tcn|ds_tcn`,
@@ -162,7 +170,7 @@ MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file sc
 ```
 [Colab] DATA_PREPARE   dữ liệu từ Zenodo -> by_user, windows
                        -> sai lệch hai pipeline = 0.0
-                       -> results/checksums.txt
+                       -> data/checksums.txt
 
 [Colab] TN0    a  chấm bảng MobiVital commit sẵn   -> khớp Table 4 bài báo (0.819)
                b  checkpoint có sẵn, tự chọn kênh
@@ -187,7 +195,7 @@ Dữ liệu thô 13 GB nằm trên Zenodo, **không đưa lên GitHub** (GitHub 
 
 - [`notebooks/DATA_PREPARE.ipynb`](notebooks/DATA_PREPARE.ipynb) — đi từ DOI Zenodo
   tới dữ liệu đã xử lý, có đủ output
-- [`results/checksums.txt`](results/checksums.txt) — mã băm **nội dung mảng** của 21
+- [`data/checksums.txt`](data/checksums.txt) — mã băm **nội dung mảng** của 12
   file, để ai chạy lại cũng đối chiếu được
 
 Đo được khi chạy ở hai máy khác nhau:

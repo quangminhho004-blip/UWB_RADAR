@@ -55,8 +55,8 @@ TEST_USERS = ["G", "H", "I", "J"]
 WINDOWS_DIR = "data/processed/windows/final_train"
 SUMMARY_FILE = "runs/summary.csv"
 
-# RUNS_DIR và RESULTS_DIR đặt theo --experiment: mỗi thực nghiệm một thư mục
-# riêng, không dùng chung thùng. Xem phần argparse bên dưới.
+# EXP_DIR đặt theo --experiment: MỘT thư mục cho cả checkpoint lẫn điểm,
+# mỗi thực nghiệm một thư mục riêng. Xem phần argparse bên dưới.
 
 # ===============================================================
 
@@ -70,22 +70,21 @@ parser.add_argument("--corr", type=float, default=mv.CORR_THRESHOLD)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--epochs", type=int, default=mv.EPOCHS)
 parser.add_argument("--experiment", required=True,
-                    help="tên thực nghiệm, ví dụ tn7 — quyết định results/<tên>/ và runs/<tên>/")
+                    help="tên thực nghiệm, ví dụ tn7 — quyết định thư mục runs/<tên>/")
 args = parser.parse_args()
 
 # Mỗi thực nghiệm một thư mục riêng.
-RUNS_DIR = "runs/" + args.experiment
-RESULTS_DIR = "results/" + args.experiment
+EXP_DIR = "runs/" + args.experiment
 
 revin = args.revin.lower() == "true"
 
 run_id = "%s%s_%s_corr%s_seed%d" % (
     args.model, "_revin" if revin else "", args.loss, args.corr, args.seed)
 
-run_dir = RUNS_DIR + "/" + run_id
-os.makedirs(RESULTS_DIR, exist_ok=True)
+run_dir = EXP_DIR + "/" + run_id
+os.makedirs(EXP_DIR, exist_ok=True)
 
-print("thực nghiệm", args.experiment, " ->", RESULTS_DIR + "/", "và", RUNS_DIR + "/")
+print("thực nghiệm", args.experiment, " ->", EXP_DIR + "/")
 print("run_id  ", run_id)
 print("thiết bị", results.device_name())
 print()
@@ -124,8 +123,8 @@ rows = scoring.score_all(TEST_USERS, model)
 
 minutes_score = (time.time() - started) / 60
 
-scoring.write_txt(rows, RESULTS_DIR + "/" + run_id + ".txt")
-results.save_sessions(RESULTS_DIR + "/scores_" + run_id + ".csv", rows)
+scoring.write_txt(rows, EXP_DIR + "/" + run_id + ".txt")
+results.save_sessions(EXP_DIR + "/scores_" + run_id + ".csv", rows)
 
 by_user = scoring.mean_by_user(rows)
 macro = float(np.mean([by_user[u] for u in TEST_USERS]))
@@ -163,6 +162,6 @@ for user in TEST_USERS:
 print("   macro    %.10f   <- số công bố" % macro)
 print("   micro    %.10f" % micro)
 print("=" * 58)
-print(RESULTS_DIR + "/" + run_id + ".txt")
-print(RESULTS_DIR + "/scores_" + run_id + ".csv")
+print(EXP_DIR + "/" + run_id + ".txt")
+print(EXP_DIR + "/scores_" + run_id + ".csv")
 print(SUMMARY_FILE)

@@ -30,7 +30,7 @@ riêng, rồi chứng minh nó cho ra đúng kết quả code gốc. Đó là vi
 CẦN CHẠY TRƯỚC
 
     mục 2 và mục 3 của notebooks/TN0.ipynb — dựng dữ liệu và chạy pipeline
-    MobiVital, sinh results/tn0/TN0a.txt, TN0b.txt, TN0c.txt và scores_TN0*.csv
+    MobiVital, sinh runs/tn0/TN0a.txt, TN0b.txt, TN0c.txt và scores_TN0*.csv
 """
 
 import argparse
@@ -52,7 +52,7 @@ from src import results, scoring, training
 
 TEST_USERS = ["G", "H", "I", "J"]
 
-RESULTS_DIR = "results/tn0"
+RESULTS_DIR = "runs/tn0"
 WINDOWS_DIR = "data/processed/windows/final_train"
 RUN_DIR = "runs/tn0/ours_c"
 

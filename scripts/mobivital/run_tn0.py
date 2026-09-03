@@ -26,7 +26,7 @@ mà tên đó trùng một tệp **đã có sẵn trong repo tác giả**. Chạ
 của họ, chạy lần hai lại đè lần một. Nên ngay sau mỗi lần chạy, script:
 
     1. chép tệp vừa sinh -> inference/methods/<tên>.txt   (để evaluate.py đọc)
-    2. chép tệp vừa sinh -> results/tn0/<tên>.txt         (để đối chiếu về sau)
+    2. chép tệp vừa sinh -> runs/tn0/<tên>.txt         (để đối chiếu về sau)
     3. git checkout khôi phục tệp gốc của tác giả
     4. xoá tệp tạm <tên>.txt
 
@@ -54,7 +54,7 @@ import sys
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
 MOBIVITAL_DIR = "external/mobivital"
-RESULTS_DIR = "results/tn0"
+RESULTS_DIR = "runs/tn0"
 
 # Tên cố định mà mobivital_gen.py luôn ghi ra.
 GENERATED = "inference/methods/tripod_mobivital_pre_invert_0.9.txt"
@@ -101,7 +101,7 @@ def save_txt(name):
 
 
 def collect_scores(name):
-    """Chép bảng điểm evaluate.py vừa ghi ra results/tn0/, rồi dọn tệp tạm."""
+    """Chép bảng điểm evaluate.py vừa ghi ra runs/tn0/, rồi dọn tệp tạm."""
     shutil.copy(inside("inference/methods/scores_" + name + ".csv"),
                 RESULTS_DIR + "/scores_" + name + ".csv")
 

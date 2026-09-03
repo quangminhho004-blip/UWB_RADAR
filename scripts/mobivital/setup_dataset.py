@@ -74,9 +74,9 @@ import shutil
 MOBIVITAL_DIR = "external/mobivital"
 CSV_DIR = MOBIVITAL_DIR + "/dataset/mobivital/tripod"
 OLD_NAMES_DIR = MOBIVITAL_DIR + "/dataset/mobivital/tripod_old_names"
-OUT_DIR = "results/tn0"
+OUT_DIR = "runs/tn0"
 
-# Bảng kết quả MobiVital commit sẵn. Sao ra results/ trước khi làm gì, vì
+# Bảng kết quả MobiVital commit sẵn. Sao ra runs/tn0/ trước khi làm gì, vì
 # mobivital_gen.py ghi đè đúng cái tên này.
 THEIR_TXT = "tripod_mobivital_pre_invert_0.9.txt"
 

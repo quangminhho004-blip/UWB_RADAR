@@ -53,8 +53,8 @@ DEV_USERS = ["A", "B", "C", "D", "E", "F", "K", "L"]
 WINDOWS_DIR = "data/processed/windows/dev_cv"
 SUMMARY_FILE = "runs/summary.csv"
 
-# RUNS_DIR và RESULTS_DIR đặt theo --experiment: mỗi thực nghiệm một thư mục
-# riêng, không dùng chung thùng. Xem phần argparse bên dưới.
+# EXP_DIR đặt theo --experiment: MỘT thư mục cho cả checkpoint lẫn điểm,
+# mỗi thực nghiệm một thư mục riêng. Xem phần argparse bên dưới.
 
 # ===============================================================
 
@@ -68,21 +68,20 @@ parser.add_argument("--corr", type=float, default=mv.CORR_THRESHOLD)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--epochs", type=int, default=mv.EPOCHS)
 parser.add_argument("--experiment", required=True,
-                    help="tên thực nghiệm, ví dụ tn1 — quyết định results/<tên>/ và runs/<tên>/")
+                    help="tên thực nghiệm, ví dụ tn1 — quyết định thư mục runs/<tên>/")
 args = parser.parse_args()
 
 # Mỗi thực nghiệm một thư mục riêng.
-RUNS_DIR = "runs/" + args.experiment
-RESULTS_DIR = "results/" + args.experiment
+EXP_DIR = "runs/" + args.experiment
 
 revin = args.revin.lower() == "true"
 
 config_id = "%s%s_%s_corr%s_seed%d" % (
     args.model, "_revin" if revin else "", args.loss, args.corr, args.seed)
 
-os.makedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs(EXP_DIR, exist_ok=True)
 
-print("thực nghiệm", args.experiment, " ->", RESULTS_DIR + "/", "và", RUNS_DIR + "/")
+print("thực nghiệm", args.experiment, " ->", EXP_DIR + "/")
 print("cấu hình", config_id)
 print("thiết bị ", results.device_name())
 print()
@@ -102,7 +101,7 @@ def run_one_fold(fold_name, val_users):
     training.set_seed(args.seed)
     model = models.build_model(args.model, revin=revin)
 
-    run_dir = RUNS_DIR + "/" + run_id
+    run_dir = EXP_DIR + "/" + run_id
     train_result = training.train(model,
                                   training.make_loader(X, y),
                                   None,
@@ -114,7 +113,7 @@ def run_one_fold(fold_name, val_users):
 
     model.eval()
     rows = scoring.score_all(val_users, model)
-    results.save_sessions(RESULTS_DIR + "/scores_" + run_id + ".csv", rows)
+    results.save_sessions(EXP_DIR + "/scores_" + run_id + ".csv", rows)
 
     by_user = scoring.mean_by_user(rows)
     macro = float(np.mean([by_user[u] for u in val_users]))

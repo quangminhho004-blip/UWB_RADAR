@@ -19,7 +19,7 @@ DÙNG ĐỂ LÀM GÌ
 
 Dữ liệu thô nằm trên Zenodo (DOI 10.5281/zenodo.15022885), 13 GB, không đưa lên
 GitHub được. Ai muốn kiểm chứng thì chạy `notebooks/DATA_PREPARE.ipynb` rồi chạy
-script này, đối chiếu với `results/checksums.txt` trong repo.
+script này, đối chiếu với `data/checksums.txt` trong repo.
 
 ĐO ĐƯỢC GÌ KHI CHẠY Ở HAI MÁY
 
@@ -53,7 +53,7 @@ import numpy as np
 # viện toán từng máy (xem docstring), băm vào chỉ gây hiểu nhầm là "sai".
 FOLDERS = ["data/processed/by_user"]
 
-OUT_FILE = "results/checksums.txt"
+OUT_FILE = "data/checksums.txt"
 
 # ===============================================================
 
