@@ -69,6 +69,12 @@ external/mobivital/dataset/mobivital/tripod/   1874 CSV, 13 GB
 | 5 | `python scripts/check_data.py` | đối chiếu hai bên, phải khớp từng byte |
 | 6 | `python scripts/make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
 
+Chạy `notebooks/DATA_PREPARE.ipynb` một lần là hai tệp `by_user.tar` và
+`windows.tar.gz` nằm sẵn trên Drive. Từ đó mọi notebook sau gọi
+`python scripts/restore_from_drive.py` để lấy về (2 phút) thay vì chạy lại
+bước 4 và 6 (~16 phút). CSV thô 13 GB không cất lên Drive vì pipeline MobiVital
+đọc thẳng CSV, mà tải lại từ Zenodo chỉ mất 4 phút.
+
 `data/` chỉ chứa thứ pipeline của mình sinh ra. `scripts/mobivital/` chỉ **dọn
 chỗ** — việc đọc CSV do chính `prep_breath_final.py` của MobiVital làm, nguyên
 bản, 0 dòng sửa.

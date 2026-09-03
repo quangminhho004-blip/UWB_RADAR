@@ -49,6 +49,9 @@ import time
 RUNS_DIR = "runs"
 SUMMARY_FILE = "runs/summary.csv"
 
+# Mount được Drive thì chép luôn tệp nén sang cho khỏi mất khi Colab ngắt phiên.
+DRIVE = "/content/drive/MyDrive/mobivital"
+
 # ===============================================================
 
 
@@ -111,5 +114,10 @@ print("Bên trong:", flush=True)
 subprocess.run("unzip -l " + archive + " | tail -n +4 | head -40", shell=True)
 sys.stdout.flush()
 print()
-print("Tải %s về rồi đưa lên Drive. Giải nén: unzip %s.zip -d runs/"
-      % (archive, name))
+if os.path.isdir(DRIVE):
+    shutil.copy(archive, DRIVE + "/" + name + ".zip")
+    print()
+    print("đã chép sang", DRIVE + "/" + name + ".zip")
+
+print()
+print("Giải nén lại đúng chỗ cũ:  unzip %s.zip -d runs/" % name)
