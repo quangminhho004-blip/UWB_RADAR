@@ -143,7 +143,7 @@ def score_all(users, model, by_user_dir=None):
         files = data["files"]
 
         for i in range(len(gt_all)):
-            sequence, index, so_ung_vien = pick_channel(uwb_all[i], model)
+            sequence, index, n_kept = pick_channel(uwb_all[i], model)
 
             # gt trong .npz đã chuẩn hoá một lần lúc đọc CSV. MobiVital chuẩn
             # hoá thêm một lần nữa ở evaluate.py dòng 56, nên làm y hệt.
@@ -154,7 +154,7 @@ def score_all(users, model, by_user_dir=None):
                          "session_file": str(files[i]),
                          "bin": bin_number,
                          "method": method,
-                         "n_candidates_kept": so_ung_vien,
+                         "n_candidates_kept": n_kept,
                          "pearson": float(np.corrcoef(gt, sequence)[0, 1])})
     return rows
 
@@ -167,17 +167,17 @@ def mean_by_user(rows):
     Lý do: mỗi người có số buổi ghi khác nhau, tính gộp thì người ghi nhiều
     buổi bị tính nặng ký hơn một cách vô lý.
     """
-    tong = {}
-    dem = {}
+    total = {}
+    count = {}
     for row in rows:
         user = row["user"]
-        tong[user] = tong.get(user, 0) + row["pearson"]
-        dem[user] = dem.get(user, 0) + 1
+        total[user] = total.get(user, 0) + row["pearson"]
+        count[user] = count.get(user, 0) + 1
 
-    ket_qua = {}
-    for user in sorted(tong):
-        ket_qua[user] = tong[user] / dem[user]
-    return ket_qua
+    result = {}
+    for user in sorted(total):
+        result[user] = total[user] / count[user]
+    return result
 
 
 def write_txt(rows, path):

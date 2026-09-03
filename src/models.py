@@ -1,8 +1,8 @@
 """Các model dự báo. Tất cả cùng một giao diện.
 
     from src import models
-    model = models.tao_model("ds_tcn", revin=True)
-    du_bao = model(torch.randn(64, 200))     # -> (64, 25)
+    model = models.build_model("ds_tcn", revin=True)
+    pred = model(torch.randn(64, 200))     # -> (64, 25)
 
 GIAO DIỆN BẮT BUỘC
 
@@ -17,6 +17,12 @@ BA MODEL
     lstm      LSTMMultiStep của MobiVital, làm mốc so sánh
     tcn       tích chập nhân quả, giãn dần
     ds_tcn    như trên nhưng tách depthwise + pointwise, ít tham số hơn nhiều
+
+Số tham số đo được:
+
+    lstm     1,502,713
+    tcn         76,633    -95%
+    ds_tcn      29,017    -98%
 
 RevIN là lớp bọc, dùng được với cả tcn lẫn ds_tcn.
 """
@@ -33,117 +39,118 @@ class RevIN(nn.Module):
     Mỗi cửa sổ 200 mẫu có mức nền và biên độ riêng: người thở sâu hay nông,
     ngồi gần hay xa radar. Model phải học vừa hình dạng vừa mấy thứ đó.
 
-    RevIN gỡ phần đó ra: trừ trung bình, chia độ lệch chuẩn, cho model chỉ
-    lo hình dạng. Xong thì nhân lại và cộng lại vào đầu ra.
+    RevIN gỡ phần đó ra: trừ trung bình, chia độ lệch chuẩn, cho model chỉ lo
+    hình dạng. Xong thì nhân lại và cộng lại vào đầu ra.
     """
 
-    def forward_chuan_hoa(self, x):
-        self.trung_binh = x.mean(dim=1, keepdim=True)
-        self.do_lech = x.std(dim=1, keepdim=True) + 1e-5
-        return (x - self.trung_binh) / self.do_lech
+    def normalize(self, x):
+        self.mean = x.mean(dim=1, keepdim=True)
+        self.std = x.std(dim=1, keepdim=True) + 1e-5
+        return (x - self.mean) / self.std
 
-    def forward_tra_lai(self, y):
-        return y * self.do_lech + self.trung_binh
+    def denormalize(self, y):
+        return y * self.std + self.mean
 
 
-class KhoiTCN(nn.Module):
+class TCNBlock(nn.Module):
     """Một khối tích chập nhân quả.
 
     "Nhân quả" nghĩa là mẫu thứ t chỉ được nhìn các mẫu <= t, không nhìn tương
     lai. Làm bằng cách đệm thêm bên TRÁI rồi cắt bỏ phần thừa bên phải.
 
-    "Giãn" (dilation) là bỏ cách quãng khi lấy mẫu: giãn 8 thì lấy mẫu cách
-    nhau 8 bước. Nhờ vậy chồng vài khối là nhìn được xa mà không tốn tham số.
+    "Giãn" (dilation) là bỏ cách quãng khi lấy mẫu: giãn 8 thì lấy mẫu cách nhau
+    8 bước. Nhờ vậy chồng vài khối là nhìn được xa mà không tốn tham số.
     """
 
-    def __init__(self, so_kenh, kernel_size, gian, dropout, tach_roi):
+    def __init__(self, channels, kernel_size, dilation, dropout, separable):
         super().__init__()
-        self.dem_trai = (kernel_size - 1) * gian
+        self.left_pad = (kernel_size - 1) * dilation
 
-        if tach_roi:
+        if separable:
             # Depthwise: mỗi kênh một bộ lọc riêng, không trộn kênh.
             # Pointwise: kernel 1, chỉ trộn kênh.
             # Hai bước rời nhau tốn ít tham số hơn nhiều so với làm một lần.
             self.conv = nn.Sequential(
-                nn.Conv1d(so_kenh, so_kenh, kernel_size,
-                          dilation=gian, groups=so_kenh),
-                nn.Conv1d(so_kenh, so_kenh, 1))
+                nn.Conv1d(channels, channels, kernel_size,
+                          dilation=dilation, groups=channels),
+                nn.Conv1d(channels, channels, 1))
         else:
-            self.conv = nn.Conv1d(so_kenh, so_kenh, kernel_size, dilation=gian)
+            self.conv = nn.Conv1d(channels, channels, kernel_size,
+                                  dilation=dilation)
 
-        self.chuan_hoa = nn.BatchNorm1d(so_kenh)
-        self.kich_hoat = nn.ReLU()
-        self.bo_bot = nn.Dropout(dropout)
+        self.norm = nn.BatchNorm1d(channels)
+        self.activation = nn.ReLU()
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        goc = x
-        x = nn.functional.pad(x, (self.dem_trai, 0))   # đệm bên trái
+        residual = x
+        x = nn.functional.pad(x, (self.left_pad, 0))    # đệm bên trái
         x = self.conv(x)
-        x = self.chuan_hoa(x)
-        x = self.kich_hoat(x)
-        x = self.bo_bot(x)
-        return x + goc                                  # nối tắt
+        x = self.norm(x)
+        x = self.activation(x)
+        x = self.dropout(x)
+        return x + residual                              # nối tắt
 
 
 class TCN(nn.Module):
     """Chồng nhiều khối TCN, giãn gấp đôi mỗi khối.
 
-    Giãn 1, 2, 4, 8, 16, 32 với kernel 3 thì nhìn được 127 mẫu quá khứ.
-    Nhịp thở khoảng 0.25 Hz, lấy mẫu 50 Hz, nên một nhịp thở dài ~200 mẫu.
+    Giãn 1, 2, 4, 8, 16, 32 với kernel 3 thì nhìn được 127 mẫu quá khứ. Nhịp thở
+    khoảng 0.25 Hz, lấy mẫu 50 Hz, nên một nhịp thở dài khoảng 200 mẫu.
     """
 
-    def __init__(self, so_kenh=64, kernel_size=3, so_khoi=6,
-                 dropout=0.1, tach_roi=False, revin=False):
+    def __init__(self, channels=64, kernel_size=3, n_blocks=6,
+                 dropout=0.1, separable=False, revin=False):
         super().__init__()
-        self.dau_vao = nn.Conv1d(1, so_kenh, 1)
+        self.input_conv = nn.Conv1d(1, channels, 1)
 
-        cac_khoi = []
-        for i in range(so_khoi):
-            cac_khoi.append(KhoiTCN(so_kenh, kernel_size, 2 ** i,
-                                    dropout, tach_roi))
-        self.cac_khoi = nn.Sequential(*cac_khoi)
+        blocks = []
+        for i in range(n_blocks):
+            blocks.append(TCNBlock(channels, kernel_size, 2 ** i,
+                                   dropout, separable))
+        self.blocks = nn.Sequential(*blocks)
 
-        self.dau_ra = nn.Linear(so_kenh, mv.FUTURE_LENGTH)
+        self.output_linear = nn.Linear(channels, mv.FUTURE_LENGTH)
         self.revin = RevIN() if revin else None
 
     def forward(self, x):
         if self.revin is not None:
-            x = self.revin.forward_chuan_hoa(x)
+            x = self.revin.normalize(x)
 
         x = x.unsqueeze(1)          # (batch, 200) -> (batch, 1, 200)
-        x = self.dau_vao(x)
-        x = self.cac_khoi(x)
+        x = self.input_conv(x)
+        x = self.blocks(x)
         x = x[:, :, -1]             # chỉ lấy mẫu cuối cùng
-        y = self.dau_ra(x)          # -> (batch, 25)
+        y = self.output_linear(x)   # -> (batch, 25)
 
         if self.revin is not None:
-            y = self.revin.forward_tra_lai(y)
+            y = self.revin.denormalize(y)
         return y
 
 
-def tao_model(ten, revin=False, **tham_so):
+def build_model(name, revin=False, **kwargs):
     """Dựng model theo tên, để notebook chỉ cần truyền chuỗi.
 
-        tao_model("lstm")
-        tao_model("tcn")
-        tao_model("ds_tcn", revin=True, so_kenh=96)
+        build_model("lstm")
+        build_model("tcn")
+        build_model("ds_tcn", revin=True, channels=96)
     """
-    if ten == "lstm":
+    if name == "lstm":
         return mv.new_lstm()          # RevIN không áp cho baseline
 
-    if ten == "tcn":
-        return TCN(tach_roi=False, revin=revin, **tham_so)
+    if name == "tcn":
+        return TCN(separable=False, revin=revin, **kwargs)
 
-    if ten == "ds_tcn":
-        return TCN(tach_roi=True, revin=revin, **tham_so)
+    if name == "ds_tcn":
+        return TCN(separable=True, revin=revin, **kwargs)
 
-    raise ValueError("không biết model tên " + ten)
+    raise ValueError("không biết model tên " + name)
 
 
-def dem_tham_so(model):
-    """Số tham số học được. Để trả lời câu 'tốt hơn vì kiến trúc hay vì to hơn'."""
-    tong = 0
+def count_params(model):
+    """Số tham số học được. Để trả lời câu "tốt hơn vì kiến trúc hay vì to hơn"."""
+    total = 0
     for p in model.parameters():
         if p.requires_grad:
-            tong = tong + p.numel()
-    return tong
+            total = total + p.numel()
+    return total

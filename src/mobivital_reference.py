@@ -90,7 +90,7 @@ def new_lstm():
     return LSTMMultiStep(LSTM_HIDDEN_SIZE, LSTM_NUM_LAYERS, FUTURE_LENGTH)
 
 
-def noi_runs_vao_drive():
+def link_runs_to_drive():
     """Trên Colab: cho runs/ trỏ thẳng vào Drive. Ở máy: không làm gì.
 
     Colab hay ngắt phiên giữa chừng và xoá sạch /content. Checkpoint ghi vào
@@ -104,18 +104,18 @@ def noi_runs_vao_drive():
         os.makedirs(PROJECT_DIR + "/runs", exist_ok=True)
         return PROJECT_DIR + "/runs"
 
-    tren_drive = "/content/drive/MyDrive/mobivital/runs"
-    o_repo = PROJECT_DIR + "/runs"
+    on_drive = "/content/drive/MyDrive/mobivital/runs"
+    in_repo = PROJECT_DIR + "/runs"
 
     if not os.path.exists("/content/drive/MyDrive"):
         raise RuntimeError("chưa mount Drive: chạy drive.mount('/content/drive') trước")
 
-    os.makedirs(tren_drive, exist_ok=True)
-    if not os.path.lexists(o_repo):
-        os.symlink(tren_drive, o_repo)
+    os.makedirs(on_drive, exist_ok=True)
+    if not os.path.lexists(in_repo):
+        os.symlink(on_drive, in_repo)
 
-    print("runs/ ->", os.path.realpath(o_repo))
-    return o_repo
+    print("runs/ ->", os.path.realpath(in_repo))
+    return in_repo
 
 
 def info():

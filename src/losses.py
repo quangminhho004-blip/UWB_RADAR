@@ -1,18 +1,15 @@
 """Hàm loss để train.
 
     from src import losses
-    gia_tri = losses.mse_pearson(du_bao, that, alpha=0.7)
-
-VÌ SAO CÓ FILE NÀY
+    value = losses.mse_pearson(pred, target, alpha=0.7)
 
 MobiVital train bằng MSE nhưng chấm điểm bằng Pearson. Hai thước đo khác nhau:
 
     MSE      phạt khi sai BIÊN ĐỘ    -- dự báo 0.5 mà thật 0.9 thì bị phạt
-    Pearson  chỉ quan tâm HÌNH DẠNG  -- lên xuống cùng nhịp là đủ, biên độ mặc kệ
+    Pearson  chỉ quan tâm HÌNH DẠNG  -- lên xuống cùng nhịp là đủ
 
-Sóng nhịp thở đã được kéo về [-1, 1] rồi, nên biên độ không mang thông tin gì
-thêm. Model dành sức khớp biên độ là phí. Đó là lý do TN3 thử đưa Pearson vào
-loss xem có ăn điểm không.
+Sóng nhịp thở đã kéo về [-1, 1] nên biên độ không mang thông tin gì thêm. Model
+dành sức khớp biên độ là phí. Đó là lý do TN3 thử đưa Pearson vào loss.
 
 alpha là trọng số cho MSE:
 
@@ -24,28 +21,28 @@ alpha là trọng số cho MSE:
 import torch
 
 
-def pearson(du_bao, that):
-    """Tương quan Pearson của từng hàng. Trả về một mảng (số_hàng,).
+def pearson(pred, target):
+    """Tương quan Pearson của từng hàng. Trả về mảng (số_hàng,).
 
-    Công thức: bỏ giá trị trung bình đi, rồi lấy tích vô hướng chia cho tích
-    hai độ dài. Chính là cos của góc giữa hai vector đã trừ trung bình.
+    Bỏ giá trị trung bình đi, rồi lấy tích vô hướng chia cho tích hai độ dài.
+    Chính là cos của góc giữa hai vector đã trừ trung bình.
     """
-    du_bao = du_bao - du_bao.mean(dim=1, keepdim=True)
-    that = that - that.mean(dim=1, keepdim=True)
+    pred = pred - pred.mean(dim=1, keepdim=True)
+    target = target - target.mean(dim=1, keepdim=True)
 
-    tu_so = (du_bao * that).sum(dim=1)
-    mau_so = du_bao.norm(dim=1) * that.norm(dim=1)
+    numerator = (pred * target).sum(dim=1)
+    denominator = pred.norm(dim=1) * target.norm(dim=1)
 
     # Cộng số rất nhỏ để không chia cho 0 khi gặp đoạn sóng phẳng lì.
-    return tu_so / (mau_so + 1e-8)
+    return numerator / (denominator + 1e-8)
 
 
-def mse(du_bao, that):
+def mse(pred, target):
     """Sai số bình phương trung bình. Đúng hàm MobiVital dùng."""
-    return torch.nn.functional.mse_loss(du_bao, that)
+    return torch.nn.functional.mse_loss(pred, target)
 
 
-def mse_pearson(du_bao, that, alpha):
+def mse_pearson(pred, target, alpha):
     """Trộn MSE với Pearson.
 
         alpha * MSE  +  (1 - alpha) * (1 - Pearson)
@@ -53,23 +50,23 @@ def mse_pearson(du_bao, that, alpha):
     Pearson càng gần 1 càng tốt, nên lấy (1 - Pearson) để nó thành "càng nhỏ
     càng tốt" giống MSE, rồi mới cộng được.
     """
-    phan_mse = mse(du_bao, that)
-    phan_pearson = 1 - pearson(du_bao, that).mean()
-    return alpha * phan_mse + (1 - alpha) * phan_pearson
+    mse_part = mse(pred, target)
+    pearson_part = 1 - pearson(pred, target).mean()
+    return alpha * mse_part + (1 - alpha) * pearson_part
 
 
-def lay_ham_loss(ten, alpha=1.0):
+def get_loss_fn(name, alpha=1.0):
     """Trả về hàm loss theo tên, để notebook chỉ cần truyền chuỗi.
 
-        lay_ham_loss("mse")
-        lay_ham_loss("mse_pearson", alpha=0.7)
+        get_loss_fn("mse")
+        get_loss_fn("mse_pearson", alpha=0.7)
     """
-    if ten == "mse":
+    if name == "mse":
         return mse
 
-    if ten == "mse_pearson":
-        def ham(du_bao, that):
-            return mse_pearson(du_bao, that, alpha)
-        return ham
+    if name == "mse_pearson":
+        def loss_fn(pred, target):
+            return mse_pearson(pred, target, alpha)
+        return loss_fn
 
-    raise ValueError("không biết loss tên " + ten)
+    raise ValueError("không biết loss tên " + name)

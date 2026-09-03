@@ -48,49 +48,49 @@ import numpy as np
 
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
-THU_MUC = ["data/processed/by_user",
+FOLDERS = ["data/processed/by_user",
            "data/processed/windows/dev_cv",
            "data/processed/windows/final_train"]
 
-FILE_RA = "results/checksums.txt"
+OUT_FILE = "results/checksums.txt"
 
 # ===============================================================
 
 
-def bam_noi_dung(path):
+def hash_content(path):
     """Băm nội dung các mảng trong file .npz, bỏ qua vỏ ZIP.
 
     Băm cả tên mảng lẫn dữ liệu, theo thứ tự tên đã sắp xếp, để hai file có
     cùng số liệu nhưng khác thứ tự lưu vẫn ra cùng mã băm.
     """
-    du_lieu = np.load(path)
+    data = np.load(path)
     h = hashlib.md5()
 
-    for ten in sorted(du_lieu.files):
-        mang = du_lieu[ten]
-        h.update(ten.encode())
-        h.update(str(mang.shape).encode())
-        h.update(str(mang.dtype).encode())
-        h.update(np.ascontiguousarray(mang).tobytes())
+    for name in sorted(data.files):
+        array = data[name]
+        h.update(name.encode())
+        h.update(str(array.shape).encode())
+        h.update(str(array.dtype).encode())
+        h.update(np.ascontiguousarray(array).tobytes())
 
     return h.hexdigest()
 
 
-duong_dan = []
-for thu_muc in THU_MUC:
-    duong_dan = duong_dan + sorted(glob.glob(thu_muc + "/*.npz"))
+paths = []
+for folder in FOLDERS:
+    paths = paths + sorted(glob.glob(folder + "/*.npz"))
 
-os.makedirs(os.path.dirname(FILE_RA), exist_ok=True)
+os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
 
-dong = []
-for path in duong_dan:
-    mot_dong = "%s  %s" % (bam_noi_dung(path), path)
-    dong.append(mot_dong)
-    print(mot_dong)
+lines = []
+for path in paths:
+    one_line = "%s  %s" % (hash_content(path), path)
+    lines.append(one_line)
+    print(one_line)
 
-opened_file = open(FILE_RA, "w")
-opened_file.write("\n".join(dong) + "\n")
+opened_file = open(OUT_FILE, "w")
+opened_file.write("\n".join(lines) + "\n")
 opened_file.close()
 
 print()
-print("Xong.", len(dong), "file ->", FILE_RA)
+print("Xong.", len(lines), "file ->", OUT_FILE)
