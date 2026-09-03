@@ -26,9 +26,9 @@ drive.mount('/content/drive')
 !pip install -q einops
 
 # Tải dataset (5.7 GB) rồi giải nén (13 GB)
-!mkdir -p data/raw/tripod
+!mkdir -p data/raw
 !wget -q --show-progress -O tripod.zip https://zenodo.org/records/15022885/files/tripod.zip
-!unzip -q tripod.zip -d data/raw/tripod/
+!unzip -q tripod.zip -d data/raw/          # zip da co san thu muc tripod/
 
 # Năm bước chuẩn bị
 !python scripts/1_organize_raw.py
