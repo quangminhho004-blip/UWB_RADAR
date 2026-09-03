@@ -1,30 +1,41 @@
-# Kết quả thí nghiệm — file đối chứng
+# Kết quả thí nghiệm
 
-Sinh ra từ `notebooks/TN0.ipynb`, chạy một mạch trên Colab. Xem output trong đó.
+Mỗi thực nghiệm một thư mục riêng, nén thành một tệp riêng khi cất lên Drive:
 
-Notebook làm ba việc hai lần: một lần bằng code MobiVital bản gốc, một lần bằng
-code của mình. Mỗi lần ghi ra hai file — bảng lựa chọn kênh và điểm từng buổi
-ghi — nên so được cả hai.
+```
+results/tn0/     <- notebooks/TN0.ipynb          -> Drive/mobivital/tn0.tar.gz
+results/cv/      <- scripts/run_cv.py            -> Drive/mobivital/cv.tar.gz
+results/final/   <- scripts/run_final_test.py    -> Drive/mobivital/final.tar.gz
+results/checksums.txt   băm dữ liệu, không thuộc thực nghiệm nào
+```
 
-| bậc | việc | MobiVital | của mình |
-|---|---|---|---|
-| a | chấm bảng MobiVital commit sẵn | `scores_TN0a.csv` | `scores_ours_a.csv` |
-| b | checkpoint có sẵn, tự chọn kênh | `TN0b.txt` `scores_TN0b.csv` | `ours_b.txt` `scores_ours_b.csv` |
-| c | train lại từ đầu | `TN0c.txt` `scores_TN0c.csv` | `ours_c.txt` `scores_ours_c.csv` |
+Nén bằng `python scripts/save_results.py <tên thư mục>`.
 
-Bậc a của mình không có file `.txt` riêng: nó chấm đúng bảng `TN0a.txt`.
 
-Định dạng `.txt`: `tên_file_csv , bin , phép , cờ_lật`
+## results/tn0/
+
+Ba kiểm tra, chạy hai lần — một lần bằng code MobiVital, một lần bằng code đồ án.
+Mỗi lần ghi hai tệp: tệp lựa chọn kênh `.txt` và điểm từng buổi ghi `.csv`.
+
+| kiểm tra | pipeline MobiVital | pipeline đồ án |
+|---|---|---|
+| TN0a  tính điểm từ tệp lựa chọn kênh có sẵn | `TN0a.txt` `scores_TN0a.csv` | `scores_ours_a.csv` |
+| TN0b  chọn kênh bằng tệp trọng số tác giả | `TN0b.txt` `scores_TN0b.csv` | `ours_b.txt` `scores_ours_b.csv` |
+| TN0c  train lại LSTM | `TN0c.txt` `scores_TN0c.csv` | `ours_c.txt` `scores_ours_c.csv` |
+
+TN0a phía đồ án không có tệp `.txt` riêng: nó tính điểm ngay trên `TN0a.txt`.
+
+Định dạng tệp lựa chọn kênh: `tên_tệp_csv , kênh khoảng cách , phép biến đổi , cờ lật`
 
 ```
 240416_userH_tripod_04_2.csv,28,phase,0
 ```
 
-Bậc a và b phải khớp tuyệt đối — cùng dữ liệu, cùng thuật toán, không có gì ngẫu
-nhiên. Bậc c thì không, vì thứ tự xáo trộn dữ liệu khác nhau.
+TN0a và TN0b bắt buộc hai pipeline khớp tới chữ số cuối. TN0c chỉ tham khảo vì
+đây là hai lần train độc lập.
 
-`TN0a.txt` là bản sao bảng MobiVital commit sẵn trong repo họ, giữ ở đây để mục 6
-của notebook chấm lại được. Nguồn: `inference/methods/` của
+`TN0a.txt` là bản sao tệp MobiVital commit sẵn trong repo họ, giữ ở đây để chạy
+lại được. Nguồn: `inference/methods/` của
 [mobivital-public](https://github.com/nesl/mobivital-public).
 
 

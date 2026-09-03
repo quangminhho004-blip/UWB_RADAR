@@ -86,14 +86,20 @@ Từ đó mọi thí nghiệm sau chỉ đọc `by_user/*.npz`, bỏ được CS
 
 ```
 src/         pipeline của đồ án — models.py, training.py, scoring.py, results.py
-scripts/     gọi src/ theo đúng thứ tự; notebook chỉ chạy một dòng
-  make_npz.py        đọc CSV trong thư mục MobiVital -> by_user/*.npz
-  make_windows.py    -> data/processed/windows/
-  check_data.py      đối chiếu dữ liệu mình với dữ liệu MobiVital
-  checksums.py       -> results/checksums.txt
-  run_cv.py          4 fold trên ABCDEFKL, chọn cấu hình
-  run_final_test.py  train đủ ABCDEFKL, test GHIJ một lần duy nhất
-  mobivital/         để riêng: dọn chỗ cho pipeline gốc chạy nguyên bản
+scripts/     gọi src/ theo đúng thứ tự; notebook chỉ chạy một dòng !python
+  setup_colab.py       clone mã nguồn, ghim commit MobiVital, nối runs/ vào Drive
+  download_dataset.py  tải Zenodo -> giải nén vào thư mục MobiVital
+  make_npz.py          đọc CSV trong thư mục MobiVital -> by_user/*.npz
+  check_data.py        so dữ liệu đồ án với dữ liệu MobiVital, từng byte
+  make_windows.py      -> data/processed/windows/
+  checksums.py         -> results/checksums.txt
+  run_tn0.py           TN0 pipeline đồ án: --case a|b|c, --compare
+  run_cv.py            4 fold trên ABCDEFKL, chọn cấu hình
+  run_final_test.py    train đủ ABCDEFKL, test GHIJ một lần duy nhất
+  save_results.py      nén results/<thực nghiệm>/ lên Drive
+  mobivital/           chạy code tác giả nguyên bản
+    setup_dataset.py   vá 52 tên tệp lỗi thời, giấu dữ liệu khỏi git của họ
+    run_tn0.py         TN0 pipeline MobiVital: --case prep|a|b|c
 notebooks/   thí nghiệm, chạy trên Colab
 docs/        luật thí nghiệm và lý do thiết kế
 

@@ -332,7 +332,7 @@ nên hai ứng viên gần bằng điểm có thể đảo thứ hạng (xem M�
 ### Ba bậc, mỗi bậc thêm đúng một bộ phận
 
 ```
-a   chi ham cham diem       results/TN0a.txt (bang commit san)
+a   chi ham cham diem       results/tn0/TN0a.txt (bang commit san)
                             |
 b   + bo chon kenh          checkpoint MobiVital phat hanh
                             |

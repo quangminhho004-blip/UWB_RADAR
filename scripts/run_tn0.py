@@ -30,7 +30,7 @@ riêng, rồi chứng minh nó cho ra đúng kết quả code gốc. Đó là vi
 CẦN CHẠY TRƯỚC
 
     mục 2 và mục 3 của notebooks/TN0.ipynb — dựng dữ liệu và chạy pipeline
-    MobiVital, sinh results/TN0a.txt, TN0b.txt, TN0c.txt và scores_TN0*.csv
+    MobiVital, sinh results/tn0/TN0a.txt, TN0b.txt, TN0c.txt và scores_TN0*.csv
 """
 
 import argparse
@@ -52,7 +52,7 @@ from src import results, scoring, training
 
 TEST_USERS = ["G", "H", "I", "J"]
 
-RESULTS_DIR = "results"
+RESULTS_DIR = "results/tn0"
 WINDOWS_DIR = "data/processed/windows/final_train"
 RUN_DIR = "runs/tn0/ours_c"
 
@@ -179,6 +179,15 @@ def verdict(ok):
 
 def compare():
     """In bảng đối chiếu. Trả về True nếu tất cả kiểm tra bắt buộc đều đạt."""
+    can = ["scores_TN0a.csv", "scores_TN0b.csv", "scores_TN0c.csv",
+           "scores_ours_a.csv", "scores_ours_b.csv", "scores_ours_c.csv",
+           "TN0b.txt", "ours_b.txt"]
+    thieu = [f for f in can if not os.path.exists(RESULTS_DIR + "/" + f)]
+    if thieu:
+        sys.exit("Chưa đủ kết quả để đối chiếu, thiếu trong %s/:\n  %s\n"
+                 "Chạy hết mục 3 và mục 4 của notebooks/TN0.ipynb trước."
+                 % (RESULTS_DIR, "\n  ".join(thieu)))
+
     a_mob = float(np.mean(list(scores_mobivital("scores_TN0a.csv").values())))
     b_mob = float(np.mean(list(scores_mobivital("scores_TN0b.csv").values())))
     c_mob = float(np.mean(list(scores_mobivital("scores_TN0c.csv").values())))
