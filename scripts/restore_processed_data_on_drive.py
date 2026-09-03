@@ -1,6 +1,6 @@
 """Lấy dữ liệu đã xử lý từ Google Drive về, thay vì dựng lại từ đầu.
 
-    python scripts/restore_from_drive.py
+    python scripts/restore_processed_data_on_drive.py
 
 `notebooks/DATA_PREPARE.ipynb` chạy một lần rồi cất hai tệp lên Drive:
 
