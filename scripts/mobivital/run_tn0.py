@@ -86,12 +86,22 @@ NPY_FILES = ["data_final/training_breath_tripod_data.npy",   # ABCDEFKL
 def run(cmd):
     """Chạy một lệnh trong thư mục MobiVital. In nguyên văn rồi chạy.
 
+    Đặt PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True. Sau khi vá .eval(),
+    một buổi ghi chỉ cần khoảng 2.3 GB, nhưng lô to nhỏ khác nhau giữa các buổi
+    (số ứng viên sống sót qua invert_detector dao động) nên bộ cấp phát mặc định
+    giữ lại nhiều vùng đã dành mà không dùng. Đo thật: chết ở buổi ghi 27/1874,
+    xin 11.35 GB trong khi 9.36 GB đang bị giữ mà bỏ không. Bật cờ này thì chạy
+    trọn 1874 buổi trong 17 phút.
+
     Dừng cả script nếu lệnh trả mã khác 0 — không để bước sau chạy tiếp trên
     dữ liệu của lần trước.
     """
+    env = dict(os.environ)
+    env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
     print()
     print("$ " + cmd, flush=True)
-    if subprocess.run(cmd, shell=True, cwd=MOBIVITAL_DIR).returncode != 0:
+    if subprocess.run(cmd, shell=True, cwd=MOBIVITAL_DIR, env=env).returncode != 0:
         sys.exit("DỪNG — lệnh trên trả mã lỗi")
 
 
@@ -133,15 +143,18 @@ PATCHED_FILE = "inference/mobivital_gen.py"
 def check_clean():
     """Repo tác giả chỉ được đổi đúng tệp đã vá, và chỉ trong khối đánh dấu."""
     dirty = subprocess.run("git status --porcelain", shell=True, cwd=MOBIVITAL_DIR,
-                           capture_output=True, text=True).stdout.strip()
+                           capture_output=True, text=True).stdout
 
-    if not dirty:
+    # Không strip cả chuỗi: porcelain để mã trạng thái ở hai cột đầu, dòng chưa
+    # đưa vào chỉ mục bắt đầu bằng dấu cách. Tách theo dòng rồi lấy tên tệp.
+    changed = [line[3:].strip() for line in dirty.split("\n") if line.strip()]
+
+    if not changed:
         print()
         print("repo MobiVital: SẠCH, không sửa dòng nào")
         return
 
-    lines = dirty.split("\n")
-    if lines != [" M " + PATCHED_FILE]:
+    if changed != [PATCHED_FILE]:
         sys.exit("DỪNG — repo MobiVital bị đụng ngoài dự kiến:\n" + dirty)
 
     diff = subprocess.run("git diff -- " + PATCHED_FILE, shell=True, cwd=MOBIVITAL_DIR,
