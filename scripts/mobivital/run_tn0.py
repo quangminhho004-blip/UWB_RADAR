@@ -161,8 +161,16 @@ def check_clean():
                           capture_output=True, text=True).stdout
 
     added = [l for l in diff.split("\n") if l.startswith("+") and not l.startswith("+++")]
-    ngoai_khoi = [l for l in added
-                  if not (l.strip().startswith("+#") or l.strip() == "+    model.eval()")]
+
+    # Bỏ dấu + của diff rồi mới xét nội dung. Chỉ cho phép dòng chú thích và
+    # đúng một dòng lệnh model.eval().
+    ngoai_khoi = []
+    for l in added:
+        noi_dung = l[1:].strip()
+        if noi_dung.startswith("#") or noi_dung == "model.eval()":
+            continue
+        ngoai_khoi.append(l)
+
     if ngoai_khoi:
         sys.exit("DỪNG — tệp đã vá còn thay đổi ngoài khối đánh dấu:\n"
                  + "\n".join(ngoai_khoi))
