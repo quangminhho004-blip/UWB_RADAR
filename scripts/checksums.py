@@ -48,9 +48,10 @@ import numpy as np
 
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
-FOLDERS = ["data/processed/by_user",
-           "data/processed/windows/dev_cv",
-           "data/processed/windows/final_train"]
+# Chỉ băm by_user — đó là dữ liệu gốc, tính bằng + - x : nên khớp TỪNG SỐ giữa
+# các máy. windows dùng np.angle/unwrap/corrcoef, lệch chữ số cuối ~2e-8 tuỳ thư
+# viện toán từng máy (xem docstring), băm vào chỉ gây hiểu nhầm là "sai".
+FOLDERS = ["data/processed/by_user"]
 
 OUT_FILE = "results/checksums.txt"
 

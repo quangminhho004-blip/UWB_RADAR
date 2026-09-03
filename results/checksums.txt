@@ -10,12 +10,3 @@ c57332c85f17cf8121816077a7375572  data/processed/by_user/G.npz
 3b52d9a9883477ef933d91ca2a30bbaf  data/processed/by_user/J.npz
 4404b66d919d214b7eb03277b47de725  data/processed/by_user/K.npz
 f7c4e4b7888499d3f10fd29a0880c894  data/processed/by_user/L.npz
-b78b4f23086b53d3e8b54b765f81ce22  data/processed/windows/dev_cv/A_corr0.9_h200_f25.npz
-ad257d0711689ebed3806f53c34115ed  data/processed/windows/dev_cv/B_corr0.9_h200_f25.npz
-d7527faa7317f4cb35f414d3d38f2d1a  data/processed/windows/dev_cv/C_corr0.9_h200_f25.npz
-9f7cb5974742d536e068a91fcb11d700  data/processed/windows/dev_cv/D_corr0.9_h200_f25.npz
-205fbb02d9ecb66cdba8bb904e9231f3  data/processed/windows/dev_cv/E_corr0.9_h200_f25.npz
-bd481eb40980c28f53ff21a2abc3e22c  data/processed/windows/dev_cv/F_corr0.9_h200_f25.npz
-1c5206c077488ab2395e66eec547221e  data/processed/windows/dev_cv/K_corr0.9_h200_f25.npz
-99938fc29afb3ae3dbbadb141c475ad7  data/processed/windows/dev_cv/L_corr0.9_h200_f25.npz
-8da996cd83274bb7b575fdb8027c27f5  data/processed/windows/final_train/train_corr0.9_h200_f25.npz
