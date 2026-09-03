@@ -28,14 +28,14 @@ args.data_folder = './data_final'                   # autoreg_training.py:34
 args.model_folder= 'checkpoints'
 ```
 
-`./` = "thư mục đang đứng". Repo này để dữ liệu ở `data/raw/`, `data/processed/` — tên khác hẳn.
+`./` = "thư mục đang đứng". CSV nay giải nén thẳng vào `external/mobivital/dataset/mobivital/tripod/` nên các đường dẫn đó đúng sẵn.
 
 Nên dựng một thư mục rỗng có đúng những cái tên đó, bên trong toàn symlink trỏ về file thật
 (gần như 0 byte). `cd` vào đấy rồi chạy. Code MobiVital tưởng nó đang nằm trong repo của nó.
 
 ```
 runs/tn0/work/
-├── dataset/mobivital/tripod/   1874 symlink -> data/raw/*/*.csv
+├── dataset/mobivital/tripod/   1874 CSV thật, giải nén thẳng vào đây
 ├── data_final/                 2 symlink -> external/mobivital/data_final/*.npy
 ├── checkpoints/                BẢN SAO .pth + optimal_params.json
 └── inference/methods/          nơi code MobiVital ghi TXT ra

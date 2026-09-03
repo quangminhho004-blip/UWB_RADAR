@@ -11,16 +11,22 @@ README của MobiVital ghi chạy như sau, từ trong thư mục repo của h�
     python -m inference.mobivital_gen
     python -m inference.evaluate -m YOUR_METHOD.txt
 
-Bốn lệnh đó chạy nguyên bản, không qua lớp bọc. Chỉ thiếu đúng một thứ:
-`./dataset/mobivital/tripod/` phải nằm ngay trong repo họ, vì
-`prep_breath_final.py` dòng 18 đọc đường dẫn tương đối đó. Script này dựng nó
-bằng lối tắt, rồi ghi vào `.git/info/exclude` — file loại trừ CỤC BỘ, không
-thuộc repo, không bị track — nên `git status` của họ vẫn trống.
+Bốn lệnh chạy nguyên bản, không qua lớp bọc nào. CSV giải nén thẳng vào
+`dataset/mobivital/tripod/` — đúng đường dẫn code họ đòi — nên chúng chạy được
+ngay. Script này chỉ thêm hai thứ họ không có:
 
-`./data_final/*.npy` thì KHÔNG dựng ở đây: chính `prep_breath_final.py` sinh ra
-nó. Bên mình không làm hộ việc đó nữa.
+    1. tripod_old_names/   vá 52 tên file lỗi thời, cho evaluate.py
+    2. .git/info/exclude   giấu dữ liệu khỏi git của họ
 
-VIỆC KHÓ NHẤT: 52 TÊN FILE LỖI THỜI
+MỘT BẢN CSV DUY NHẤT
+
+    external/mobivital/dataset/mobivital/tripod/   1874 CSV thật  <- ở đây
+    data/                                          chỉ dữ liệu mình sinh ra
+
+Hai pipeline đọc chung một bản CSV. Nhờ vậy khi `scripts/check_data.py` báo sai
+lệch bằng 0 thì không ai cãi được là do hai bản dữ liệu khác nhau.
+
+52 TÊN FILE LỖI THỜI
 
 Bảng kết quả MobiVital commit sẵn ra đời TRƯỚC khi dataset đổi tên đưa lên
 Zenodo. 52 trong 537 dòng ghi mốc ngày tháng 10, bản Zenodo hiện tại là tháng 12:
@@ -30,12 +36,10 @@ Zenodo. 52 trong 537 dòng ghi mốc ngày tháng 10, bản Zenodo hiện tại 
                      ^^
 
 `evaluate.py` dòng 28 mở file theo tên trong bảng, gặp 52 tên đó là chết giữa
-chừng — mất luôn con số đối chiếu với bài báo.
+chừng — mất luôn con số đối chiếu với bài báo. Cách vá: thư mục lối tắt mang tên
+cũ, trỏ vào file thật. Không sửa bảng, không sửa code họ.
 
-Cách vá: tạo lối tắt mang tên cũ, trỏ vào file thật. Không sửa bảng, không sửa
-code họ.
-
-VÌ SAO PHẢI DỰNG HAI THƯ MỤC CSV
+VÌ SAO PHẢI LÀ THƯ MỤC RIÊNG
 
 Hai script của MobiVital chọn buổi ghi theo hai cách khác nhau:
 
@@ -45,10 +49,8 @@ Hai script của MobiVital chọn buổi ghi theo hai cách khác nhau:
 52 tên cũ đó đều thuộc G H I J. Nhét chung một thư mục thì `mobivital_gen.py`
 đếm thành 589 buổi ghi thay vì 537, tính hai lần cùng một bản ghi.
 
-    dataset/mobivital/tripod/            1874 file, tên thật
-                                         -> mobivital_gen.py dùng (mặc định)
-    dataset/mobivital/tripod_old_names/  1874 + 52
-                                         -> CHỈ evaluate.py chấm bảng của họ, qua cờ -d
+    tripod/            1874 file thật     -> prep_breath_final.py, mobivital_gen.py
+    tripod_old_names/  1874 + 52 lối tắt  -> CHỈ evaluate.py chấm bảng của họ, qua cờ -d
 
 BẰNG CHỨNG 52 TÊN ĐÓ LÀ CÙNG BUỔI GHI
 
@@ -58,7 +60,7 @@ trỏ nhầm buổi ghi thì điểm phải rải quanh 0.
 
 CẦN CHẠY TRƯỚC
 
-    scripts/prepare_raw.py   -> data/raw/A..L
+    giải nén tripod.zip vào external/mobivital/dataset/mobivital/
 """
 
 import csv
@@ -69,8 +71,9 @@ import shutil
 
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
-RAW_DIR = "data/raw"
 MOBIVITAL_DIR = "external/mobivital"
+CSV_DIR = MOBIVITAL_DIR + "/dataset/mobivital/tripod"
+OLD_NAMES_DIR = MOBIVITAL_DIR + "/dataset/mobivital/tripod_old_names"
 OUT_DIR = "results"
 
 # Bảng kết quả MobiVital commit sẵn. Sao ra results/ trước khi làm gì, vì
@@ -83,15 +86,6 @@ MONTH_END = 4
 NEW_MONTH = "12"
 
 # ===============================================================
-
-
-def link_all(csv_paths, target_dir):
-    """Tạo lối tắt cho mọi file CSV vào một thư mục phẳng."""
-    os.makedirs(target_dir, exist_ok=True)
-    for real_path in csv_paths:
-        link = target_dir + "/" + os.path.basename(real_path)
-        if not os.path.lexists(link):
-            os.symlink(os.path.abspath(real_path), link)
 
 
 def to_new_name(old_name):
@@ -111,11 +105,13 @@ def exclude_from_git(repo_dir, patterns):
     opened_file.close()
 
 
-csv_paths = glob.glob(RAW_DIR + "/*/*.csv")
+csv_paths = sorted(glob.glob(CSV_DIR + "/*.csv"))
 if len(csv_paths) == 0:
-    raise RuntimeError("không thấy CSV nào trong " + RAW_DIR + "/*/ — chạy script 1 trước")
+    raise RuntimeError("không thấy CSV nào trong " + CSV_DIR
+                       + " — giải nén tripod.zip vào " + MOBIVITAL_DIR
+                       + "/dataset/mobivital/ trước")
 
-print("tìm thấy", len(csv_paths), "file CSV")
+print(len(csv_paths), "file CSV trong", CSV_DIR)
 print()
 
 
@@ -128,17 +124,13 @@ print("1. sao lưu bảng của họ ->", OUT_DIR + "/TN0a.txt",
       "(" + str(len(open(OUT_DIR + "/TN0a.txt").readlines())) + " dòng)")
 
 
-# --- 2. Thư mục CSV tên thật, cho mobivital_gen.py ---
+# --- 2. Thư mục lối tắt, thêm 52 tên cũ, cho evaluate.py ---
 
-flat_dir = MOBIVITAL_DIR + "/dataset/mobivital/tripod"
-link_all(csv_paths, flat_dir)
-print("2.", flat_dir, "->", len(os.listdir(flat_dir)), "file")
-
-
-# --- 3. Thư mục CSV thêm 52 tên cũ, cho evaluate.py chấm bảng của họ ---
-
-old_dir = MOBIVITAL_DIR + "/dataset/mobivital/tripod_old_names"
-link_all(csv_paths, old_dir)
+os.makedirs(OLD_NAMES_DIR, exist_ok=True)
+for real_path in csv_paths:
+    link = OLD_NAMES_DIR + "/" + os.path.basename(real_path)
+    if not os.path.lexists(link):
+        os.symlink(os.path.abspath(real_path), link)
 
 names_in_txt = []
 for row in csv.reader(open(OUT_DIR + "/TN0a.txt")):
@@ -146,39 +138,40 @@ for row in csv.reader(open(OUT_DIR + "/TN0a.txt")):
 
 patched = 0
 for old_name in names_in_txt:
-    link = old_dir + "/" + old_name
+    link = OLD_NAMES_DIR + "/" + old_name
     if os.path.lexists(link):
         continue
 
-    real_path = old_dir + "/" + to_new_name(old_name)
+    real_path = CSV_DIR + "/" + to_new_name(old_name)
     if not os.path.exists(real_path):
         raise RuntimeError("không tìm được file thật cho " + old_name)
 
-    os.symlink(os.path.realpath(real_path), link)
+    os.symlink(os.path.abspath(real_path), link)
     patched = patched + 1
 
-print("3.", old_dir, "-> vá", patched, "tên cũ,",
-      len(os.listdir(old_dir)), "file")
+print("2.", OLD_NAMES_DIR, "-> vá", patched, "tên cũ,",
+      len(os.listdir(OLD_NAMES_DIR)), "lối tắt")
 
 
-# --- 4. Giấu khỏi git của họ ---
+# --- 3. Giấu dữ liệu khỏi git của họ ---
 
-exclude_from_git(MOBIVITAL_DIR, ["dataset/", "data_final/", "inference/methods/scores*.csv"])
-print("4. thêm dataset/ data_final/ scores*.csv vào .git/info/exclude")
+exclude_from_git(MOBIVITAL_DIR,
+                 ["dataset/", "data_final/", "inference/methods/scores*.csv"])
+print("3. thêm dataset/ data_final/ scores*.csv vào .git/info/exclude")
 
 
-# --- 5. Kiểm tra ---
+# --- 4. Kiểm tra ---
 
 missing = 0
 for name in names_in_txt:
-    if not os.path.exists(old_dir + "/" + name):
+    if not os.path.exists(OLD_NAMES_DIR + "/" + name):
         missing = missing + 1
 
 print()
 print("KIỂM TRA")
 print("   tên trong bảng của họ :", len(names_in_txt))
 print("   mở không được         :", missing, " <- phải là 0")
-print("   thư mục cho gen       :", len(os.listdir(flat_dir)), " <- phải là 1874")
+print("   thư mục CSV thật      :", len(csv_paths), " <- phải là 1874")
 
 if missing > 0:
     raise RuntimeError("còn " + str(missing) + " tên mở không được")

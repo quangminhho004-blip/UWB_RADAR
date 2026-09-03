@@ -1,21 +1,44 @@
-"""Xem lại dữ liệu đã tạo có đúng không.
+"""Chứng minh dữ liệu của mình đúng bằng dữ liệu MobiVital dùng.
 
     python scripts/check_data.py
 
-Script này chỉ ĐỌC dữ liệu rồi IN ra màn hình. Không sửa gì cả.
+Phải in ra:
 
-In ba phần:
-    1. 12 file .npz  (pipeline của mình)
-    2. 2 file .npy   (pipeline MobiVital)
-    3. So hai bên xem có giống nhau không
+    ABCDEFKL   1289/1289 buổi ghi khớp TỪNG BYTE   = training_breath_tripod_data.npy
+    GHIJ        537/537  buổi ghi khớp TỪNG BYTE   = testing_breath_tripod_data.npy
 
-Dòng quan trọng nhất là dòng cuối:
+Không ra thế thì dừng, mọi so sánh về sau vô nghĩa.
 
-    Khac nhau nhieu nhat tren 1500 mau: 0.0
+HAI ĐƯỜNG ĐỌC, MỘT BỘ CSV
 
-Đó là bằng chứng dữ liệu mình tự đọc giống hệt dữ liệu MobiVital dùng. Nhờ nó
-mà mọi thí nghiệm sau chỉ cần đọc by_user/*.npz, bỏ được CSV thô 13 GB.
+    external/mobivital/dataset/mobivital/tripod/*.csv     1874 file, bản duy nhất
+            |
+            +--> prep_breath_final.py cua HO   --> data_final/*.npy
+            |
+            +--> scripts/make_npz.py cua MINH  --> by_user/*.npz
+
+Khớp thì mọi thí nghiệm sau chỉ cần đọc `by_user/*.npz`, bỏ được CSV thô 13 GB.
+
+SO BẰNG BYTE CHỨ KHÔNG SO BẰNG SAI SỐ
+
+`gt` và `uwb` đều là `float32`/`complex64`, đọc từ cùng một file CSV bằng cùng
+công thức, nên phải giống nhau tuyệt đối chứ không phải "gần bằng". So bằng byte
+thì không cần chọn ngưỡng, và lệch một chữ số cuối cũng lộ ngay.
+
+CÁCH GHÉP CẶP
+
+Hai bên xếp buổi ghi theo thứ tự khác nhau: MobiVital dùng `os.listdir()`, mình
+dùng `sorted()`. Nên không so theo vị trí, mà lấy chuỗi byte của `gt` làm khoá —
+1500 số float32, không hai buổi ghi nào trùng nhau.
+
+CHẠY TỪNG BÊN RỒI GIẢI PHÓNG
+
+`training_breath_tripod_data.npy` nặng 1.9 GB, mỗi file `.npz` nặng 200-300 MB.
+Nạp file .npy, băm từng buổi ghi thành chữ ký ngắn rồi giải phóng ngay, sau đó
+mới mở .npz. Không bao giờ giữ cả hai cùng lúc.
 """
+
+import hashlib
 
 import numpy as np
 
@@ -23,34 +46,12 @@ import numpy as np
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
 BY_USER_DIR = "data/processed/by_user"
-MOBIVITAL_DIR = "external/mobivital/data_final"
+DATA_FINAL_DIR = "external/mobivital/data_final"
 
-# 8 người dùng để phát triển model
 DEV_USERS = ["A", "B", "C", "D", "E", "F", "K", "L"]
-
-# 4 người để dành, chỉ chấm điểm ở bước cuối cùng
 TEST_USERS = ["G", "H", "I", "J"]
 
 # ===============================================================
-
-
-def print_one_user(user):
-    """Đọc file .npz của một người, in ra màn hình, trả về số session."""
-    path = BY_USER_DIR + "/" + user + ".npz"
-    data = np.load(path)
-
-    uwb = data["uwb"]
-    gt = data["gt"]
-
-    n_sessions = len(gt)
-
-    print("nguoi", user,
-          "|", n_sessions, "session",
-          "| uwb", uwb.shape,
-          "| gt", gt.shape,
-          "| gt tu", gt.min(), "den", gt.max())
-
-    return n_sessions
 
 
 def read_mobivital_npy(path):
@@ -63,94 +64,89 @@ def read_mobivital_npy(path):
     uwb = np.load(opened_file)
     gt = np.load(opened_file)
     opened_file.close()
-
     return uwb, gt
 
 
-# ---------------------------------------------------------------
-# PHẦN 1 — đọc 12 file .npz của mình
-# ---------------------------------------------------------------
+def fingerprint(array):
+    """Chữ ký 32 ký tự của một mảng. Đổi một byte là đổi chữ ký."""
+    return hashlib.md5(np.ascontiguousarray(array).tobytes()).hexdigest()
 
-print("PHAN 1 — 12 file .npz cua minh")
-print("-" * 60)
 
-total_dev = 0
-for user in DEV_USERS:
-    total_dev = total_dev + print_one_user(user)
+def index_mobivital(path):
+    """Đọc .npy của MobiVital, trả về {chữ ký gt: chữ ký uwb}, rồi giải phóng."""
+    uwb_all, gt_all = read_mobivital_npy(path)
+    print("   ", path)
+    print("    uwb", uwb_all.shape, uwb_all.dtype,
+          "| gt", gt_all.shape, gt_all.dtype)
+
+    table = {}
+    for i in range(len(gt_all)):
+        table[fingerprint(gt_all[i])] = fingerprint(uwb_all[i])
+
+    del uwb_all, gt_all
+    return table
+
+
+def compare(label, users, npy_name):
+    """So từng buổi ghi của các người này với file .npy tương ứng."""
+    print()
+    print(label)
+    print("-" * 66)
+
+    table = index_mobivital(DATA_FINAL_DIR + "/" + npy_name)
+
+    matched = 0
+    total = 0
+    gt_missing = 0
+    uwb_differs = 0
+
+    for user in users:
+        data = np.load(BY_USER_DIR + "/" + user + ".npz")
+        uwb_all = data["uwb"]
+        gt_all = data["gt"]
+
+        for i in range(len(gt_all)):
+            total = total + 1
+            key = fingerprint(gt_all[i])
+
+            if key not in table:
+                gt_missing = gt_missing + 1
+            elif table[key] != fingerprint(uwb_all[i]):
+                uwb_differs = uwb_differs + 1
+            else:
+                matched = matched + 1
+
+        del data, uwb_all, gt_all
+
+    print("    của mình  ", total, "buổi ghi")
+    print("    MobiVital ", len(table), "buổi ghi")
+    print("    khớp TỪNG BYTE %d/%d" % (matched, total))
+
+    if gt_missing > 0:
+        print("    gt không tìm thấy bên MobiVital:", gt_missing)
+    if uwb_differs > 0:
+        print("    gt khớp nhưng uwb lệch        :", uwb_differs)
+
+    return matched, total, len(table)
+
+
+print("Đối chiếu by_user/*.npz  với  data_final/*.npy")
+
+dev = compare("A B C D E F K L", DEV_USERS, "training_breath_tripod_data.npy")
+test = compare("G H I J", TEST_USERS, "testing_breath_tripod_data.npy")
+
 
 print()
+print("=" * 66)
+print("ABCDEFKL  %4d/%-4d buổi ghi khớp TỪNG BYTE   = training_breath_tripod_data.npy"
+      % (dev[0], dev[1]))
+print("GHIJ      %4d/%-4d buổi ghi khớp TỪNG BYTE   = testing_breath_tripod_data.npy"
+      % (test[0], test[1]))
+print("=" * 66)
 
-total_test = 0
-for user in TEST_USERS:
-    total_test = total_test + print_one_user(user)
+if dev[0] != dev[1] or dev[1] != dev[2]:
+    raise RuntimeError("ABCDEFKL không khớp — dừng")
+if test[0] != test[1] or test[1] != test[2]:
+    raise RuntimeError("GHIJ không khớp — dừng")
 
-print()
-print("8 nguoi DEV  cong lai =", total_dev, "session")
-print("4 nguoi TEST cong lai =", total_test, "session")
-
-
-# ---------------------------------------------------------------
-# PHẦN 2 — đọc 2 file .npy của MobiVital
-# ---------------------------------------------------------------
-
-print()
-print("PHAN 2 — 2 file .npy cua MobiVital")
-print("-" * 60)
-
-uwb_dev, gt_dev = read_mobivital_npy(
-    MOBIVITAL_DIR + "/training_breath_tripod_data.npy")
-
-uwb_test, gt_test = read_mobivital_npy(
-    MOBIVITAL_DIR + "/testing_breath_tripod_data.npy")
-
-print("file DEV  | uwb", uwb_dev.shape, "| gt", gt_dev.shape,
-      "| gt tu", gt_dev.min(), "den", gt_dev.max())
-
-print("file TEST | uwb", uwb_test.shape, "| gt", gt_test.shape,
-      "| gt tu", gt_test.min(), "den", gt_test.max())
-
-
-# ---------------------------------------------------------------
-# PHẦN 3 — so hai bên
-# ---------------------------------------------------------------
-
-print()
-print("PHAN 3 — So hai ben")
-print("-" * 60)
-
-mobivital_dev = len(gt_dev)
-mobivital_test = len(gt_test)
-
-print("DEV :  cua minh =", total_dev, "| MobiVital =", mobivital_dev)
-print("TEST:  cua minh =", total_test, "| MobiVital =", mobivital_test)
-
-if total_dev != mobivital_dev:
-    print("-> SO SESSION DEV KHAC NHAU, phai xem lai!")
-elif total_test != mobivital_test:
-    print("-> SO SESSION TEST KHAC NHAU, phai xem lai!")
-else:
-    print("-> So session GIONG NHAU")
-
-
-# So từng con số. Lấy session đầu tiên của người A, đi tìm nó bên MobiVital.
-# Hai bên xếp session theo thứ tự khác nhau nên phải dò từng dòng.
-
-print()
-print("Tim session dau cua nguoi A trong file MobiVital...")
-
-data_a = np.load(BY_USER_DIR + "/A.npz")
-first_session_a = data_a["gt"][0]
-
-found_row = -1
-
-for i in range(mobivital_dev):
-    largest_diff = np.abs(gt_dev[i] - first_session_a).max()
-
-    if largest_diff < 0.001:
-        found_row = i
-        print("Tim thay o dong", i)
-        print("Khac nhau nhieu nhat tren 1500 mau:", largest_diff)
-        break
-
-if found_row == -1:
-    print("KHONG tim thay — hai pipeline khac nhau, phai xem lai!")
+print("Từ đây mọi thí nghiệm chỉ đọc by_user/*.npz.")

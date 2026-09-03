@@ -2,7 +2,7 @@
 
     python scripts/make_npz.py
 
-Trước:  data/raw/A/*.csv
+Trước:  external/mobivital/dataset/mobivital/tripod/*.csv   (1874 file, một bản duy nhất)
 Sau:    data/processed/by_user/A.npz   gồm 3 mảng:
             uwb   -- tín hiệu radar dạng số phức, (số_session, 1500, 120)
             gt    -- respiration ground truth,     (số_session, 1500), đã chuẩn hoá [-1, 1]
@@ -17,6 +17,17 @@ Mỗi file CSV là một session, có 1500 dòng.
     cột áp chót   = respiration ground truth
 
 Đây là PIPELINE TRAIN/VALIDATE (xem docs/PROTOCOL.md mục 1).
+
+VÌ SAO ĐỌC CSV TRONG THƯ MỤC MOBIVITAL
+
+Chỉ giữ MỘT bản CSV, đặt đúng chỗ `prep_breath_final.py` của MobiVital đòi. Hai
+pipeline đọc chung một bản đó, nên khi `scripts/check_data.py` báo sai lệch bằng
+0 thì không ai cãi được là do hai bản dữ liệu khác nhau.
+
+`data/` từ đây chỉ chứa thứ pipeline của mình sinh ra.
+
+Lọc người theo tên file, đúng cách `prep_breath_final.py` dòng 27-31 làm:
+tên `240502_userA_tripod_04_8.csv` thuộc người A.
 """
 
 import csv
@@ -25,7 +36,7 @@ import os
 
 import numpy as np
 
-RAW_DIR = "data/raw"
+CSV_DIR = "external/mobivital/dataset/mobivital/tripod"
 OUT_DIR = "data/processed/by_user"
 
 users = ["A", "B", "C", "D", "E", "F",
@@ -75,8 +86,14 @@ def read_one_csv(path):
 
 os.makedirs(OUT_DIR, exist_ok=True)
 
+all_csv = sorted(glob.glob(CSV_DIR + "/*.csv"))
+if len(all_csv) == 0:
+    raise RuntimeError("không thấy CSV nào trong " + CSV_DIR
+                       + " — giải nén tripod.zip vào đó trước")
+print("tìm thấy", len(all_csv), "file CSV")
+
 for user in users:
-    csv_files = sorted(glob.glob(RAW_DIR + "/" + user + "/*.csv"))
+    csv_files = [p for p in all_csv if ("user" + user) in os.path.basename(p)]
 
     uwb_list = [] # raw signal dạng số phức (complex-valued I/Q samples)
     gt_list = [] # Ground truth

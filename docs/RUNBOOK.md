@@ -25,19 +25,18 @@ drive.mount('/content/drive')
 !git clone https://github.com/nesl/mobivital-public.git external/mobivital
 !pip install -q einops
 
-# Tải dataset (5.7 GB) rồi giải nén (13 GB)
-!mkdir -p data/raw
+# Tải dataset (5.7 GB) rồi giải nén THẲNG vào thư mục MobiVital (13 GB)
+# Zip đã có sẵn thư mục tripod/ nên giải nén vào .../mobivital/, không vào .../tripod/
+!mkdir -p external/mobivital/dataset/mobivital
 !wget -q --show-progress -O tripod.zip https://zenodo.org/records/15022885/files/tripod.zip
-!unzip -q tripod.zip -d data/raw/          # zip da co san thu muc tripod/
-
-# Dữ liệu của mình
-!python scripts/prepare_raw.py
-!python scripts/make_npz.py
+!unzip -q tripod.zip -d external/mobivital/dataset/mobivital/
 
 # Dữ liệu cho pipeline gốc — script của MobiVital, nguyên bản
 !python scripts/mobivital/setup_dataset.py
 !cd external/mobivital && python dataset_preparation/prep_breath_final.py
 
+# Dữ liệu của mình, đọc đúng bộ CSV đó
+!python scripts/make_npz.py
 !python scripts/check_data.py
 !python scripts/make_windows.py
 

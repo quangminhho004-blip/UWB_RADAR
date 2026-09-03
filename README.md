@@ -50,29 +50,44 @@ chỉ có thể ăn trong khoảng này.
 
 Chạy lần lượt, một lần duy nhất:
 
+Giải nén `tripod.zip` (Zenodo) thẳng vào thư mục MobiVital. **Chỉ giữ một bản CSV**:
+
+```
+external/mobivital/dataset/mobivital/tripod/   1874 CSV, 13 GB
+        |
+        +--> prep_breath_final.py cua HO   -> data_final/*.npy
+        |
+        +--> scripts/make_npz.py cua MINH  -> data/processed/by_user/*.npz
+```
+
 | # | lệnh | ra cái gì |
 |---|---|---|
-| 1 | `python scripts/prepare_raw.py` | gom CSV thô thành `data/raw/A/` … `L/` |
-| 2 | `python scripts/make_npz.py` | `data/processed/by_user/*.npz` — **pipeline của mình** |
-| 3 | `python scripts/mobivital/setup_dataset.py` | dựng `dataset/mobivital/tripod/` trong repo MobiVital |
-| 4 | `cd external/mobivital && python dataset_preparation/prep_breath_final.py` | `data_final/*.npy` — **pipeline gốc**, script của họ |
-| 5 | `python scripts/check_data.py` | đối chiếu hai pipeline, sai lệch phải bằng 0 |
+| 1 | `unzip tripod.zip -d external/mobivital/dataset/mobivital/` | 1874 CSV |
+| 2 | `python scripts/mobivital/setup_dataset.py` | vá 52 tên file lỗi thời, giấu dữ liệu khỏi git của họ |
+| 3 | `cd external/mobivital && python dataset_preparation/prep_breath_final.py` | `data_final/*.npy` — **pipeline gốc**, script của họ |
+| 4 | `python scripts/make_npz.py` | `by_user/*.npz` — **pipeline của mình** |
+| 5 | `python scripts/check_data.py` | đối chiếu hai bên, phải khớp từng byte |
 | 6 | `python scripts/make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
 
-`scripts/` chỉ chứa pipeline của mình. Phần dữ liệu cho pipeline gốc để riêng ở
-`scripts/mobivital/`, và nó chỉ **dọn chỗ** — việc đọc CSV do chính
-`prep_breath_final.py` của MobiVital làm, nguyên bản, 0 dòng sửa.
+`data/` chỉ chứa thứ pipeline của mình sinh ra. `scripts/mobivital/` chỉ **dọn
+chỗ** — việc đọc CSV do chính `prep_breath_final.py` của MobiVital làm, nguyên
+bản, 0 dòng sửa.
 
-Bước 5 in ra `Khac nhau nhieu nhat tren 1500 mau: 0.0` — bằng chứng dữ liệu của mình
-giống hệt dữ liệu MobiVital dùng.
+Bước 5 in ra:
+
+```
+ABCDEFKL  1289/1289 buổi ghi khớp TỪNG BYTE   = training_breath_tripod_data.npy
+GHIJ       537/537  buổi ghi khớp TỪNG BYTE   = testing_breath_tripod_data.npy
+```
+
+Từ đó mọi thí nghiệm sau chỉ đọc `by_user/*.npz`, bỏ được CSV thô 13 GB.
 
 ## Cấu trúc
 
 ```
 src/         pipeline của đồ án — models.py, training.py, scoring.py, results.py
 scripts/     gọi src/ theo đúng thứ tự; notebook chỉ chạy một dòng
-  prepare_raw.py     gom CSV thô theo từng người
-  make_npz.py        -> data/processed/by_user/*.npz
+  make_npz.py        đọc CSV trong thư mục MobiVital -> by_user/*.npz
   make_windows.py    -> data/processed/windows/
   check_data.py      đối chiếu dữ liệu mình với dữ liệu MobiVital
   checksums.py       -> results/checksums.txt
