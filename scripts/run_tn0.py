@@ -65,6 +65,12 @@ SEED = 1234        # cùng số MobiVital ghi cứng ở inference/mobivital_gen
 # nhiên, nên chênh lệch chỉ đến từ thứ tự cộng số dấu phẩy động.
 TOLERANCE = 1e-9
 
+# Điểm MobiVital công bố ở Bảng 4 bài báo (arXiv:2503.11064).
+# TN0a phải tái hiện được con số này, nếu không thì dữ liệu tải về đã sai —
+# hai pipeline cùng ra 0.700 vẫn "khớp nhau" nhưng vô nghĩa.
+PAPER_SCORE = 0.819
+PAPER_TOLERANCE = 0.001
+
 # ===============================================================
 
 
@@ -148,6 +154,25 @@ def picks(name):
     return {r[0]: (r[1], r[2]) for r in csv.reader(open(RESULTS_DIR + "/" + name))}
 
 
+def max_session_gap(mobivital_csv, project_csv):
+    """Chênh lệch điểm lớn nhất trên TỪNG buổi ghi giữa hai pipeline.
+
+    So từng buổi chứ không so điểm trung bình: hai bảng điểm khác hẳn nhau vẫn
+    có thể cho cùng một trung bình. Trả về (chênh lệch lớn nhất, số buổi ghi).
+    """
+    a = scores_mobivital(mobivital_csv)
+    b = scores_project(project_csv)
+
+    if set(a) != set(b):
+        thieu = sorted(set(a) - set(b))[:3]
+        thua = sorted(set(b) - set(a))[:3]
+        sys.exit("hai bên chấm khác tập buổi ghi: %d và %d\n"
+                 "  chỉ MobiVital có: %s\n  chỉ đồ án có: %s"
+                 % (len(a), len(b), thieu, thua))
+
+    return max(abs(a[f] - b[f]) for f in a), len(a)
+
+
 def verdict(ok):
     return "ĐẠT" if ok else "KHÔNG ĐẠT"
 
@@ -167,16 +192,19 @@ def compare():
     same = sum(1 for f in pick_mob if pick_mob[f] == pick_prj.get(f))
     total = len(pick_mob)
 
-    # TN0b: chênh lệch điểm lớn nhất trên từng buổi ghi
-    s_mob = scores_mobivital("scores_TN0b.csv")
-    s_prj = scores_project("scores_ours_b.csv")
-    gap_b = max(abs(s_mob[f] - s_prj[f]) for f in s_mob)
-    gap_a = abs(a_mob - a_prj)
+    # TN0a và TN0b: so TỪNG buổi ghi, không chỉ so điểm trung bình.
+    # Trung bình bằng nhau vẫn có thể che hai bảng điểm khác hẳn nhau.
+    gap_a, n_a = max_session_gap("scores_TN0a.csv", "scores_ours_a.csv")
+    gap_b, n_b = max_session_gap("scores_TN0b.csv", "scores_ours_b.csv")
+
+    # TN0a còn phải tái hiện đúng con số bài báo công bố.
+    paper_gap = abs(a_mob - PAPER_SCORE)
+    ok_paper = paper_gap < PAPER_TOLERANCE
 
     git_status = subprocess.run("git -C " + MOBIVITAL_DIR + " status --porcelain",
                                 shell=True, capture_output=True, text=True).stdout.strip()
 
-    ok_a = gap_a < TOLERANCE
+    ok_a = (gap_a < TOLERANCE) and ok_paper
     ok_b = (same == total) and (gap_b < TOLERANCE)
     ok_git = git_status == ""
 
@@ -192,8 +220,10 @@ def compare():
     print("%-28s %-13.6f %-15.6f %s"
           % ("TN0c  train lại LSTM", c_mob, c_prj, "thông tin tham khảo"))
     print("-" * 76)
-    print("chênh lệch điểm TN0a          : %.2e" % gap_a)
-    print("chênh lệch điểm TN0b lớn nhất : %.2e" % gap_b)
+    print("TN0a  so với bài báo %.3f     : lệch %.5f  %s"
+          % (PAPER_SCORE, paper_gap, verdict(ok_paper)))
+    print("TN0a  chênh lệch lớn nhất trên %d buổi ghi : %.2e" % (n_a, gap_a))
+    print("TN0b  chênh lệch lớn nhất trên %d buổi ghi : %.2e" % (n_b, gap_b))
     print("repo MobiVital không bị sửa   : %s" % verdict(ok_git))
     if not ok_git:
         print(git_status)
