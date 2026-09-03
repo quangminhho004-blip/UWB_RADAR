@@ -1,6 +1,6 @@
-"""BƯỚC 4 — Xem lại dữ liệu đã tạo có đúng không.
+"""Xem lại dữ liệu đã tạo có đúng không.
 
-    python scripts/4_check_data.py
+    python scripts/check_data.py
 
 Script này chỉ ĐỌC dữ liệu rồi IN ra màn hình. Không sửa gì cả.
 
@@ -23,7 +23,7 @@ import numpy as np
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
 BY_USER_DIR = "data/processed/by_user"
-MOBIVITAL_DIR = "data/processed/mobivital_original"
+MOBIVITAL_DIR = "external/mobivital/data_final"
 
 # 8 người dùng để phát triển model
 DEV_USERS = ["A", "B", "C", "D", "E", "F", "K", "L"]

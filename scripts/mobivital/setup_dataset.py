@@ -1,19 +1,24 @@
-"""BƯỚC 7 — Dọn chỗ để chạy ĐÚNG lệnh trong README của MobiVital.
+"""Dọn chỗ để chạy ĐÚNG lệnh trong README của MobiVital.
 
-    python scripts/7_setup_mobivital.py
+    python scripts/mobivital/setup_dataset.py
 
 MỤC ĐÍCH
 
 README của MobiVital ghi chạy như sau, từ trong thư mục repo của họ:
 
+    python dataset_preparation/prep_breath_final.py
     python -m training.autoreg_training
     python -m inference.mobivital_gen
     python -m inference.evaluate -m YOUR_METHOD.txt
 
-Muốn chạy đúng mấy lệnh đó thì `./dataset/mobivital/tripod/` và `./data_final/`
-phải nằm ngay trong repo họ. Script này dựng chúng bằng lối tắt, và ghi vào
-`.git/info/exclude` — file loại trừ CỤC BỘ, không thuộc repo, không bị track —
-nên `git status` của họ vẫn trống.
+Bốn lệnh đó chạy nguyên bản, không qua lớp bọc. Chỉ thiếu đúng một thứ:
+`./dataset/mobivital/tripod/` phải nằm ngay trong repo họ, vì
+`prep_breath_final.py` dòng 18 đọc đường dẫn tương đối đó. Script này dựng nó
+bằng lối tắt, rồi ghi vào `.git/info/exclude` — file loại trừ CỤC BỘ, không
+thuộc repo, không bị track — nên `git status` của họ vẫn trống.
+
+`./data_final/*.npy` thì KHÔNG dựng ở đây: chính `prep_breath_final.py` sinh ra
+nó. Bên mình không làm hộ việc đó nữa.
 
 VIỆC KHÓ NHẤT: 52 TÊN FILE LỖI THỜI
 
@@ -53,8 +58,7 @@ trỏ nhầm buổi ghi thì điểm phải rải quanh 0.
 
 CẦN CHẠY TRƯỚC
 
-    scripts/1_organize_raw.py         -> data/raw/A..L
-    scripts/3_run_mobivital_prep.py   -> data/processed/mobivital_original/*.npy
+    scripts/prepare_raw.py   -> data/raw/A..L
 """
 
 import csv
@@ -66,7 +70,6 @@ import shutil
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
 RAW_DIR = "data/raw"
-NPY_DIR = "data/processed/mobivital_original"
 MOBIVITAL_DIR = "external/mobivital"
 OUT_DIR = "results"
 
@@ -158,24 +161,13 @@ print("3.", old_dir, "-> vá", patched, "tên cũ,",
       len(os.listdir(old_dir)), "file")
 
 
-# --- 4. data_final cho autoreg_training.py ---
-
-data_final = MOBIVITAL_DIR + "/data_final"
-os.makedirs(data_final, exist_ok=True)
-for name in ["training_breath_tripod_data.npy", "testing_breath_tripod_data.npy"]:
-    link = data_final + "/" + name
-    if not os.path.lexists(link):
-        os.symlink(os.path.abspath(NPY_DIR + "/" + name), link)
-print("4.", data_final, "->", len(os.listdir(data_final)), "file")
-
-
-# --- 5. Giấu khỏi git của họ ---
+# --- 4. Giấu khỏi git của họ ---
 
 exclude_from_git(MOBIVITAL_DIR, ["dataset/", "data_final/", "inference/methods/scores*.csv"])
-print("5. thêm dataset/ data_final/ scores*.csv vào .git/info/exclude")
+print("4. thêm dataset/ data_final/ scores*.csv vào .git/info/exclude")
 
 
-# --- 6. Kiểm tra ---
+# --- 5. Kiểm tra ---
 
 missing = 0
 for name in names_in_txt:
@@ -194,6 +186,7 @@ if missing > 0:
 print()
 print("Xong. Giờ chạy được đúng lệnh trong README của MobiVital:")
 print("   cd " + MOBIVITAL_DIR)
+print("   python dataset_preparation/prep_breath_final.py")
 print("   python -m inference.evaluate -m " + THEIR_TXT
       + " -d ./dataset/mobivital/tripod_old_names")
 print("   python -m inference.mobivital_gen")

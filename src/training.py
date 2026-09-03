@@ -58,7 +58,7 @@ def set_seed(seed):
 
 
 def window_file_name(user, corr_threshold=None):
-    """Tên file cửa sổ của một người, khớp với scripts/5_make_windows.py."""
+    """Tên file cửa sổ của một người, khớp với scripts/make_windows.py."""
     if corr_threshold is None:
         corr_threshold = mv.CORR_THRESHOLD
     return (user
@@ -71,7 +71,7 @@ def window_file_name(user, corr_threshold=None):
 def load_windows(users, corr_threshold=None, folder=None):
     """Đọc file cửa sổ của nhiều người rồi ghép lại. Trả về (X, y).
 
-    Ghép được vì cửa sổ cắt riêng từng người — xem scripts/5_make_windows.py.
+    Ghép được vì cửa sổ cắt riêng từng người — xem scripts/make_windows.py.
     """
     if folder is None:
         folder = mv.PROJECT_DIR + "/data/processed/windows/dev_cv"

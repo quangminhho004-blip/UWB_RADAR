@@ -1,6 +1,6 @@
-"""BƯỚC 6 — Băm nội dung dữ liệu đã xử lý, để đối chiếu giữa các máy.
+"""Băm nội dung dữ liệu đã xử lý, để đối chiếu giữa các máy.
 
-    python scripts/6_checksums.py
+    python scripts/checksums.py
 
 VÌ SAO KHÔNG BĂM THẲNG FILE
 

@@ -52,17 +52,19 @@ Chạy lần lượt, một lần duy nhất:
 
 | # | lệnh | ra cái gì |
 |---|---|---|
-| 1 | `python scripts/1_organize_raw.py` | gom CSV thô thành `data/raw/A/` … `L/` |
-| 2 | `python scripts/2_make_npz.py` | `data/processed/by_user/*.npz` — **pipeline dev** |
-| 3 | `python scripts/3_run_mobivital_prep.py` | `data/processed/mobivital_original/*.npy` — **pipeline gốc** |
-| 4 | `python scripts/4_check_data.py` | đối chiếu hai pipeline, sai lệch phải bằng 0 |
-| 5 | `python scripts/5_make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
+| 1 | `python scripts/prepare_raw.py` | gom CSV thô thành `data/raw/A/` … `L/` |
+| 2 | `python scripts/make_npz.py` | `data/processed/by_user/*.npz` — **pipeline của mình** |
+| 3 | `python scripts/mobivital/setup_dataset.py` | dựng `dataset/mobivital/tripod/` trong repo MobiVital |
+| 4 | `cd external/mobivital && python dataset_preparation/prep_breath_final.py` | `data_final/*.npy` — **pipeline gốc**, script của họ |
+| 5 | `python scripts/check_data.py` | đối chiếu hai pipeline, sai lệch phải bằng 0 |
+| 6 | `python scripts/make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
 
-Bước 3 chạy `prep_breath_final.py` của MobiVital **nguyên bản, 0 dòng sửa**, bằng cách
-dựng một thư mục tạm có đúng cấu trúc mà code họ đòi rồi `cd` vào đó.
+`scripts/` chỉ chứa pipeline của mình. Phần dữ liệu cho pipeline gốc để riêng ở
+`scripts/mobivital/`, và nó chỉ **dọn chỗ** — việc đọc CSV do chính
+`prep_breath_final.py` của MobiVital làm, nguyên bản, 0 dòng sửa.
 
-Bước 4 in ra `sai lệch gt lớn nhất = 0.00e+00` — bằng chứng dữ liệu của mình giống hệt
-dữ liệu MobiVital dùng.
+Bước 5 in ra `Khac nhau nhieu nhat tren 1500 mau: 0.0` — bằng chứng dữ liệu của mình
+giống hệt dữ liệu MobiVital dùng.
 
 ## Cấu trúc
 

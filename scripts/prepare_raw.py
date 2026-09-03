@@ -1,6 +1,6 @@
-"""BƯỚC 1 — Gom file CSV vào thư mục theo từng người.
+"""Gom file CSV vào thư mục theo từng người.
 
-    python scripts/1_organize_raw.py
+    python scripts/prepare_raw.py
 
 Trước:  data/raw/tripod/240502_userA_tripod_04_8.csv   (1874 file nằm chung)
 Sau:    data/raw/A/240502_userA_tripod_04_8.csv

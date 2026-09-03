@@ -1,6 +1,6 @@
-"""BƯỚC 2 — Đọc CSV của từng người, lưu thành một file .npz.
+"""Đọc CSV của từng người, lưu thành một file .npz.
 
-    python scripts/2_make_npz.py
+    python scripts/make_npz.py
 
 Trước:  data/raw/A/*.csv
 Sau:    data/processed/by_user/A.npz   gồm 3 mảng:

@@ -1,6 +1,6 @@
-"""BƯỚC 5 — Cắt sẵn cửa sổ để train, lưu ra file.
+"""Cắt sẵn cửa sổ để train, lưu ra file.
 
-    python scripts/5_make_windows.py
+    python scripts/make_windows.py
 
 Luồng:  đọc dữ liệu -> gọi generate_dataset() của MobiVital -> lấy X, y -> lưu .npz
 
@@ -44,7 +44,7 @@ import numpy as np
 MOBIVITAL_DIR = "external/mobivital"
 
 BY_USER_DIR = "data/processed/by_user"
-MOBIVITAL_NPY = "data/processed/mobivital_original/training_breath_tripod_data.npy"
+MOBIVITAL_NPY = "external/mobivital/data_final/training_breath_tripod_data.npy"
 
 OUT_DIR = "data/processed/windows"
 
@@ -147,9 +147,9 @@ def make_dev_cv_windows():
 def make_final_train_windows():
     """Pipeline GỐC: cắt gộp cả 8 người, cho bảng kết quả công bố.
 
-    Đọc thẳng file .npy do chính script của MobiVital sinh ra
-    (scripts/3_run_mobivital_prep.py), nên thứ tự session giống hệt lúc
-    MobiVital chạy, không phải ghép lại từ 8 file ở phần trên.
+    Đọc thẳng file .npy do chính `dataset_preparation/prep_breath_final.py`
+    của MobiVital sinh ra, nên thứ tự session giống hệt lúc MobiVital chạy,
+    không phải ghép lại từ 8 file ở phần trên.
     """
     out = OUT_DIR + "/final_train"
     os.makedirs(out, exist_ok=True)

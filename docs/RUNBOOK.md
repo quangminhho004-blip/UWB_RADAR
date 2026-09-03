@@ -30,12 +30,16 @@ drive.mount('/content/drive')
 !wget -q --show-progress -O tripod.zip https://zenodo.org/records/15022885/files/tripod.zip
 !unzip -q tripod.zip -d data/raw/          # zip da co san thu muc tripod/
 
-# Năm bước chuẩn bị
-!python scripts/1_organize_raw.py
-!python scripts/2_make_npz.py
-!python scripts/3_run_mobivital_prep.py
-!python scripts/4_check_data.py
-!python scripts/5_make_windows.py
+# Dữ liệu của mình
+!python scripts/prepare_raw.py
+!python scripts/make_npz.py
+
+# Dữ liệu cho pipeline gốc — script của MobiVital, nguyên bản
+!python scripts/mobivital/setup_dataset.py
+!cd external/mobivital && python dataset_preparation/prep_breath_final.py
+
+!python scripts/check_data.py
+!python scripts/make_windows.py
 
 # Cất những gì cần giữ sang Drive
 !mkdir -p /content/drive/MyDrive/mobivital

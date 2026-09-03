@@ -3,7 +3,7 @@
 Giải thích cho [TN0.ipynb](TN0.ipynb).
 
 > **Mục 1–7 viết theo lần chạy đầu ở MacBook/CPU ngày 2026-09-02**, hồi đó còn
-> dựng thư mục `work` riêng. Cách dựng chỗ nay nằm ở `scripts/7_setup_mobivital.py`
+> dựng thư mục `work` riêng. Cách dựng chỗ nay nằm ở `scripts/mobivital/setup_dataset.py`
 > và notebook chạy trọn trên Colab/GPU, nên các con số dưới đây sẽ được thay bằng
 > số của lần chạy Colab. Phần lý luận thì không đổi. Mục 8 là bản mới nhất.
 
@@ -36,7 +36,7 @@ Nên dựng một thư mục rỗng có đúng những cái tên đó, bên tron
 ```
 runs/tn0/work/
 ├── dataset/mobivital/tripod/   1874 symlink -> data/raw/*/*.csv
-├── data_final/                 2 symlink -> data/processed/mobivital_original/*.npy
+├── data_final/                 2 symlink -> external/mobivital/data_final/*.npy
 ├── checkpoints/                BẢN SAO .pth + optimal_params.json
 └── inference/methods/          nơi code MobiVital ghi TXT ra
 ```
@@ -114,7 +114,7 @@ Ba chỗ dễ bỏ sót:
 - `autoreg_training.py:99` viết `training_seqs, _ = generate_sequences(...)` — list
   `below_thresh` (tương quan âm mạnh) bị **vứt đi**
 
-Đo thật ở ngưỡng 0.9 (`scripts/5_make_windows.py`): trong **36 ứng viên** mỗi session chỉ
+Đo thật ở ngưỡng 0.9 (`scripts/make_windows.py`): trong **36 ứng viên** mỗi session chỉ
 giữ **3.4**, cộng sóng GT → **4.37 sóng/session**, tổng **292.708 cửa sổ train**. Tức gần
 **1/4 dữ liệu train chính là sóng ground truth** chứ không phải tín hiệu radar. Đây là chỗ
 TN4 sẽ đánh vào.

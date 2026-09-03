@@ -129,7 +129,7 @@ def score_from_txt(txt_path, users, by_user_dir=None):
     mỗi người nặng khoảng 200 MB.
 
     Bảng MobiVital commit sẵn có 52 tên lỗi thời (tháng 10 thay vì 12) nên
-    hàm này dò cả hai tên. Xem scripts/7_setup_mobivital.py.
+    hàm này dò cả hai tên. Xem scripts/mobivital/setup_dataset.py.
     """
     if by_user_dir is None:
         by_user_dir = mv.PROJECT_DIR + "/data/processed/by_user"
