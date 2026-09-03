@@ -33,29 +33,20 @@ của họ, chạy lần hai lại đè lần một. Nên ngay sau mỗi lần c
 Cuối mỗi lần chạy có đụng repo họ, script kiểm `git status --porcelain` phải
 trống và dừng hẳn nếu không.
 
-BƯỚC CHỌN KÊNH CHẠY TRÊN CPU
+MỘT DÒNG SỬA TRONG CODE TÁC GIẢ
 
-`inference/mobivital_gen.py` nạp model xong KHÔNG gọi `model.eval()` — không có
-`.eval()` ở đâu trong `inference/`. LSTM ở chế độ train nên cuDNN cấp thêm vùng
-nhớ dự trữ cho backward. Với lô 12.480 cửa sổ x 200 mẫu x 352 hidden x 2 lớp,
-một buổi ghi đòi 21 GB, cộng 12 GB đang dùng là ~33 GB. Đo thật trên Colab:
+`inference/mobivital_gen.py` nạp trọng số xong không gọi `model.eval()`. LSTM ở
+chế độ train nên cuDNN cấp thêm vùng nhớ dự trữ cho backward — 15.1 GB cho lô
+6708 chuỗi của một buổi ghi. Đo thật: T4 và L4 đều tràn ngay ở buổi ghi 1/1874.
 
-    L4 22 GB   -> chết ngay ở buổi ghi 1/1874, CUDA out of memory
-    A100 40 GB -> vẫn sát nút
+`scripts/mobivital/patch_eval.py` thêm đúng một dòng `model.eval()`, có chú thích
+đánh dấu rõ trong file. Model chỉ gồm `nn.LSTM(dropout=0)` và `nn.Linear` nên
+train và eval cho forward giống hệt — vá này không đổi kết quả, chỉ đổi cách xin
+bộ nhớ. Sau khi vá, chọn kênh chạy trên GPU mất vài phút thay vì 1 giờ 20 CPU.
 
-Không sửa được vì đó là code của tác giả. Nên script ép `CUDA_VISIBLE_DEVICES=""`:
-trên CPU, PyTorch dùng cài đặt LSTM gốc, không cần vùng dự trữ đó. Chậm hơn —
-khoảng 2-4 giây một buổi ghi, tổng ~1 giờ 20 cho 537 buổi.
-
-Việc thiếu `.eval()` KHÔNG đổi kết quả: LSTM này `dropout=0`, không có BatchNorm,
-forward ở train và eval giống hệt. Chỉ tốn bộ nhớ.
-
-VÌ SAO PIPELINE ĐỒ ÁN CŨNG PHẢI CHẤM TRÊN CPU
-
-Bước chọn kênh kết thúc bằng `argmax`. Hai ứng viên gần bằng điểm nhau thì đổi
-kernel là đảo thứ hạng. Đo thật: cùng một tệp trọng số, GPU và CPU chọn khác kênh
-ở 251/537 buổi ghi. Nên `scripts/run_tn0.py` phải chạy với `--device cpu` thì
-TN0b mới so được. Vòng train vẫn dùng GPU, chỉ bước chấm điểm mới ép CPU.
+`check_clean()` vì vậy chấp nhận ĐÚNG một tệp bị sửa là
+`inference/mobivital_gen.py`, và kiểm phần thêm vào chỉ nằm trong khối đánh dấu.
+Bất kỳ tệp nào khác bị đụng là dừng hẳn.
 
 DỪNG NGAY KHI LỖI
 
@@ -92,22 +83,15 @@ NPY_FILES = ["data_final/training_breath_tripod_data.npy",   # ABCDEFKL
 # ===============================================================
 
 
-def run(cmd, force_cpu=False):
+def run(cmd):
     """Chạy một lệnh trong thư mục MobiVital. In nguyên văn rồi chạy.
-
-    force_cpu -- ẩn GPU khỏi tiến trình con. Cần cho mobivital_gen.py, xem phần
-                 "BƯỚC CHỌN KÊNH CHẠY TRÊN CPU" ở đầu tệp.
 
     Dừng cả script nếu lệnh trả mã khác 0 — không để bước sau chạy tiếp trên
     dữ liệu của lần trước.
     """
-    env = dict(os.environ)
-    if force_cpu:
-        env["CUDA_VISIBLE_DEVICES"] = ""
-
     print()
-    print("$ " + cmd + ("        # ép CPU" if force_cpu else ""), flush=True)
-    if subprocess.run(cmd, shell=True, cwd=MOBIVITAL_DIR, env=env).returncode != 0:
+    print("$ " + cmd, flush=True)
+    if subprocess.run(cmd, shell=True, cwd=MOBIVITAL_DIR).returncode != 0:
         sys.exit("DỪNG — lệnh trên trả mã lỗi")
 
 
@@ -143,14 +127,37 @@ def collect_scores(name):
     print("   scores_%s.csv  ->  %s/" % (name, RESULTS_DIR))
 
 
+PATCHED_FILE = "inference/mobivital_gen.py"
+
+
 def check_clean():
-    """Repo tác giả phải sạch tuyệt đối sau khi chạy."""
+    """Repo tác giả chỉ được đổi đúng tệp đã vá, và chỉ trong khối đánh dấu."""
     dirty = subprocess.run("git status --porcelain", shell=True, cwd=MOBIVITAL_DIR,
                            capture_output=True, text=True).stdout.strip()
-    if dirty:
-        sys.exit("DỪNG — repo MobiVital bị sửa:\n" + dirty)
+
+    if not dirty:
+        print()
+        print("repo MobiVital: SẠCH, không sửa dòng nào")
+        return
+
+    lines = dirty.split("\n")
+    if lines != [" M " + PATCHED_FILE]:
+        sys.exit("DỪNG — repo MobiVital bị đụng ngoài dự kiến:\n" + dirty)
+
+    diff = subprocess.run("git diff -- " + PATCHED_FILE, shell=True, cwd=MOBIVITAL_DIR,
+                          capture_output=True, text=True).stdout
+
+    added = [l for l in diff.split("\n") if l.startswith("+") and not l.startswith("+++")]
+    ngoai_khoi = [l for l in added
+                  if not (l.strip().startswith("+#") or l.strip() == "+    model.eval()")]
+    if ngoai_khoi:
+        sys.exit("DỪNG — tệp đã vá còn thay đổi ngoài khối đánh dấu:\n"
+                 + "\n".join(ngoai_khoi))
+
     print()
-    print("repo MobiVital: SẠCH, không sửa dòng nào")
+    print("repo MobiVital: chỉ %s bị sửa, %d dòng thêm, toàn bộ trong khối đánh dấu"
+          % (PATCHED_FILE, len(added)))
+    print("   (đúng một dòng lệnh: model.eval() — xem scripts/mobivital/patch_eval.py)")
 
 
 # ---------------------------------------------------------------
@@ -185,7 +192,7 @@ def case_a():
 
 def case_b():
     """TN0b — chọn kênh bằng tệp trọng số tác giả phát hành."""
-    run("python -m inference.mobivital_gen", force_cpu=True)
+    run("python -m inference.mobivital_gen")
     save_txt("TN0b")
     run("python -m inference.evaluate -m TN0b.txt --save_file scores_TN0b.csv")
     collect_scores("TN0b")
@@ -195,7 +202,7 @@ def case_b():
 def case_c():
     """TN0c — train lại LSTM từ đầu bằng chính vòng train của tác giả."""
     run("python -m training.autoreg_training --model_name lstm_retrained")
-    run("python -m inference.mobivital_gen --model_name lstm_retrained", force_cpu=True)
+    run("python -m inference.mobivital_gen --model_name lstm_retrained")
     save_txt("TN0c")
     run("python -m inference.evaluate -m TN0c.txt --save_file scores_TN0c.csv")
     collect_scores("TN0c")
