@@ -90,6 +90,34 @@ def new_lstm():
     return LSTMMultiStep(LSTM_HIDDEN_SIZE, LSTM_NUM_LAYERS, FUTURE_LENGTH)
 
 
+def noi_runs_vao_drive():
+    """Trên Colab: cho runs/ trỏ thẳng vào Drive. Ở máy: không làm gì.
+
+    Colab hay ngắt phiên giữa chừng và xoá sạch /content. Checkpoint ghi vào
+    runs/ mà runs/ nằm trên đĩa Colab thì mất hết. Trỏ nó vào Drive thì phiên
+    sau chạy tiếp được.
+
+    Nhờ vậy code chỗ nào cũng viết PROJECT_DIR + "/runs/..." như nhau, không
+    phải phân biệt đang chạy ở đâu.
+    """
+    if not os.path.exists("/content"):
+        os.makedirs(PROJECT_DIR + "/runs", exist_ok=True)
+        return PROJECT_DIR + "/runs"
+
+    tren_drive = "/content/drive/MyDrive/mobivital/runs"
+    o_repo = PROJECT_DIR + "/runs"
+
+    if not os.path.exists("/content/drive/MyDrive"):
+        raise RuntimeError("chưa mount Drive: chạy drive.mount('/content/drive') trước")
+
+    os.makedirs(tren_drive, exist_ok=True)
+    if not os.path.lexists(o_repo):
+        os.symlink(tren_drive, o_repo)
+
+    print("runs/ ->", os.path.realpath(o_repo))
+    return o_repo
+
+
 def info():
     """In cấu hình đang dùng, để dán vào báo cáo."""
     print("thư mục dự án :", PROJECT_DIR)
@@ -97,3 +125,4 @@ def info():
           WINDOWS_PER_SEQUENCE, "cửa sổ mỗi sóng")
     print("ngưỡng train  : corr >", CORR_THRESHOLD)
     print("ứng viên/chấm :", CANDIDATES_PER_SESSION)
+    print("chạy trên     :", "Colab" if os.path.exists("/content") else "máy cá nhân")
