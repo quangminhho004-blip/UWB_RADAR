@@ -43,3 +43,27 @@ diem trung binh        0.8221751511496862  vs  0.8221751511496864
 ```
 
 Không chỉ trùng lựa chọn kênh, mà **cả 537 điểm từng buổi ghi đều giống hệt**.
+
+
+## checksums.txt
+
+Mã băm **nội dung mảng** của 21 file dữ liệu đã xử lý, sinh bởi
+`scripts/6_checksums.py`.
+
+Dữ liệu thô 13 GB nằm trên Zenodo (DOI 10.5281/zenodo.15022885), không đưa lên
+GitHub được — GitHub chặn file quá 100 MB. Ai muốn kiểm chứng thì chạy
+`notebooks/DATA_PREPARE.ipynb` rồi đối chiếu với file này.
+
+Không băm thẳng file `.npz` vì `.npz` là ZIP, mà ZIP nhúng thời điểm ghi vào
+từng mục — hai file nội dung y hệt vẫn khác md5.
+
+Đo được khi chạy ở hai máy khác nhau (MacBook và Colab):
+
+```
+by_user/*.npz     12/12 giong TUNG SO
+windows/*.npz     so cua so giong het, gia tri lech ~2e-8
+```
+
+`by_user` chỉ dùng `+ - x :` nên chính xác tuyệt đối. `windows` dùng `np.angle`,
+`np.unwrap`, `np.corrcoef` — hàm siêu việt, chữ số cuối phụ thuộc thư viện toán
+từng máy. Lệch `2e-8` nhỏ hơn cả sai số biểu diễn của `float32` (`1.2e-7`).

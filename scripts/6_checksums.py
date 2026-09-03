@@ -21,7 +21,22 @@ Dữ liệu thô nằm trên Zenodo (DOI 10.5281/zenodo.15022885), 13 GB, không
 GitHub được. Ai muốn kiểm chứng thì chạy `notebooks/DATA_PREPARE.ipynb` rồi chạy
 script này, đối chiếu với `results/checksums.txt` trong repo.
 
-Trùng nghĩa là họ dựng lại được đúng bộ dữ liệu mà các thí nghiệm đã dùng.
+ĐO ĐƯỢC GÌ KHI CHẠY Ở HAI MÁY
+
+    by_user/*.npz     12/12 giống TỪNG SỐ
+    windows/*.npz     số cửa sổ giống hệt, giá trị lệch ~2e-8
+
+Khác nhau vì phép tính khác nhau:
+
+    by_user   đọc CSV + (x-min)/(max-min)*2-1     chỉ + - x :      chính xác tuyệt đối
+    windows   np.angle, np.unwrap, np.corrcoef    hàm siêu việt    lệch chữ số cuối
+
+`np.angle` gọi `arctan2`, chữ số cuối phụ thuộc thư viện toán của từng máy.
+Lệch 2e-8 nằm đúng cỡ sai số làm tròn của float32 (1.2e-7), tức nhỏ hơn cả sai
+số biểu diễn số — không ảnh hưởng model, cùng cỡ với việc đổi seed.
+
+Nên chỉ bắt buộc `by_user` trùng tuyệt đối. Đó mới là dữ liệu gốc; cửa sổ chỉ là
+thứ cắt ra từ nó, và cắt lại lúc nào cũng được.
 """
 
 import glob
