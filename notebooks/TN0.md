@@ -380,6 +380,13 @@ MobiVital, `git -C external/mobivital status` phải trống.
 Hai script viết sau TN0, đặt tên nói thẳng chúng làm gì:
 
 ```
-scripts/train_abcdefkl_test_ghij.py    dung lai chinh muc 6c, doi model
-scripts/dev_cross_validate_4folds.py   chon cau hinh, khong bao gio dung G H I J
+    scripts/run_cv.py           4 fold tren ABCDEFKL, chon cau hinh
+    scripts/run_final_test.py   train du ABCDEFKL, test GHIJ mot lan duy nhat
+```
+
+Cả hai gọi đúng ba module ở bảng trên theo thứ tự, notebook chỉ cần một dòng:
+
+```bash
+!python scripts/run_cv.py --model ds_tcn --revin true
+!python scripts/run_final_test.py --model ds_tcn --revin true
 ```

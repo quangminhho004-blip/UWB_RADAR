@@ -69,8 +69,16 @@ giống hệt dữ liệu MobiVital dùng.
 ## Cấu trúc
 
 ```
-scripts/     chuẩn bị dữ liệu, chạy một lần
-src/         pipeline của đồ án
+src/         pipeline của đồ án — models.py, training.py, scoring.py, results.py
+scripts/     gọi src/ theo đúng thứ tự; notebook chỉ chạy một dòng
+  prepare_raw.py     gom CSV thô theo từng người
+  make_npz.py        -> data/processed/by_user/*.npz
+  make_windows.py    -> data/processed/windows/
+  check_data.py      đối chiếu dữ liệu mình với dữ liệu MobiVital
+  checksums.py       -> results/checksums.txt
+  run_cv.py          4 fold trên ABCDEFKL, chọn cấu hình
+  run_final_test.py  train đủ ABCDEFKL, test GHIJ một lần duy nhất
+  mobivital/         để riêng: dọn chỗ cho pipeline gốc chạy nguyên bản
 notebooks/   thí nghiệm, chạy trên Colab
 docs/        luật thí nghiệm và lý do thiết kế
 
@@ -86,6 +94,24 @@ git clone https://github.com/nesl/mobivital-public.git external/mobivital
 ```
 
 Bản đang dùng: commit `4319731d2769d4134c92088dd846666e262f18e9`.
+
+## Chạy thí nghiệm
+
+```bash
+python scripts/run_cv.py --model ds_tcn --revin true          # chọn cấu hình
+python scripts/run_final_test.py --model ds_tcn --revin true  # số công bố
+```
+
+Cả hai nhận chung một bộ cờ: `--model lstm|tcn|ds_tcn`, `--revin true|false`,
+`--loss mse|mse_pearson`, `--alpha`, `--corr`, `--seed`, `--epochs`.
+
+```
+run_cv.py           ABCDEFKL -> 4 fold (train 6, chấm 2) -> cv_score
+run_final_test.py   ABCDEFKL -> final.pth -> test GHIJ   -> .txt + scores.csv
+```
+
+Mỗi lần chạy thêm một dòng vào `runs/summary.csv`. **G H I J không bao giờ được
+nhìn lúc chọn cấu hình** — xem [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
 ## Ranh giới — cái gì của ai
 
