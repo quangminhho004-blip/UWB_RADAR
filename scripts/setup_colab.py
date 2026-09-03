@@ -1,17 +1,27 @@
-"""Dựng môi trường Colab: lấy mã nguồn, ghim commit MobiVital, nối runs/ vào Drive.
+"""Chuẩn bị môi trường Colab SAU KHI repo đồ án đã được clone.
 
-    python scripts/setup_colab.py
+    !git clone -q https://github.com/quangminhho004-blip/UWB_RADAR.git /content/UWB_RADAR
+    %cd /content/UWB_RADAR
+    !python scripts/setup_colab.py
 
-Chạy sau khi đã `drive.mount("/content/drive")` trong notebook.
+VÌ SAO SCRIPT NÀY KHÔNG TỰ CLONE REPO ĐỒ ÁN
 
-BA VIỆC
+Nó nằm bên trong chính repo đó. Colab mới mở chỉ có /content, chưa có
+/content/UWB_RADAR/scripts/setup_colab.py — chưa tải repo về thì chưa gọi được
+script. Nên hai lệnh `git clone` và `%cd` phải nằm trong notebook, trước lệnh
+gọi script này.
 
-    1. clone hoặc cập nhật repo đồ án
-    2. clone repo MobiVital rồi GHIM đúng commit dùng cho mọi số liệu.
+`%cd` cũng bắt buộc phải ở notebook: `os.chdir()` bên trong script chỉ đổi thư
+mục của tiến trình con, ô lệnh sau vẫn đứng ở chỗ cũ.
+
+BA VIỆC SCRIPT NÀY LÀM
+
+    1. clone repo MobiVital rồi GHIM đúng commit dùng cho mọi số liệu.
        Repo họ không có LICENSE nên không chép vào repo đồ án, phải clone riêng
        mỗi phiên Colab.
+    2. cài thư viện thiếu (einops)
     3. biến runs/ thành lối tắt vào Drive — Colab hay ngắt phiên, checkpoint ghi
-       vào đó thì phiên sau chạy tiếp được (xem src/training.py).
+       vào đó thì phiên sau chạy tiếp được (xem src/training.py)
 
 Lệnh nào lỗi là dừng hẳn, không chạy tiếp sang bước sau.
 """
@@ -23,9 +33,7 @@ import sys
 
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
-REPO = "/content/UWB_RADAR"
-REPO_URL = "https://github.com/quangminhho004-blip/UWB_RADAR.git"
-
+MOBIVITAL_DIR = "external/mobivital"
 MOBIVITAL_URL = "https://github.com/nesl/mobivital-public.git"
 MOBIVITAL_COMMIT = "4319731d2769d4134c92088dd846666e262f18e9"
 
@@ -34,37 +42,44 @@ DRIVE = "/content/drive/MyDrive/mobivital"
 # ===============================================================
 
 
-def run(cmd, cwd=None):
+def run(cmd):
     """Chạy lệnh, dừng hẳn nếu lỗi."""
-    if subprocess.run(cmd, shell=True, cwd=cwd).returncode != 0:
+    if subprocess.run(cmd, shell=True).returncode != 0:
         sys.exit("DỪNG — lệnh lỗi: " + cmd)
 
 
-def grab(cmd, cwd=None):
-    """Chạy lệnh, trả về output."""
-    r = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+def grab(cmd):
+    """Chạy lệnh, trả về output. Dừng hẳn nếu lỗi."""
+    r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit("DỪNG — lệnh lỗi: " + cmd + "\n" + r.stderr)
     return r.stdout.strip()
 
 
-# --- 1. Mã nguồn đồ án ---
-
-if os.path.isdir(REPO + "/.git"):
-    run("git pull -q origin main", cwd=REPO)
-else:
-    run("git clone -q " + REPO_URL + " " + REPO)
-
-os.chdir(REPO)
+def grab_soft(cmd):
+    """Như grab nhưng không dừng — dùng cho thông tin phụ, ví dụ tên GPU."""
+    r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
 
 
-# --- 2. Mã nguồn MobiVital, ghim đúng commit ---
+# Phải đứng ở thư mục gốc repo đồ án.
+if not os.path.isdir("scripts") or not os.path.isdir("src"):
+    sys.exit("Phải chạy từ thư mục gốc repo đồ án.\n"
+             "  !git clone -q <repo> /content/UWB_RADAR\n"
+             "  %cd /content/UWB_RADAR\n"
+             "  !python scripts/setup_colab.py")
 
-mobivital = "external/mobivital"
-if not os.path.isdir(mobivital + "/.git"):
-    run("git clone -q " + MOBIVITAL_URL + " " + mobivital)
 
-run("git -C %s checkout -q %s" % (mobivital, MOBIVITAL_COMMIT))
+# --- 1. Mã nguồn MobiVital, ghim đúng commit ---
+
+if not os.path.isdir(MOBIVITAL_DIR + "/.git"):
+    run("git clone -q " + MOBIVITAL_URL + " " + MOBIVITAL_DIR)
+
+run("git -C %s checkout -q %s" % (MOBIVITAL_DIR, MOBIVITAL_COMMIT))
+
+
+# --- 2. Thư viện ---
+
 run("pip install -q einops")
 
 
@@ -86,8 +101,8 @@ else:
 print()
 print("thư mục làm việc :", os.getcwd())
 print("commit đồ án     :", grab("git rev-parse --short HEAD"))
-print("commit MobiVital :", grab("git -C %s rev-parse --short HEAD" % mobivital),
+print("commit MobiVital :", grab("git -C %s rev-parse --short HEAD" % MOBIVITAL_DIR),
       "(đã ghim)")
 print("GPU              :",
-      grab("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader")
-      or "không có")
+      grab_soft("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader")
+      or "không có (chạy CPU)")

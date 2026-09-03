@@ -86,6 +86,13 @@ def read_one_csv(path):
 
 os.makedirs(OUT_DIR, exist_ok=True)
 
+# Đã đủ 12 tệp thì bỏ qua — chạy lại notebook không mất thời gian làm lại.
+# Một tệp dở dang thì thiếu, và cả 12 tệp được cắt lại từ đầu.
+done = sorted(os.path.basename(p) for p in glob.glob(OUT_DIR + "/*.npz"))
+if done == sorted(u + ".npz" for u in users):
+    print("đã đủ 12 tệp trong", OUT_DIR, "— bỏ qua")
+    raise SystemExit(0)
+
 all_csv = sorted(glob.glob(CSV_DIR + "/*.csv"))
 if len(all_csv) == 0:
     raise RuntimeError("không thấy CSV nào trong " + CSV_DIR

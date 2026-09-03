@@ -170,7 +170,22 @@ def make_final_train_windows():
         print("      mất %.0f giây" % (time.time() - start))
 
 
+def already_done():
+    """Đủ 8 tệp dev_cv và tệp final_train cho MỌI ngưỡng thì khỏi cắt lại."""
+    for threshold in THRESHOLDS:
+        for user in USERS:
+            if not os.path.exists(OUT_DIR + "/dev_cv/" + file_name(user, threshold)):
+                return False
+        if not os.path.exists(OUT_DIR + "/final_train/" + file_name("train", threshold)):
+            return False
+    return True
+
+
 def main():
+    if already_done():
+        print("cửa sổ đã cắt đủ trong", OUT_DIR, "— bỏ qua")
+        return
+
     make_dev_cv_windows()
     make_final_train_windows()
     print()

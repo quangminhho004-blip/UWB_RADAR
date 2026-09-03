@@ -16,7 +16,37 @@ results/checksums.txt   băm dữ liệu, không thuộc thực nghiệm nào
 định `results/<tên>/` và `runs/<tên>/`. Không có thùng dùng chung, không thực
 nghiệm nào ghi đè kết quả của thực nghiệm khác.
 
-Nén lên Drive bằng `python scripts/save_results.py <tên thư mục>`.
+Nén lên Drive bằng `python scripts/save_results.py <tên thực nghiệm>`.
+
+### Trong mỗi tệp nén có gì
+
+`.tar.gz` giống `.zip`: `tar` gộp cả thư mục thành một tệp, `gz` nén lại.
+
+```
+tn1/
+  summary.csv       metric — các dòng của tn1 trong runs/summary.csv
+  compare.csv       bảng ĐẠT / KHÔNG ĐẠT (chỉ TN0)
+  README.txt        sinh lúc nào, commit nào
+  *.txt             tệp lựa chọn kênh
+  scores_*.csv      điểm từng buổi ghi
+  runs/             checkpoint .pth và đường cong loss từng epoch
+```
+
+Tệp nén **tự chứa đủ**: tải riêng về vẫn đọc được metric mà không cần bảng chung.
+Bung ra xem, đúng chỗ cũ:
+
+```bash
+tar -xzf tn1.tar.gz -C results/     # -> results/tn1/...
+```
+
+### Metric lưu ở đâu
+
+| chỗ | nội dung |
+|---|---|
+| `runs/summary.csv` | bảng chính của cả đồ án, mỗi lần chạy một dòng, 27 cột |
+| `results/<tn>/scores_*.csv` | Pearson từng buổi ghi |
+| `runs/<tn>/<run_id>/curve.csv` | loss từng epoch |
+| `runs/<tn>/<run_id>/final.pth` | trọng số |
 
 
 ## results/tn0/

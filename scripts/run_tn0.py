@@ -71,6 +71,10 @@ TOLERANCE = 1e-9
 PAPER_SCORE = 0.819
 PAPER_TOLERANCE = 0.001
 
+# Số buổi ghi của G H I J. Hai bên cùng chấm 500/500 vẫn phải bị coi là trượt —
+# thiếu 37 buổi nghĩa là dữ liệu hoặc bảng lựa chọn kênh bị cụt.
+N_TEST_SESSIONS = 537
+
 # ===============================================================
 
 
@@ -170,6 +174,10 @@ def max_session_gap(mobivital_csv, project_csv):
                  "  chỉ MobiVital có: %s\n  chỉ đồ án có: %s"
                  % (len(a), len(b), thieu, thua))
 
+    if len(a) != N_TEST_SESSIONS:
+        sys.exit("chấm %d buổi ghi, phải đúng %d (G H I J)\n  %s"
+                 % (len(a), N_TEST_SESSIONS, mobivital_csv))
+
     return max(abs(a[f] - b[f]) for f in a), len(a)
 
 
@@ -214,7 +222,7 @@ def compare():
                                 shell=True, capture_output=True, text=True).stdout.strip()
 
     ok_a = (gap_a < TOLERANCE) and ok_paper
-    ok_b = (same == total) and (gap_b < TOLERANCE)
+    ok_b = (total == N_TEST_SESSIONS) and (same == total) and (gap_b < TOLERANCE)
     ok_git = git_status == ""
 
     print()
@@ -236,6 +244,28 @@ def compare():
     print("repo MobiVital không bị sửa   : %s" % verdict(ok_git))
     if not ok_git:
         print(git_status)
+    print()
+
+    # Ghi bảng ra tệp, không chỉ in màn hình — để save_results.py gói theo và
+    # để dựng bảng trong luận văn mà không phải chép tay.
+    table = [
+        {"kiem_tra": "TN0a  điểm từ TXT tác giả", "mobivital": a_mob,
+         "pipeline_do_an": a_prj, "ket_luan": verdict(ok_a),
+         "chi_tiet": "lệch bài báo %.5f, chênh lệch từng buổi %.2e" % (paper_gap, gap_a)},
+        {"kiem_tra": "TN0b  cùng tệp trọng số", "mobivital": b_mob,
+         "pipeline_do_an": b_prj, "ket_luan": verdict(ok_b),
+         "chi_tiet": "%d/%d kênh trùng, chênh lệch từng buổi %.2e" % (same, total, gap_b)},
+        {"kiem_tra": "TN0c  train lại LSTM", "mobivital": c_mob,
+         "pipeline_do_an": c_prj, "ket_luan": "thông tin tham khảo",
+         "chi_tiet": "hai lần train độc lập, không yêu cầu giống tuyệt đối"},
+        {"kiem_tra": "repo MobiVital không bị sửa", "mobivital": "", 
+         "pipeline_do_an": "", "ket_luan": verdict(ok_git),
+         "chi_tiet": git_status.replace("\n", " ; ")},
+    ]
+    results.write_rows(RESULTS_DIR + "/compare.csv",
+                       ["kiem_tra", "mobivital", "pipeline_do_an", "ket_luan", "chi_tiet"],
+                       table)
+    print("bảng trên đã ghi ra", RESULTS_DIR + "/compare.csv")
     print()
 
     if ok_a and ok_b and ok_git:

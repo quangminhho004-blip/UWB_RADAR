@@ -62,7 +62,8 @@ GENERATED = "inference/methods/tripod_mobivital_pre_invert_0.9.txt"
 # Thư mục có thêm 52 lối tắt mang tên cũ, chỉ evaluate.py dùng tới.
 OLD_NAMES = "./dataset/mobivital/tripod_old_names"
 
-NPY = "data_final/training_breath_tripod_data.npy"
+NPY_FILES = ["data_final/training_breath_tripod_data.npy",   # ABCDEFKL
+             "data_final/testing_breath_tripod_data.npy"]    # GHIJ
 
 # ===============================================================
 
@@ -125,10 +126,14 @@ def check_clean():
 
 def case_prep():
     """Sinh data_final/*.npy — lệnh đầu tiên trong README của tác giả."""
-    if os.path.exists(inside(NPY)):
-        print("data_final đã có, bỏ qua")
+    if all(os.path.exists(inside(f)) for f in NPY_FILES):
+        print("data_final đã có đủ hai tệp, bỏ qua")
     else:
         run("python dataset_preparation/prep_breath_final.py")
+
+    for f in NPY_FILES:
+        if not os.path.exists(inside(f)):
+            sys.exit("thiếu " + inside(f))
     print()
     subprocess.run("ls -la data_final/", shell=True, cwd=MOBIVITAL_DIR)
 
