@@ -1,18 +1,18 @@
 # Kết quả thí nghiệm — file đối chứng
 
-Sinh ra từ `notebooks/tn0.ipynb`, xem output trong đó.
+Sinh ra từ `notebooks/TN0.ipynb`, chạy một mạch trên Colab. Xem output trong đó.
 
-| file | do ai sinh | nội dung |
-|---|---|---|
-| `TN0b.txt` | `mobivital_gen.py` của MobiVital, checkpoint của họ | lựa chọn kênh, 537 dòng |
-| `TN0c.txt` | như trên, checkpoint mình train lại | |
-| `TN0_1.txt` | `src/scoring.py` của mình, checkpoint MobiVital | |
-| `scores_TN0b.csv` | `evaluate.py` của MobiVital | điểm từng buổi ghi, 537 dòng |
-| `scores_TN0c.csv` | như trên | |
-| `scores_TN0_1.csv` | `src/scoring.py` của mình | |
+Notebook làm ba việc hai lần: một lần bằng code MobiVital bản gốc, một lần bằng
+code của mình. Mỗi lần ghi ra hai file — bảng lựa chọn kênh và điểm từng buổi
+ghi — nên so được cả hai.
 
-Pipeline gốc ghi ra hai file mỗi lần chạy: `mobivital_gen.py` ghi lựa chọn kênh,
-`evaluate.py` ghi điểm. Bên mình ghi đúng hai file tương ứng để so được cả hai.
+| bậc | việc | MobiVital | của mình |
+|---|---|---|---|
+| a | chấm bảng MobiVital commit sẵn | `scores_TN0a.csv` | `scores_ours_a.csv` |
+| b | checkpoint có sẵn, tự chọn kênh | `TN0b.txt` `scores_TN0b.csv` | `ours_b.txt` `scores_ours_b.csv` |
+| c | train lại từ đầu | `TN0c.txt` `scores_TN0c.csv` | `ours_c.txt` `scores_ours_c.csv` |
+
+Bậc a của mình không có file `.txt` riêng: nó chấm đúng bảng `TN0a.txt`.
 
 Định dạng `.txt`: `tên_file_csv , bin , phép , cờ_lật`
 
@@ -20,29 +20,12 @@ Pipeline gốc ghi ra hai file mỗi lần chạy: `mobivital_gen.py` ghi lựa 
 240416_userH_tripod_04_2.csv,28,phase,0
 ```
 
-Điểm tương ứng, chạy bằng `evaluate.py` bản gốc:
+Bậc a và b phải khớp tuyệt đối — cùng dữ liệu, cùng thuật toán, không có gì ngẫu
+nhiên. Bậc c thì không, vì thứ tự xáo trộn dữ liệu khác nhau.
 
-```
-TN0b   0.8221751511496864     checkpoint MobiVital
-TN0c   0.7987479281268859     checkpoint mình train lại
-```
-
-Không commit `TN0a.txt` — đó là file gốc trong repo MobiVital, không redistribute.
-
-
-## TN0.1 — đối chiếu
-
-`notebooks/TN0_1.ipynb`, nạp cùng checkpoint LSTM của MobiVital:
-
-```
-lua chon kenh          TRUNG 537 / 537,  khac 0
-diem tung buoi ghi     lech lon nhat 1.11e-16  = 1 don vi lam tron cuoi float64
-                       so buoi ghi lech > 1e-12:  0
-diem trung binh        0.8221751511496862  vs  0.8221751511496864
-                       lech 2.22e-16
-```
-
-Không chỉ trùng lựa chọn kênh, mà **cả 537 điểm từng buổi ghi đều giống hệt**.
+`TN0a.txt` là bản sao bảng MobiVital commit sẵn trong repo họ, giữ ở đây để mục 6
+của notebook chấm lại được. Nguồn: `inference/methods/` của
+[mobivital-public](https://github.com/nesl/mobivital-public).
 
 
 ## checksums.txt

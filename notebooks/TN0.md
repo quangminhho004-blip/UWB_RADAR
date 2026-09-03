@@ -1,6 +1,11 @@
 # TN0 — dựng lại kết quả MobiVital
 
-Giải thích cho [tn0.ipynb](tn0.ipynb). Chạy bằng code MobiVital bản gốc, **không sửa dòng nào**.
+Giải thích cho [TN0.ipynb](TN0.ipynb).
+
+> **Mục 1–7 viết theo lần chạy đầu ở MacBook/CPU ngày 2026-09-02**, hồi đó còn
+> dựng thư mục `work` riêng. Cách dựng chỗ nay nằm ở `scripts/7_setup_mobivital.py`
+> và notebook chạy trọn trên Colab/GPU, nên các con số dưới đây sẽ được thay bằng
+> số của lần chạy Colab. Phần lý luận thì không đổi. Mục 8 là bản mới nhất.
 
 | | Chuỗi | Bậc này kiểm tra |
 |---|---|---|
@@ -309,68 +314,40 @@ cuối chỉ 0.003, và bài báo đã được dựng lại đúng.
 
 ---
 
-## TN0 nối với TN0.1 như thế nào
+## Mục 8 — đối chiếu pipeline của mình
 
-**TN0 chạy ở máy cá nhân, không chạy trên Colab.** Lý do: bước chọn kênh là
-`argmax`, mà GPU và CPU cộng số theo thứ tự khác nhau nên hai ứng viên gần bằng
-điểm có thể đảo thứ hạng. Đã đo ở chính TN0: cùng checkpoint, bản chạy GPU và
-bản chạy CPU chọn khác kênh ở **251/537** buổi ghi. Muốn đối chiếu từng dòng thì
-phải cùng loại thiết bị.
+Notebook làm ba việc hai lần: mục 2–4 bằng code MobiVital bản gốc, mục 6 bằng
+code của mình. Cả hai chạy **trong cùng một phiên Colab, cùng một GPU** — bắt
+buộc, vì bước chọn kênh là `argmax` và GPU với CPU cộng số theo thứ tự khác nhau
+nên hai ứng viên gần bằng điểm có thể đảo thứ hạng (xem Mục 5).
 
-### TN0 sinh ra cái gì
+### Ba module đối một
 
-Chạy **code MobiVital bản gốc, 0 dòng sửa**, ba lần với ba checkpoint khác nhau:
+| việc | MobiVital | của mình |
+|---|---|---|
+| train | `training/autoreg_training.py` | `src/training.py` |
+| chọn kênh | `inference/mobivital_gen.py` | `src/scoring.py` |
+| chấm điểm, ghi bảng | `inference/evaluate.py` | `src/results.py` |
 
-| | checkpoint | sinh ra | điểm |
-|---|---|---|---|
-| TN0a | không cần — dùng file MobiVital commit sẵn | — | 0.819481 |
-| TN0b | MobiVital phát hành | `TN0b.txt` + `scores_TN0b.csv` | **0.822175** |
-| TN0c | mình train lại 7h06 | `TN0c.txt` + `scores_TN0c.csv` | 0.798748 |
-
-Mỗi lần chạy đẻ ra **hai** file, đúng như pipeline gốc:
+### Ba bậc, mỗi bậc thêm đúng một bộ phận
 
 ```
-mobivital_gen.py:147   ghi lua chon kenh   ->  TN0b.txt          537 dong
-evaluate.py:68         ghi diem            ->  scores_TN0b.csv   537 dong
+a   chi ham cham diem       results/TN0a.txt (bang commit san)
+                            |
+b   + bo chon kenh          checkpoint MobiVital phat hanh
+                            |
+c   + vong train            train lai tu dau
 ```
 
-Bốn file này đã commit vào `results/`. Chúng là **mốc đối chiếu** cho mọi thứ về sau.
+Bậc nào lệch đầu tiên thì lỗi nằm ở đúng bộ phận vừa thêm.
 
-### TN0.1 dùng mốc đó thế nào
+a và b **phải khớp tuyệt đối** — cùng dữ liệu, cùng thuật toán, không có gì ngẫu
+nhiên. c thì không và cũng không cần: vòng train của mình khác họ ở thứ tự xáo
+trộn và trạng thái sinh số ngẫu nhiên, lệch cỡ đổi seed là bình thường.
 
-TN0 chỉ chạy được LSTM — `mobivital_gen.py:152` ghi cứng `LSTMMultiStep(...)`,
-không nạp được TCN. Nên phải viết bộ chọn kênh riêng, `src/scoring.py`, nhận
-model bất kỳ.
+### Vì sao chỉ cần phép kiểm này
 
-TN0.1 kiểm bộ chọn kênh đó:
-
-```
-checkpoint LSTM cua MobiVital  (lstm_pred_tripod_0.9.pth)
-        |
-        +--> mobivital_gen.py cua HO   ->  results/TN0b.txt        <- lam o TN0
-        |                                  results/scores_TN0b.csv
-        |
-        +--> src/scoring.py cua MINH   ->  results/TN0_1.txt       <- lam o TN0.1
-                                           results/scores_TN0_1.csv
-                        |
-              doi chieu tung dong va tung diem
-```
-
-Cùng checkpoint, cùng dữ liệu, cùng thuật toán, không có gì ngẫu nhiên → phải ra
-y hệt. Kết quả:
-
-```
-lua chon kenh        TRUNG 537 / 537,  khac 0
-diem tung buoi ghi   lech lon nhat 1.11e-16  = 1 don vi lam tron cuoi cua float64
-                     so buoi ghi lech > 1e-12:  0
-diem trung binh      0.8221751511496862  vs  0.8221751511496864
-```
-
-Xem output đầy đủ trong `notebooks/TN0_1.ipynb`.
-
-### Vì sao chỉ cần một phép kiểm này
-
-Trùng 537/537 chứng minh cùng lúc ba thứ:
+Trùng 537/537 ở bậc b chứng minh cùng lúc ba thứ:
 
 | | vì sao suy ra được |
 |---|---|
@@ -378,21 +355,31 @@ Trùng 537/537 chứng minh cùng lúc ba thứ:
 | bộ chọn kênh đúng | 537/537 |
 | hàm chấm điểm đúng | 537 điểm khớp tới chữ số 15 |
 
-Từ đây thay LSTM bằng TCN, mọi khâu còn lại giữ nguyên. Câu trả lời cho hội đồng:
+Câu trả lời cho hội đồng:
 
 > Bộ chọn kênh của chúng em cho kết quả trùng khớp hoàn toàn 537/537 với mã nguồn
 > gốc khi dùng cùng checkpoint. Sau đó chỉ thay bộ dự báo LSTM bằng TCN, còn dữ
 > liệu, cách chọn waveform và cách chấm điểm giữ cố định.
 
+### Vì sao cần pipeline riêng
+
+`mobivital_gen.py:152` ghi cứng `LSTMMultiStep(...)`, không nạp được TCN. Không
+sửa được — ràng buộc của đồ án là **không đụng một dòng nào** trong repo
+MobiVital, `git -C external/mobivital status` phải trống.
+
 ### Chuỗi bằng chứng, chạy ở đâu
 
 ```
-[may]   TN0      code MobiVital ban goc      -> results/TN0b.txt, TN0c.txt + scores
-[may]   TN0.1    src/scoring.py cua minh     -> results/TN0_1.txt + scores
-                 doi chieu voi TN0b          -> 537/537
 [Colab] DATA_PREPARE   du lieu tu Zenodo     -> by_user, windows, checksums
+[Colab] TN0  muc 2-4   code MobiVital goc    -> TN0a/b/c.txt + scores_TN0*.csv
+        TN0  muc 6     code cua minh         -> ours_b/c.txt + scores_ours_*.csv
+        TN0  muc 7     dat hai bang canh nhau
 [Colab] TN1..TN6       TCN, 4 fold           <- tu day tro di
 ```
 
-TN0 và TN0.1 phải chạy CPU vì chúng **đối chiếu số với nhau**. Từ TN1 trở đi so
-các cấu hình với nhau chứ không so với số cũ, nên chạy GPU thoải mái.
+Hai script viết sau TN0, đặt tên nói thẳng chúng làm gì:
+
+```
+scripts/train_abcdefkl_test_ghij.py    dung lai chinh muc 6c, doi model
+scripts/dev_cross_validate_4folds.py   chon cau hinh, khong bao gio dung G H I J
+```

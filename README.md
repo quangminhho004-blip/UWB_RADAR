@@ -102,27 +102,23 @@ MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file sc
 ## Chuỗi bằng chứng
 
 ```
-[máy]   TN0            code MobiVital bản gốc, 0 dòng sửa
-                       -> results/TN0b.txt · TN0c.txt + scores_*.csv
-                       -> 0.8195 / 0.8222 / 0.7987      khớp Table 4 bài báo (0.819)
-
-[máy]   TN0.1          src/scoring.py của mình, cùng checkpoint LSTM
-                       -> results/TN0_1.txt + scores_TN0_1.csv
-                       -> TRÙNG 537/537 với TN0b, điểm lệch 1e-16
-
 [Colab] DATA_PREPARE   dữ liệu từ Zenodo -> by_user, windows
                        -> sai lệch hai pipeline = 0.0
                        -> results/checksums.txt
 
+[Colab] TN0    a  chấm bảng MobiVital commit sẵn   -> khớp Table 4 bài báo (0.819)
+               b  checkpoint có sẵn, tự chọn kênh
+               c  train lại từ đầu
+               chạy hai lần: code MobiVital bản gốc (0 dòng sửa), rồi code mình
+               -> a và b khớp tới chữ số cuối, lựa chọn kênh trùng 537/537
+
 [Colab] TN1..TN6       TCN, 4 fold                       <- từ đây trở đi
 ```
 
-TN0 và TN0.1 chạy ở máy cá nhân, **không chạy trên Colab**. Bước chọn kênh là
-`argmax`, GPU và CPU cộng số theo thứ tự khác nên hai ứng viên gần bằng điểm có
-thể đảo thứ hạng — đã đo: cùng checkpoint, GPU và CPU chọn khác kênh ở 251/537
-buổi ghi. Muốn đối chiếu từng dòng thì phải cùng thiết bị.
-
-Từ TN1 trở đi so các cấu hình với nhau chứ không so với số cũ, nên chạy GPU.
+Cả hai pipeline chạy **trong cùng một phiên Colab, cùng một GPU**. Bước chọn kênh
+là `argmax`, GPU và CPU cộng số theo thứ tự khác nên hai ứng viên gần bằng điểm
+có thể đảo thứ hạng — đã đo: cùng checkpoint, GPU và CPU chọn khác kênh ở 251/537
+buổi ghi. Đối chiếu từng dòng chỉ có nghĩa khi cùng thiết bị.
 
 Chi tiết: [`notebooks/TN0.md`](notebooks/TN0.md) mục "TN0 nối với TN0.1".
 

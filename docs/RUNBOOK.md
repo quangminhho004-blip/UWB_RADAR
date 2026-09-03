@@ -104,8 +104,7 @@ Phải ra `True`. Không thì **Runtime → Change runtime type → T4 GPU**.
 
 | notebook | việc | pipeline |
 |---|---|---|
-| `tn0.ipynb` | dựng lại kết quả MobiVital bằng code gốc | gốc |
-| `tn0_1.ipynb` | chứng minh pipeline mình cho ra đúng kết quả TN0 | — |
+| `TN0.ipynb` | dựng lại kết quả MobiVital bằng code gốc, rồi chứng minh pipeline mình cho ra đúng số đó | cả hai |
 | `tn1_cv.ipynb` | TCN vs DS-TCN | dev, 4 fold |
 | `tn2_revin.ipynb` | có / không RevIN | dev, 4 fold |
 | `tn3_loss.ipynb` | MSE vs MSE + Pearson | dev, 4 fold |
@@ -158,6 +157,5 @@ Sau khi TN0.1 xanh thì mọi thí nghiệm sau chạy Colab GPU thoải mái.
 [Colab] phiên 1  tải Zenodo -> scripts 1..5 -> cất .tar.gz lên Drive     45 phút
 [Colab] mọi phiên sau  ô setup 2 phút -> chạy notebook
 
-[máy]   tn0.ipynb, tn0_1.ipynb   (cần CPU để đối chiếu số)
-[Colab] tn1 -> tn2 -> tn3 -> tn4 -> tn5 -> tn6 -> final_test
+[Colab] TN0 -> tn1 -> tn2 -> tn3 -> tn4 -> tn5 -> tn6 -> final_test
 ```

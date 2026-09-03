@@ -21,7 +21,7 @@ Hàm get_best_sequence nằm trong inference/mobivital_gen.py, mà file đó
 đọc dòng lệnh ngay lúc nạp nên phải giả lập sys.argv mới import được.
 Viết lại thì code sạch, và quan trọng hơn là nhận được cả TCN lẫn LSTM.
 
-Đổi lại phải chứng minh viết đúng. Bằng chứng ở notebooks/tn0_1.ipynb:
+Đổi lại phải chứng minh viết đúng. Bằng chứng ở notebooks/TN0.ipynb mục 7:
 nạp đúng checkpoint LSTM của MobiVital, chạy hàm này trên 537 buổi ghi
 của G H I J, phải chọn ra cùng kênh trên cả 537 và cho cùng điểm số với
 kết quả code gốc đã chạy ở TN0.
@@ -35,6 +35,8 @@ mà lệch ở chữ số cuối là đảo thứ hạng, không đối chiếu 
     float32   sóng sau biến đổi, và toàn bộ đường đi qua model
     float64   phép tính tương quan và tổng (np.corrcoef tự nâng lên)
 """
+
+import csv
 
 import numpy as np
 import torch
@@ -115,6 +117,60 @@ def index_to_name(index):
     if index % 2 == 0:
         return index // 2, "abs"
     return index // 2, "phase"
+
+
+def score_from_txt(txt_path, users, by_user_dir=None):
+    """Chấm điểm theo bảng lựa chọn CÓ SẴN — không chạy model.
+
+    Đây đúng là việc evaluate.py của MobiVital làm: đọc từng dòng bảng, lấy
+    đúng kênh và phép đã ghi, rồi tính Pearson với nhịp thở thật.
+
+    Xử lý từng người một rồi giải phóng, không nạp cả bốn người cùng lúc:
+    mỗi người nặng khoảng 200 MB.
+
+    Bảng MobiVital commit sẵn có 52 tên lỗi thời (tháng 10 thay vì 12) nên
+    hàm này dò cả hai tên. Xem scripts/7_setup_mobivital.py.
+    """
+    if by_user_dir is None:
+        by_user_dir = mv.PROJECT_DIR + "/data/processed/by_user"
+
+    # Đọc bảng, gom theo người.
+    picks = {}
+    for file_name, bin_number, method, invert_flag in csv.reader(open(txt_path)):
+        user = file_name.split("_")[1][-1]
+        picks.setdefault(user, []).append((file_name, int(bin_number), method))
+
+    rows = []
+    for user in users:
+        data = np.load(by_user_dir + "/" + user + ".npz")
+        uwb_all = data["uwb"]
+        gt_all = data["gt"]
+        files = data["files"]
+
+        where = {}
+        for i in range(len(files)):
+            where[str(files[i])] = i
+
+        for file_name, bin_number, method in picks[user]:
+            if file_name in where:
+                i = where[file_name]
+            else:
+                # 52 tên lỗi thời: đổi tháng 10 thành 12
+                i = where[file_name[:2] + "12" + file_name[4:]]
+
+            sequence = mv.transform(uwb_all[i][:, bin_number], method)
+
+            rows.append({"user": user,
+                         "session_file": file_name,
+                         "bin": bin_number,
+                         "method": method,
+                         "n_candidates_kept": "",
+                         "pearson": float(np.corrcoef(
+                             mv.self_normalize(gt_all[i]), sequence)[0, 1])})
+
+        del data, uwb_all, gt_all
+
+    return rows
 
 
 def score_all(users, model, by_user_dir=None):
