@@ -49,7 +49,7 @@ def pick_channel(uwb, model):
     uwb    -- (1500, 120) số phức, tín hiệu radar thô của một buổi ghi
     model  -- nhận (batch, 200) trả (batch, 25)
 
-    Trả về (sóng_đã_chọn, chỉ_số). Chỉ số chạy 0..239:
+    Trả về (sóng_đã_chọn, chỉ_số, số_ứng_viên_sống_sót). Chỉ số chạy 0..239:
         bin  = chỉ_số // 2
         phép = "abs" nếu chỉ_số chẵn, "phase" nếu lẻ
     """
@@ -107,7 +107,7 @@ def pick_channel(uwb, model):
     scores = rearrange(scores, "(c l) -> c l", l=mv.WINDOWS_PER_SEQUENCE)
 
     best = np.argmax(np.sum(scores, axis=1))
-    return kept[best], original_index[best]
+    return kept[best], original_index[best], len(kept)
 
 
 def index_to_name(index):
@@ -117,74 +117,82 @@ def index_to_name(index):
     return index // 2, "phase"
 
 
-def score_one_user(user, model, by_user_dir):
-    """Chấm điểm mọi buổi ghi của một người.
+def score_all(users, model, by_user_dir=None):
+    """Chấm điểm mọi buổi ghi của nhiều người.
 
-    Trả về (danh sách điểm, danh sách tên file, danh sách chỉ số kênh).
-    """
-    data = np.load(by_user_dir + "/" + user + ".npz")
-    uwb_all = data["uwb"]
-    gt_all = data["gt"]
-    files = data["files"]
+    Trả về danh sách dict, mỗi buổi ghi một dòng:
 
-    scores = []
-    indexes = []
-    for i in range(len(gt_all)):
-        sequence, index = pick_channel(uwb_all[i], model)
+        user               "G"
+        session_file       "240409_userG_tripod_02_3.csv"
+        bin                24
+        method             "phase"
+        n_candidates_kept  137      số ứng viên sống sót sau bộ lọc lộn ngược
+        pearson            0.9312
 
-        # gt trong .npz đã chuẩn hoá một lần lúc đọc CSV. MobiVital chuẩn
-        # hoá thêm một lần nữa ở evaluate.py dòng 56, nên làm y hệt.
-        # Phép này lặp lại không đổi giá trị, nhưng chép đúng cho chắc.
-        gt = mv.self_normalize(gt_all[i])
-
-        scores.append(np.corrcoef(gt, sequence)[0, 1])
-        indexes.append(index)
-
-    return scores, list(files), indexes
-
-
-def score_users(users, model, by_user_dir=None):
-    """Chấm điểm nhiều người. Trả về điểm trung bình của từng người.
-
-    Điểm chính thức của đồ án là trung bình các số này (macro theo người),
-    không phải trung bình trên toàn bộ buổi ghi — xem docs/PROTOCOL.md
-    mục 4. Lý do: mỗi người có số buổi ghi khác nhau, tính gộp thì người
-    ghi nhiều buổi bị tính nặng ký hơn một cách vô lý.
+    Đây là dữ liệu thô. Từ đây tính ra được điểm theo người, điểm chung, và
+    so được thắng/hoà/thua giữa hai lần chạy bất kỳ.
     """
     if by_user_dir is None:
         by_user_dir = mv.PROJECT_DIR + "/data/processed/by_user"
 
-    result = {}
+    rows = []
     for user in users:
-        scores, files, indexes = score_one_user(user, model, by_user_dir)
-        result[user] = float(np.mean(scores))
-    return result
+        data = np.load(by_user_dir + "/" + user + ".npz")
+        uwb_all = data["uwb"]
+        gt_all = data["gt"]
+        files = data["files"]
+
+        for i in range(len(gt_all)):
+            sequence, index, so_ung_vien = pick_channel(uwb_all[i], model)
+
+            # gt trong .npz đã chuẩn hoá một lần lúc đọc CSV. MobiVital chuẩn
+            # hoá thêm một lần nữa ở evaluate.py dòng 56, nên làm y hệt.
+            gt = mv.self_normalize(gt_all[i])
+
+            bin_number, method = index_to_name(index)
+            rows.append({"user": user,
+                         "session_file": str(files[i]),
+                         "bin": bin_number,
+                         "method": method,
+                         "n_candidates_kept": so_ung_vien,
+                         "pearson": float(np.corrcoef(gt, sequence)[0, 1])})
+    return rows
 
 
-def write_txt(users, model, path, by_user_dir=None):
-    """Ghi bảng lựa chọn kênh ra file, đúng định dạng của MobiVital.
+def mean_by_user(rows):
+    """Điểm trung bình của từng người, từ dữ liệu score_all trả về.
+
+    Điểm chính thức của đồ án là trung bình các số này (macro theo người),
+    không phải trung bình trên toàn bộ buổi ghi — xem docs/PROTOCOL.md mục 4.
+    Lý do: mỗi người có số buổi ghi khác nhau, tính gộp thì người ghi nhiều
+    buổi bị tính nặng ký hơn một cách vô lý.
+    """
+    tong = {}
+    dem = {}
+    for row in rows:
+        user = row["user"]
+        tong[user] = tong.get(user, 0) + row["pearson"]
+        dem[user] = dem.get(user, 0) + 1
+
+    ket_qua = {}
+    for user in sorted(tong):
+        ket_qua[user] = tong[user] / dem[user]
+    return ket_qua
+
+
+def write_txt(rows, path):
+    """Ghi bảng lựa chọn kênh, đúng định dạng của MobiVital.
 
         240409_userG_tripod_02_3.csv,24,phase,0
 
     Cột cuối là cờ lật ngược sóng. MobiVital ghi cứng 0 ở mobivital_gen.py
     dòng 139, không bao giờ bằng 1, nên ở đây cũng ghi 0.
-
-    Dùng để đối chiếu với bảng do code gốc sinh ra.
     """
-    if by_user_dir is None:
-        by_user_dir = mv.PROJECT_DIR + "/data/processed/by_user"
-
     lines = []
-    all_scores = []
-    for user in users:
-        scores, files, indexes = score_one_user(user, model, by_user_dir)
-        for i in range(len(files)):
-            bin_number, method = index_to_name(indexes[i])
-            lines.append(files[i] + "," + str(bin_number) + "," + method + ",0")
-        all_scores = all_scores + scores
+    for row in rows:
+        lines.append(row["session_file"] + "," + str(row["bin"]) + ","
+                     + row["method"] + ",0")
 
     opened_file = open(path, "w")
     opened_file.write("\n".join(lines) + "\n")
     opened_file.close()
-
-    return float(np.mean(all_scores))
