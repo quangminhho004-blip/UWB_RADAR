@@ -151,6 +151,16 @@ run_final_test.py   ABCDEFKL -> final.pth -> test GHIJ   -> .txt + scores.csv
 Mỗi lần chạy thêm một dòng vào `runs/summary.csv`. **G H I J không bao giờ được
 nhìn lúc chọn cấu hình** — xem [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
+## Kết quả và metric
+
+Mỗi thực nghiệm một thư mục `runs/<tên>/`, chứa đủ checkpoint, đường cong loss,
+bảng lựa chọn kênh, điểm từng buổi ghi và metric. Ý nghĩa từng cột, từng tệp:
+[runs/README.md](runs/README.md).
+
+Số quyết định là **`score_macro`** — Pearson trung bình theo người, đo trên buổi
+ghi thô qua bộ chọn kênh. Không phải `train_mse`: cửa sổ lúc train đã lọc bằng
+`corr(sóng, nhịp thở thật) > 0.9`, tức đã nhìn đáp án.
+
 ## Ranh giới — cái gì của ai
 
 | Mượn lại từ MobiVital | Tự viết ở đồ án này |

@@ -155,6 +155,24 @@ for fold_name, val_users in FOLDS:
 cv_score = float(np.mean(fold_scores))
 cv_std = float(np.std(fold_scores))
 
+# Một dòng TỔNG cho cả cấu hình, ngoài 4 dòng của 4 fold. Nhờ nó chọn cấu hình
+# chỉ cần lọc summary.csv theo fold == "TONG", không phải tự cộng trung bình.
+results.add_summary({"run_id": config_id + "_tong",
+                     "experiment": args.experiment,
+                     "model": args.model,
+                     "revin": int(revin),
+                     "loss": args.loss,
+                     "alpha": args.alpha,
+                     "corr_threshold": args.corr,
+                     "seed": args.seed,
+                     "fold": "TONG",
+                     "val_users": "".join(DEV_USERS),
+                     "n_params": models.count_params(models.build_model(args.model, revin=revin)),
+                     "epochs": args.epochs,
+                     "score_macro": cv_score,
+                     "score_std": cv_std,
+                     "n_sessions": 4}, SUMMARY_FILE)
+
 print()
 print("=" * 58)
 for i in range(len(FOLDS)):

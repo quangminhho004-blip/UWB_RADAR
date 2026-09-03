@@ -47,7 +47,8 @@ SUMMARY_COLUMNS = [
     "n_params", "n_train_windows", "epochs",
     "train_mse", "train_pearson", "train_loss", "minutes_train", "resumed",
     # lúc chấm
-    "score_macro", "score_micro", "n_sessions", "n_negative", "minutes_score",
+    "score_macro", "score_micro", "score_std", "n_sessions", "n_negative",
+    "minutes_score",
     # chỉ để nhìn, không được dùng để chọn cấu hình
     "test_ghij_macro",
 ]
