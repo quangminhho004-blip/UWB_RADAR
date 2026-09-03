@@ -1,6 +1,6 @@
-"""BƯỚC 9 — TN0.1: chạy bộ chọn kênh của mình, rồi so với code MobiVital.
+"""BƯỚC 8 — TN0.1: chạy bộ chọn kênh của mình, rồi so với code MobiVital.
 
-    python scripts/9_tn0_ours.py
+    python scripts/8_tn0_ours.py
 
 VÌ SAO CẦN BƯỚC NÀY
 
@@ -14,7 +14,7 @@ chiếu với bảng do chính code họ sinh ra ở bước 8.
 
     checkpoint LSTM cua MobiVital
             |
-            +--> mobivital_gen.py cua HO   -> results/TN0b.txt      buoc 8
+            +--> mobivital_gen.py cua HO   -> results/TN0b.txt      notebook muc 3
             |
             +--> src/scoring.py   cua MINH -> results/TN0_1.txt     buoc nay
                             |
@@ -26,7 +26,7 @@ y hệt. Lệch một dòng là bộ chọn kênh viết sai.
 CẦN CHẠY TRƯỚC
 
     scripts/2_make_npz.py       -> data/processed/by_user/*.npz
-    scripts/8_tn0_mobivital.py  -> results/TN0b.txt
+    notebooks/TN0.ipynb mục 3      -> results/TN0b.txt
 """
 
 import os

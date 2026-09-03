@@ -1,11 +1,11 @@
-"""BƯỚC 10 — Đối chiếu pipeline của mình với pipeline gốc.
+"""BƯỚC 9 — Đối chiếu pipeline của mình với pipeline gốc.
 
-    python scripts/10_tn0_compare.py
+    python scripts/9_tn0_compare.py
 
 So hai bảng, cùng checkpoint LSTM của MobiVital:
 
-    results/TN0b.txt   do mobivital_gen.py cua HO sinh    (buoc 8)
-    results/TN0_1.txt  do src/scoring.py  cua MINH sinh   (buoc 9)
+    results/TN0b.txt   do mobivital_gen.py cua HO sinh    (notebook muc 3)
+    results/TN0_1.txt  do src/scoring.py  cua MINH sinh   (script 8)
 
 Hai thứ phải khớp:
 
