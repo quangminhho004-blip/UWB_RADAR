@@ -156,8 +156,11 @@ print("2.", OLD_NAMES_DIR, "-> vá", patched, "tên cũ,",
 # --- 3. Giấu dữ liệu khỏi git của họ ---
 
 exclude_from_git(MOBIVITAL_DIR,
-                 ["dataset/", "data_final/", "inference/methods/scores*.csv"])
-print("3. thêm dataset/ data_final/ scores*.csv vào .git/info/exclude")
+                 ["dataset/", "data_final/",
+                  "inference/methods/scores*.csv",
+                  "inference/methods/TN0*.txt",
+                  "checkpoints/lstm_retrained*"])
+print("3. thêm dataset/ data_final/ scores*.csv TN0*.txt checkpoints/lstm_retrained* vào .git/info/exclude")
 
 
 # --- 4. Kiểm tra ---
