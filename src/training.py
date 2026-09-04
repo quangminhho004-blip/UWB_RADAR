@@ -91,6 +91,11 @@ def make_loader(X, y, batch_size=None, shuffle=True):
 
     Không dùng num_workers: dữ liệu đã nằm sẵn trong bộ nhớ, bật tiến trình phụ
     chỉ tốn thêm thời gian chuyển dữ liệu qua lại.
+
+    pin_memory ghim batch vào vùng RAM không bị hệ điều hành dời đi. Chỉ vùng
+    ghim mới chép sang GPU được kiểu không chờ (`non_blocking=True` ở
+    run_one_pass), tức là chép batch sau chồng lên lúc GPU đang tính batch
+    trước. Không ghim thì cờ non_blocking bị bỏ qua, chép vẫn phải chờ.
     """
     if batch_size is None:
         batch_size = mv.BATCH_SIZE
@@ -98,7 +103,8 @@ def make_loader(X, y, batch_size=None, shuffle=True):
     dataset = torch.utils.data.TensorDataset(torch.from_numpy(X).float(),
                                              torch.from_numpy(y).float())
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size,
-                                       shuffle=shuffle)
+                                       shuffle=shuffle,
+                                       pin_memory=torch.cuda.is_available())
 
 
 def run_one_pass(model, loader, device, loss_fn, optimizer=None):
@@ -112,14 +118,21 @@ def run_one_pass(model, loader, device, loss_fn, optimizer=None):
     else:
         model.eval()
 
-    total_mse = 0.0
-    total_pearson = 0.0
-    total_loss = 0.0
+    # Cộng dồn NGAY TRÊN GPU. Mỗi lần .item() là một lần CPU đứng chờ GPU chạy
+    # xong hết hàng đợi; ba lần mỗi batch, mấy nghìn batch mỗi epoch. Cộng trên
+    # GPU rồi chỉ lấy về một lần lúc cuối thì CPU cứ xếp lệnh tiếp, GPU không
+    # phải dừng. Dùng float64 để cộng vài nghìn số không mất chữ số cuối.
+    #
+    # Ba con số này chỉ để GHI LẠI, không quay ngược vào việc học: bước cập
+    # nhật dùng thẳng `value`. Nên đổi cách cộng không đổi trọng số model.
+    total_mse = torch.zeros((), device=device, dtype=torch.float64)
+    total_pearson = torch.zeros((), device=device, dtype=torch.float64)
+    total_loss = torch.zeros((), device=device, dtype=torch.float64)
     n_batches = 0
 
     for X, y in loader:
-        X = X.to(device)
-        y = y.to(device)
+        X = X.to(device, non_blocking=True)
+        y = y.to(device, non_blocking=True)
 
         if is_training:
             optimizer.zero_grad()
@@ -135,13 +148,15 @@ def run_one_pass(model, loader, device, loss_fn, optimizer=None):
         # Ghi cả hai thành phần dù đang tối ưu cái nào, để so được giữa các
         # thí nghiệm dùng hàm loss khác nhau.
         with torch.no_grad():
-            total_mse = total_mse + losses.mse(pred, y).item()
-            total_pearson = total_pearson + losses.pearson(pred, y).mean().item()
+            total_mse += losses.mse(pred, y).double()
+            total_pearson += losses.pearson(pred, y).mean().double()
+            total_loss += value.double()
 
-        total_loss = total_loss + value.item()
         n_batches = n_batches + 1
 
-    return total_mse / n_batches, total_pearson / n_batches, total_loss / n_batches
+    return (total_mse.item() / n_batches,
+            total_pearson.item() / n_batches,
+            total_loss.item() / n_batches)
 
 
 def train(model, train_loader, val_loader, run_dir,

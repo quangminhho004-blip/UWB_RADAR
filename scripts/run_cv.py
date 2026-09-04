@@ -30,6 +30,12 @@ import argparse
 import os
 import sys
 
+# Bộ nhớ GPU vỡ vụn ở bước chấm điểm: mỗi buổi ghi đẩy 6708 chuỗi một lô, xin
+# rồi trả liên tục 1289 lần. Không có cờ này thì TN0 tràn ở buổi ghi 27/1874 dù
+# tổng chỗ trống vẫn còn — chỉ là không còn khối liền đủ lớn.
+# Phải đặt TRƯỚC "import torch", vì torch đọc biến này lúc nạp.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
 import numpy as np
 
 sys.path.insert(0, os.path.abspath("."))
