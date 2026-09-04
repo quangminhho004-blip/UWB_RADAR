@@ -67,6 +67,17 @@ parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE k
 parser.add_argument("--corr", type=float, default=mv.CORR_THRESHOLD)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--epochs", type=int, default=mv.EPOCHS)
+parser.add_argument("--channels", type=int, default=64,
+                    help="số kênh ẩn của TCN. Bai et al. mục A.1 chọn sao cho "
+                         "model to xấp xỉ model đem so; đồ án cố ý thu nhỏ")
+parser.add_argument("--kernel_size", type=int, default=3,
+                    help="bề rộng bộ lọc. Bai mục 3.3: tầm nhìn một tầng = (k-1)*d")
+parser.add_argument("--n_blocks", type=int, default=6,
+                    help="số khối. Phải đủ để tầm nhìn phủ 200 mẫu vào "
+                         "(Bai mục 5 và A.1). k=3, n=6, khối hai tầng -> 253")
+parser.add_argument("--dropout", type=float, default=0.0,
+                    help="spatial dropout (Bai mục 3.4). Mặc định 0.0 cho khớp "
+                         "LSTM của MobiVital, để TN1 chỉ đổi đúng một biến")
 parser.add_argument("--experiment", required=True,
                     help="tên thực nghiệm, ví dụ tn1 — quyết định thư mục runs/<tên>/")
 args = parser.parse_args()
@@ -99,7 +110,11 @@ def run_one_fold(fold_name, val_users):
     print(X.shape[0], "cửa sổ train")
 
     training.set_seed(args.seed)
-    model = models.build_model(args.model, revin=revin)
+    model = models.build_model(args.model, revin=revin,
+                                   channels=args.channels,
+                                   kernel_size=args.kernel_size,
+                                   n_blocks=args.n_blocks,
+                                   dropout=args.dropout)
 
     run_dir = EXP_DIR + "/" + run_id
     train_result = training.train(model,
@@ -167,7 +182,11 @@ results.add_summary({"run_id": config_id + "_tong",
                      "seed": args.seed,
                      "fold": "TONG",
                      "val_users": "".join(DEV_USERS),
-                     "n_params": models.count_params(models.build_model(args.model, revin=revin)),
+                     "n_params": models.count_params(models.build_model(args.model, revin=revin,
+                                   channels=args.channels,
+                                   kernel_size=args.kernel_size,
+                                   n_blocks=args.n_blocks,
+                                   dropout=args.dropout)),
                      "epochs": args.epochs,
                      "score_macro": cv_score,
                      "score_std": cv_std,
