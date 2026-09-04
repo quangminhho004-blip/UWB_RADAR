@@ -39,6 +39,13 @@ import os
 import subprocess
 import sys
 
+# Phải đặt TRƯỚC khi import torch, vì torch đọc biến này lúc khởi tạo CUDA.
+# Bước chọn kênh đưa cả một buổi ghi vào LSTM một lần (khoảng 6700 chuỗi), mà lô
+# to nhỏ khác nhau giữa các buổi nên bộ cấp phát mặc định giữ lại nhiều vùng đã
+# dành mà bỏ không. Đo trên pipeline MobiVital: chết ở buổi 27/1874 vì 9.36 GB bị
+# giữ mà không dùng; bật cờ này thì chạy trọn.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
 import numpy as np
 import torch
 
