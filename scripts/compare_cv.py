@@ -88,9 +88,47 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--experiment", required=True, help="tên thực nghiệm, ví dụ tn1")
 parser.add_argument("--so-doi", dest="so_doi", default=None,
                     help="tên model làm mốc để đếm thắng/hoà/thua, ví dụ lstm")
+parser.add_argument("--final", action="store_true",
+                    help="chế độ test GHIJ: gộp nhiều seed thành mean +- std "
+                         "thay vì in bảng cv_score")
 args = parser.parse_args()
 
 rows = doc_summary(args.experiment)
+
+
+# --- Chế độ test GHIJ: gộp các seed ---
+
+if args.final:
+    import re
+
+    # run_id của run_final_test.py kết thúc bằng _seed<N>. Bỏ phần đó đi thì
+    # các lần chạy khác seed của cùng một cấu hình gom về một nhóm.
+    nhom = {}
+    for r in rows:
+        ten = re.sub(r"_seed\d+$", "", r["run_id"])
+        nhom.setdefault(ten, []).append(r)
+
+    print()
+    print("TEST GHIJ — thực nghiệm %s" % args.experiment)
+    print("Train đủ 8 người A B C D E F K L, test 537 buổi ghi của G H I J.")
+    print()
+    print("%-34s %10s %6s %11s %10s   %s"
+          % ("cấu hình", "tham số", "seed", "mean", "std", "từng seed"))
+    print("-" * 100)
+
+    for ten in sorted(nhom, key=lambda k: -np.mean([float(x["score_macro"]) for x in nhom[k]])):
+        rs = sorted(nhom[ten], key=lambda x: int(x["seed"]))
+        diem = [float(x["score_macro"]) for x in rs]
+        chi_tiet = "  ".join("s%s %.4f" % (x["seed"], d) for x, d in zip(rs, diem))
+        print("%-34s %10s %6d %11.6f %10.6f   %s"
+              % (ten, rs[0]["n_params"], len(diem),
+                 float(np.mean(diem)), float(np.std(diem)), chi_tiet))
+
+    print()
+    print("std là độ lệch chuẩn giữa các seed — cho biết chênh lệch giữa hai cấu")
+    print("hình có lớn hơn nhiễu ngẫu nhiên hay không.")
+    print()
+    raise SystemExit(0)
 
 
 # --- Bảng 1: cv_score ---
