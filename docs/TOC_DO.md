@@ -29,9 +29,16 @@ dự trữ backward = 2 lớp × 4 cổng × 6708 × 200 × 352 × 4 byte = 15.1
 | L4 + vá + `expandable_segments:True` | **chạy trọn 1874 buổi, 17 phút** |
 
 Bài báo ghi tác giả dùng **GTX 1080 Ti, 11 GB** — ít hơn L4 — mà vẫn chạy được.
-`requirements.txt` của họ ghim `torch==2.3.0`; bản đó bỏ qua vùng dự trữ khi đang
-trong `no_grad()`. PyTorch hiện hành cấp theo cờ `model.training`. Không cài lại
-`torch==2.3.0` được vì bản đó không có wheel cho Python 3.13.
+Khoảng cách phiên bản, đo trên chính phiên Colab chạy TN0:
+
+| | phiên bản |
+|---|---|
+| `requirements.txt` của tác giả ghim | `torch==2.3.0` |
+| Colab 2026-09 | `torch 2.11.0+cu128`, Python 3.13.15, cuDNN 91900 |
+
+Bản 2.3.0 bỏ qua vùng dự trữ khi đang trong `no_grad()`. PyTorch hiện hành cấp
+theo cờ `model.training`. Không cài lại `torch==2.3.0` được vì bản đó không có
+wheel cho Python 3.13.
 
 Vá: `scripts/mobivital/apply_patched_files.py`, thêm **đúng một dòng** `model.eval()`.
 Model chỉ gồm `nn.LSTM(dropout=0)` và `nn.Linear` nên train và eval cho forward
