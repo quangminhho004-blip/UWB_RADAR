@@ -63,7 +63,7 @@ PATCHES = {
          "c312481ab7088be8685ee7f20e33377c"),
 }
 
-DAU_HIEU = "SỬA BỞI ĐỒ ÁN"
+PATCH_MARKER = "SỬA BỞI ĐỒ ÁN"
 
 # ===============================================================
 
@@ -72,31 +72,31 @@ def md5(path):
     return hashlib.md5(open(path, "rb").read()).hexdigest()
 
 
-for nguon, (dich, md5_goc) in PATCHES.items():
-    if not os.path.exists(dich):
-        sys.exit("không thấy " + dich + " — chạy scripts/setup_colab.py trước")
-    if not os.path.exists(nguon):
-        sys.exit("không thấy " + nguon)
+for source, (target, original_md5) in PATCHES.items():
+    if not os.path.exists(target):
+        sys.exit("không thấy " + target + " — chạy scripts/setup_colab.py trước")
+    if not os.path.exists(source):
+        sys.exit("không thấy " + source)
 
-    if DAU_HIEU in open(dich).read():
-        print("đã ghi đè rồi, bỏ qua:", dich)
+    if PATCH_MARKER in open(target).read():
+        print("đã ghi đè rồi, bỏ qua:", target)
         continue
 
-    hien_tai = md5(dich)
-    if hien_tai != md5_goc:
-        sys.exit("KHÔNG ghi đè " + dich + ":\n"
+    current_md5 = md5(target)
+    if current_md5 != original_md5:
+        sys.exit("KHÔNG ghi đè " + target + ":\n"
                  "  mã băm hiện tại %s\n"
                  "  mã băm dự kiến  %s\n"
                  "Upstream đã đổi tệp này. Phải dựng lại bản trong patched/ rồi "
-                 "cập nhật mã băm trong script này." % (hien_tai, md5_goc))
+                 "cập nhật mã băm trong script này." % (current_md5, original_md5))
 
-    shutil.copy(nguon, dich)
-    print("ghi đè", dich)
-    print("   nguồn:", nguon)
+    shutil.copy(source, target)
+    print("ghi đè", target)
+    print("   nguồn:", source)
 
-    lines = open(dich).read().split("\n")
+    lines = open(target).read().split("\n")
     for i, line in enumerate(lines):
-        if DAU_HIEU in line:
+        if PATCH_MARKER in line:
             print()
             print("   Phần sửa:")
             for l in lines[i - 1:i + 9]:

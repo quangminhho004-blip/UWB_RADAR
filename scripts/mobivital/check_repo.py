@@ -39,16 +39,16 @@ def check_patched_only(mobivital_dir=MOBIVITAL_DIR):
 
     added = [l for l in diff.split("\n") if l.startswith("+") and not l.startswith("+++")]
 
-    ngoai_khoi = []
+    outside_block = []
     for l in added:
-        noi_dung = l[1:].strip()
-        if noi_dung.startswith("#") or noi_dung == "model.eval()":
+        content = l[1:].strip()
+        if content.startswith("#") or content == "model.eval()":
             continue
-        ngoai_khoi.append(l)
+        outside_block.append(l)
 
-    if ngoai_khoi:
+    if outside_block:
         return False, ("tệp đã vá còn thay đổi ngoài khối đánh dấu:\n"
-                       + "\n".join(ngoai_khoi))
+                       + "\n".join(outside_block))
 
     return True, ("chỉ %s bị sửa, %d dòng thêm, toàn bộ trong khối đánh dấu "
                   "(đúng một dòng lệnh model.eval())" % (PATCHED_FILE, len(added)))

@@ -46,29 +46,29 @@ FOLDS = [("val_AB", "AB"), ("val_CE", "CE"), ("val_DF", "DF"), ("val_KL", "KL")]
 DEV_USERS = "ABCDEFKL"
 
 # Dùng khi chưa có thư mục cửa sổ. Đo được ngày 2026-09-04.
-CUA_SO_DU_PHONG = [210964, 218920, 230152, 218088]
+FALLBACK_WINDOW_COUNTS = [210964, 218920, 230152, 218088]
 
 # Các kiến trúc đem so. None nghĩa là dùng mặc định của model.
-CAU_HINH = [("lstm", None), ("tcn", 64), ("ds_tcn", 64),
+CONFIGS = [("lstm", None), ("tcn", 64), ("ds_tcn", 64),
             ("tcn", 200), ("ds_tcn", 352)]
 
-SO_LAP = 12          # số bước đo, sau khi đã khởi động
-SO_KHOI_DONG = 3
+N_TIMED_STEPS = 12          # số bước đo, sau khi đã khởi động
+N_WARMUP_STEPS = 3
 
 # Ước thêm thời gian chấm điểm mỗi cấu hình, đo ở TN0: khoảng 1.1 giây một buổi
 # ghi, bốn fold phủ đủ 1289 buổi của tám người dev.
-GIAY_MOI_BUOI_GHI = 1.1
-SO_BUOI_GHI_DEV = 1289
+SECONDS_PER_SESSION = 1.1
+N_DEV_SESSIONS = 1289
 
 # ===============================================================
 
 
-def cua_so_moi_fold():
+def windows_per_fold():
     """Số cửa sổ train của từng fold. Đọc từ đĩa nếu có."""
     files = glob(WINDOWS_DIR + "/*.npz")
     if not files:
         print("chưa có", WINDOWS_DIR, "— dùng số đã đo sẵn\n")
-        return CUA_SO_DU_PHONG
+        return FALLBACK_WINDOW_COUNTS
 
     n = {}
     for f in files:
@@ -77,7 +77,7 @@ def cua_so_moi_fold():
     return [sum(n[u] for u in DEV_USERS if u not in val) for _, val in FOLDS]
 
 
-def giay_mot_batch(model, device):
+def seconds_per_batch(model, device):
     """Thời gian một bước train thật: forward, backward, optimizer."""
     model = model.to(device).train()
     opt = torch.optim.Adam(model.parameters(), lr=mv.LEARNING_RATE)
@@ -86,23 +86,23 @@ def giay_mot_batch(model, device):
     x = torch.randn(mv.BATCH_SIZE, mv.HISTORY_LENGTH, device=device)
     y = torch.randn(mv.BATCH_SIZE, mv.FUTURE_LENGTH, device=device)
 
-    def mot_buoc():
+    def one_step():
         opt.zero_grad()
         loss_fn(model(x), y).backward()
         opt.step()
 
-    for _ in range(SO_KHOI_DONG):
-        mot_buoc()
+    for _ in range(N_WARMUP_STEPS):
+        one_step()
     if device == "cuda":
         torch.cuda.synchronize()
 
-    bat_dau = time.time()
-    for _ in range(SO_LAP):
-        mot_buoc()
+    started_at = time.time()
+    for _ in range(N_TIMED_STEPS):
+        one_step()
     if device == "cuda":
         torch.cuda.synchronize()
 
-    return (time.time() - bat_dau) / SO_LAP
+    return (time.time() - started_at) / N_TIMED_STEPS
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -110,37 +110,37 @@ print("thiết bị:", device,
       torch.cuda.get_device_name(0) if device == "cuda" else "")
 print()
 
-cua_so = cua_so_moi_fold()
-batch_moi_epoch = sum(n // mv.BATCH_SIZE for n in cua_so)
+windows = windows_per_fold()
+batches_per_epoch = sum(n // mv.BATCH_SIZE for n in windows)
 
 print("Khối lượng một lần chạy CV:")
-for (ten, val), n in zip(FOLDS, cua_so):
-    print("   %-8s train %s = %7d cửa sổ" % (ten, "".join(u for u in DEV_USERS if u not in val), n))
-print("   %-8s %28d cửa sổ, %d epoch" % ("tổng", sum(cua_so), mv.EPOCHS))
+for (name, val), n in zip(FOLDS, windows):
+    print("   %-8s train %s = %7d cửa sổ" % (name, "".join(u for u in DEV_USERS if u not in val), n))
+print("   %-8s %28d cửa sổ, %d epoch" % ("tổng", sum(windows), mv.EPOCHS))
 print()
 
-gio_cham = SO_BUOI_GHI_DEV * GIAY_MOI_BUOI_GHI / 3600
+scoring_hours = N_DEV_SESSIONS * SECONDS_PER_SESSION / 3600
 
 print("%-9s %-6s %11s %10s %12s %11s %10s"
       % ("model", "kênh", "tham số", "s/batch", "giờ train", "giờ chấm", "TỔNG"))
 print("-" * 78)
 
-tong_tat_ca = 0.0
-for ten, channels in CAU_HINH:
+total_hours = 0.0
+for name, channels in CONFIGS:
     if channels is None:
-        model = models.build_model(ten)
-        hien = mv.LSTM_HIDDEN_SIZE
+        model = models.build_model(name)
+        width = mv.LSTM_HIDDEN_SIZE
     else:
-        model = models.build_model(ten, channels=channels)
-        hien = channels
+        model = models.build_model(name, channels=channels)
+        width = channels
 
-    giay = giay_mot_batch(model, device)
-    gio_train = giay * batch_moi_epoch * mv.EPOCHS / 3600
-    tong_tat_ca += gio_train + gio_cham
+    seconds = seconds_per_batch(model, device)
+    train_hours = seconds * batches_per_epoch * mv.EPOCHS / 3600
+    total_hours += train_hours + scoring_hours
 
     print("%-9s %-6d %11d %9.4fs %11.1f %11.1f %9.1f"
-          % (ten, hien, models.count_params(model), giay,
-             gio_train, gio_cham, gio_train + gio_cham))
+          % (name, width, models.count_params(model), seconds,
+             train_hours, scoring_hours, train_hours + scoring_hours))
 
     del model
     if device == "cuda":
@@ -148,8 +148,8 @@ for ten, channels in CAU_HINH:
 
 print()
 print("Giờ chấm là ước từ TN0: %.1f giây một buổi ghi x %d buổi. Phần này khoảng"
-      % (GIAY_MOI_BUOI_GHI, SO_BUOI_GHI_DEV))
+      % (SECONDS_PER_SESSION, N_DEV_SESSIONS))
 print("65% là numpy chạy CPU nên gần như không đổi theo model — xem docs/TOC_DO.md.")
 print()
 print("Chạy cả %d cấu hình: %.1f giờ. TN1 chỉ chạy 4 nên ít hơn."
-      % (len(CAU_HINH), tong_tat_ca))
+      % (len(CONFIGS), total_hours))

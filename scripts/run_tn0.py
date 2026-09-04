@@ -187,11 +187,11 @@ def max_session_gap(mobivital_csv, project_csv):
     b = scores_project(project_csv)
 
     if set(a) != set(b):
-        thieu = sorted(set(a) - set(b))[:3]
-        thua = sorted(set(b) - set(a))[:3]
+        only_mobivital = sorted(set(a) - set(b))[:3]
+        only_project = sorted(set(b) - set(a))[:3]
         sys.exit("hai bên chấm khác tập buổi ghi: %d và %d\n"
                  "  chỉ MobiVital có: %s\n  chỉ đồ án có: %s"
-                 % (len(a), len(b), thieu, thua))
+                 % (len(a), len(b), only_mobivital, only_project))
 
     if len(a) != N_TEST_SESSIONS:
         sys.exit("chấm %d buổi ghi, phải đúng %d (G H I J)\n  %s"
@@ -206,14 +206,14 @@ def verdict(ok):
 
 def compare():
     """In bảng đối chiếu. Trả về True nếu tất cả kiểm tra bắt buộc đều đạt."""
-    can = ["scores_TN0a.csv", "scores_TN0b.csv", "scores_TN0c.csv",
-           "scores_ours_a.csv", "scores_ours_b.csv", "scores_ours_c.csv",
-           "TN0b.txt", "ours_b.txt"]
-    thieu = [f for f in can if not os.path.exists(RESULTS_DIR + "/" + f)]
-    if thieu:
+    required = ["scores_TN0a.csv", "scores_TN0b.csv", "scores_TN0c.csv",
+                "scores_ours_a.csv", "scores_ours_b.csv", "scores_ours_c.csv",
+                "TN0b.txt", "ours_b.txt"]
+    missing = [f for f in required if not os.path.exists(RESULTS_DIR + "/" + f)]
+    if missing:
         sys.exit("Chưa đủ kết quả để đối chiếu, thiếu trong %s/:\n  %s\n"
                  "Chạy hết mục 3 và mục 4 của notebooks/TN0.ipynb trước."
-                 % (RESULTS_DIR, "\n  ".join(thieu)))
+                 % (RESULTS_DIR, "\n  ".join(missing)))
 
     a_mob = float(np.mean(list(scores_mobivital("scores_TN0a.csv").values())))
     b_mob = float(np.mean(list(scores_mobivital("scores_TN0b.csv").values())))
@@ -237,7 +237,7 @@ def compare():
     paper_gap = abs(a_mob - PAPER_SCORE)
     ok_paper = paper_gap < PAPER_TOLERANCE
 
-    ok_git, git_mo_ta = check_repo.check_patched_only(MOBIVITAL_DIR)
+    ok_git, git_description = check_repo.check_patched_only(MOBIVITAL_DIR)
 
     ok_a = (gap_a < TOLERANCE) and ok_paper
     ok_b = (total == N_TEST_SESSIONS) and (same == total) and (gap_b < TOLERANCE)
@@ -258,7 +258,7 @@ def compare():
           % (PAPER_SCORE, paper_gap, verdict(ok_paper)))
     print("TN0a  chênh lệch lớn nhất trên %d buổi ghi : %.2e" % (n_a, gap_a))
     print("TN0b  chênh lệch lớn nhất trên %d buổi ghi : %.2e" % (n_b, gap_b))
-    print("repo MobiVital                : %s — %s" % (verdict(ok_git), git_mo_ta))
+    print("repo MobiVital                : %s — %s" % (verdict(ok_git), git_description))
     print()
 
     # Ghi bảng ra tệp, không chỉ in màn hình — để save_results.py gói theo và
@@ -266,19 +266,19 @@ def compare():
     table = [
         {"kiem_tra": "TN0a  điểm từ TXT tác giả", "mobivital": a_mob,
          "pipeline_do_an": a_prj, "ket_luan": verdict(ok_a),
-         "chi_tiet": "lệch bài báo %.5f, chênh lệch từng buổi %.2e" % (paper_gap, gap_a)},
+         "detail": "lệch bài báo %.5f, chênh lệch từng buổi %.2e" % (paper_gap, gap_a)},
         {"kiem_tra": "TN0b  cùng tệp trọng số", "mobivital": b_mob,
          "pipeline_do_an": b_prj, "ket_luan": verdict(ok_b),
-         "chi_tiet": "%d/%d kênh trùng, chênh lệch từng buổi %.2e" % (same, total, gap_b)},
+         "detail": "%d/%d kênh trùng, chênh lệch từng buổi %.2e" % (same, total, gap_b)},
         {"kiem_tra": "TN0c  train lại LSTM", "mobivital": c_mob,
          "pipeline_do_an": c_prj, "ket_luan": "thông tin tham khảo",
-         "chi_tiet": "hai lần train độc lập, không yêu cầu giống tuyệt đối"},
+         "detail": "hai lần train độc lập, không yêu cầu giống tuyệt đối"},
         {"kiem_tra": "repo MobiVital", "mobivital": "",
          "pipeline_do_an": "", "ket_luan": verdict(ok_git),
-         "chi_tiet": git_mo_ta.replace("\n", " ; ")},
+         "detail": git_description.replace("\n", " ; ")},
     ]
     results.write_rows(RESULTS_DIR + "/compare.csv",
-                       ["kiem_tra", "mobivital", "pipeline_do_an", "ket_luan", "chi_tiet"],
+                       ["kiem_tra", "mobivital", "pipeline_do_an", "ket_luan", "detail"],
                        table)
     print("bảng trên đã ghi ra", RESULTS_DIR + "/compare.csv")
     print()

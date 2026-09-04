@@ -98,14 +98,14 @@ revin = args.revin.lower() == "true"
 # Tên cấu hình phải chứa channels: TCN-64 và TCN-200 cùng model, cùng loss,
 # cùng seed — không đưa channels vào thì hai cấu hình ra CÙNG một tên, ghi đè
 # kết quả của nhau. Model lstm không có channels nên bỏ qua.
-kien_truc = "" if args.model == "lstm" else "_c%d" % args.channels
+arch_tag = "" if args.model == "lstm" else "_c%d" % args.channels
 if args.model != "lstm" and (args.kernel_size != 3 or args.n_blocks != 6):
-    kien_truc += "_k%d_n%d" % (args.kernel_size, args.n_blocks)
+    arch_tag += "_k%d_n%d" % (args.kernel_size, args.n_blocks)
 if args.dropout != 0.0:
-    kien_truc += "_do%g" % args.dropout
+    arch_tag += "_do%g" % args.dropout
 
 run_id = "%s%s%s_%s_corr%s_seed%d" % (
-    args.model, kien_truc, "_revin" if revin else "",
+    args.model, arch_tag, "_revin" if revin else "",
     args.loss, args.corr, args.seed)
 
 run_dir = EXP_DIR + "/" + run_id

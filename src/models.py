@@ -100,12 +100,12 @@ class TCNBlock(nn.Module):
         self.left_pad = (kernel_size - 1) * dilation
 
         # Hai tầng giống hệt nhau, cùng độ giãn — Bai et al. Hình 1(b).
-        self.tang_mot = self._mot_tang(channels, kernel_size, dilation,
+        self.layer_one = self._one_layer(channels, kernel_size, dilation,
                                        dropout, separable)
-        self.tang_hai = self._mot_tang(channels, kernel_size, dilation,
+        self.layer_two = self._one_layer(channels, kernel_size, dilation,
                                        dropout, separable)
 
-    def _mot_tang(self, channels, kernel_size, dilation, dropout, separable):
+    def _one_layer(self, channels, kernel_size, dilation, dropout, separable):
         """Một tầng: tích chập giãn -> chuẩn hoá -> ReLU -> dropout."""
         if separable:
             # Depthwise: mỗi kênh một bộ lọc riêng, không trộn kênh.
@@ -126,17 +126,17 @@ class TCNBlock(nn.Module):
             "drop": nn.Dropout1d(dropout),
         })
 
-    def _chay_tang(self, tang, x):
+    def _run_layer(self, layer, x):
         x = nn.functional.pad(x, (self.left_pad, 0))   # đệm bên trái
-        x = tang["conv"](x)
-        x = tang["norm"](x)
-        x = tang["act"](x)
-        return tang["drop"](x)
+        x = layer["conv"](x)
+        x = layer["norm"](x)
+        x = layer["act"](x)
+        return layer["drop"](x)
 
     def forward(self, x):
         residual = x
-        x = self._chay_tang(self.tang_mot, x)
-        x = self._chay_tang(self.tang_hai, x)
+        x = self._run_layer(self.layer_one, x)
+        x = self._run_layer(self.layer_two, x)
         return x + residual                             # Bai mục 3.4, pt. (3)
 
 

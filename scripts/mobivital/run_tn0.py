@@ -152,11 +152,11 @@ def collect_scores(name):
 
 def check_clean():
     """Repo tác giả chỉ được mang đúng vá đã biết."""
-    ok, mo_ta = check_repo.check_patched_only(MOBIVITAL_DIR)
+    ok, description = check_repo.check_patched_only(MOBIVITAL_DIR)
     print()
     if not ok:
-        sys.exit("DỪNG — repo MobiVital " + mo_ta)
-    print("repo MobiVital:", mo_ta)
+        sys.exit("DỪNG — repo MobiVital " + description)
+    print("repo MobiVital:", description)
 
 
 # ---------------------------------------------------------------
