@@ -65,6 +65,9 @@ import shutil
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import check_repo
+
 
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
@@ -137,48 +140,13 @@ def collect_scores(name):
     print("   scores_%s.csv  ->  %s/" % (name, RESULTS_DIR))
 
 
-PATCHED_FILE = "inference/mobivital_gen.py"
-
-
 def check_clean():
-    """Repo tác giả chỉ được đổi đúng tệp đã vá, và chỉ trong khối đánh dấu."""
-    dirty = subprocess.run("git status --porcelain", shell=True, cwd=MOBIVITAL_DIR,
-                           capture_output=True, text=True).stdout
-
-    # Không strip cả chuỗi: porcelain để mã trạng thái ở hai cột đầu, dòng chưa
-    # đưa vào chỉ mục bắt đầu bằng dấu cách. Tách theo dòng rồi lấy tên tệp.
-    changed = [line[3:].strip() for line in dirty.split("\n") if line.strip()]
-
-    if not changed:
-        print()
-        print("repo MobiVital: SẠCH, không sửa dòng nào")
-        return
-
-    if changed != [PATCHED_FILE]:
-        sys.exit("DỪNG — repo MobiVital bị đụng ngoài dự kiến:\n" + dirty)
-
-    diff = subprocess.run("git diff -- " + PATCHED_FILE, shell=True, cwd=MOBIVITAL_DIR,
-                          capture_output=True, text=True).stdout
-
-    added = [l for l in diff.split("\n") if l.startswith("+") and not l.startswith("+++")]
-
-    # Bỏ dấu + của diff rồi mới xét nội dung. Chỉ cho phép dòng chú thích và
-    # đúng một dòng lệnh model.eval().
-    ngoai_khoi = []
-    for l in added:
-        noi_dung = l[1:].strip()
-        if noi_dung.startswith("#") or noi_dung == "model.eval()":
-            continue
-        ngoai_khoi.append(l)
-
-    if ngoai_khoi:
-        sys.exit("DỪNG — tệp đã vá còn thay đổi ngoài khối đánh dấu:\n"
-                 + "\n".join(ngoai_khoi))
-
+    """Repo tác giả chỉ được mang đúng vá đã biết."""
+    ok, mo_ta = check_repo.check_patched_only(MOBIVITAL_DIR)
     print()
-    print("repo MobiVital: chỉ %s bị sửa, %d dòng thêm, toàn bộ trong khối đánh dấu"
-          % (PATCHED_FILE, len(added)))
-    print("   (đúng một dòng lệnh: model.eval() — xem scripts/mobivital/patch_eval.py)")
+    if not ok:
+        sys.exit("DỪNG — repo MobiVital " + mo_ta)
+    print("repo MobiVital:", mo_ta)
 
 
 # ---------------------------------------------------------------

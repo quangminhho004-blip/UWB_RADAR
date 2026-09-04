@@ -51,6 +51,9 @@ import torch
 
 sys.path.insert(0, os.path.abspath("."))
 
+sys.path.insert(0, os.path.abspath("scripts/mobivital"))
+import check_repo
+
 from src import mobivital_reference as mv
 from src import results, scoring, training
 
@@ -225,12 +228,10 @@ def compare():
     paper_gap = abs(a_mob - PAPER_SCORE)
     ok_paper = paper_gap < PAPER_TOLERANCE
 
-    git_status = subprocess.run("git -C " + MOBIVITAL_DIR + " status --porcelain",
-                                shell=True, capture_output=True, text=True).stdout.strip()
+    ok_git, git_mo_ta = check_repo.check_patched_only(MOBIVITAL_DIR)
 
     ok_a = (gap_a < TOLERANCE) and ok_paper
     ok_b = (total == N_TEST_SESSIONS) and (same == total) and (gap_b < TOLERANCE)
-    ok_git = git_status == ""
 
     print()
     print("%-28s %-13s %-15s %s"
@@ -248,9 +249,7 @@ def compare():
           % (PAPER_SCORE, paper_gap, verdict(ok_paper)))
     print("TN0a  chênh lệch lớn nhất trên %d buổi ghi : %.2e" % (n_a, gap_a))
     print("TN0b  chênh lệch lớn nhất trên %d buổi ghi : %.2e" % (n_b, gap_b))
-    print("repo MobiVital không bị sửa   : %s" % verdict(ok_git))
-    if not ok_git:
-        print(git_status)
+    print("repo MobiVital                : %s — %s" % (verdict(ok_git), git_mo_ta))
     print()
 
     # Ghi bảng ra tệp, không chỉ in màn hình — để save_results.py gói theo và
@@ -265,9 +264,9 @@ def compare():
         {"kiem_tra": "TN0c  train lại LSTM", "mobivital": c_mob,
          "pipeline_do_an": c_prj, "ket_luan": "thông tin tham khảo",
          "chi_tiet": "hai lần train độc lập, không yêu cầu giống tuyệt đối"},
-        {"kiem_tra": "repo MobiVital không bị sửa", "mobivital": "", 
+        {"kiem_tra": "repo MobiVital", "mobivital": "",
          "pipeline_do_an": "", "ket_luan": verdict(ok_git),
-         "chi_tiet": git_status.replace("\n", " ; ")},
+         "chi_tiet": git_mo_ta.replace("\n", " ; ")},
     ]
     results.write_rows(RESULTS_DIR + "/compare.csv",
                        ["kiem_tra", "mobivital", "pipeline_do_an", "ket_luan", "chi_tiet"],
