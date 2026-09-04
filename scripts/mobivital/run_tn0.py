@@ -1,4 +1,14 @@
-"""TN0 — chạy pipeline MobiVital bằng đúng lệnh trong README của tác giả.
+"""TN0 — chạy pipeline MOBIVITAL bằng đúng lệnh trong README của tác giả.
+
+CÓ HAI TỆP TÊN run_tn0.py, ĐỪNG NHẦM:
+
+    scripts/mobivital/run_tn0.py   <- TỆP NÀY. Chạy code CỦA TÁC GIẢ.
+                                      autoreg_training.py, mobivital_gen.py,
+                                      evaluate.py, prep_breath_final.py
+    scripts/run_tn0.py                Chạy code CỦA ĐỒ ÁN trong src/,
+                                      và in bảng so sánh --compare
+
+Phân biệt bằng thư mục: nằm trong mobivital/ nghĩa là chạy code của họ.
 
     python scripts/mobivital/run_tn0.py --case prep   sinh data_final/*.npy
     python scripts/mobivital/run_tn0.py --case a      tính điểm từ tệp có sẵn

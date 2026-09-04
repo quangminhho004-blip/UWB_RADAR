@@ -99,15 +99,25 @@ scripts/     gọi src/ theo đúng thứ tự; notebook chỉ chạy một dòn
   check_data.py        so dữ liệu đồ án với dữ liệu MobiVital, từng byte
   make_windows.py      -> data/processed/windows/
   checksums.py         -> data/checksums.txt
-  run_tn0.py           TN0 pipeline đồ án: --case a|b|c, --compare
+  run_tn0.py           TN0 pipeline ĐỒ ÁN: --case a|b|c, --compare
   run_cv.py            4 fold trên ABCDEFKL, chọn cấu hình
   run_final_test.py    train đủ ABCDEFKL, test GHIJ một lần duy nhất
   save_results.py      nén runs/<thực nghiệm>/ thành runs/<thực nghiệm>.zip
   mobivital/           chạy code tác giả nguyên bản
     setup_dataset.py   vá 52 tên tệp lỗi thời, giấu dữ liệu khỏi git của họ
-    run_tn0.py         TN0 pipeline MobiVital: --case prep|a|b|c
+    run_tn0.py         TN0 pipeline MOBIVITAL: --case prep|a|b|c
 notebooks/   thí nghiệm, chạy trên Colab
 docs/        luật thí nghiệm và lý do thiết kế
+```
+
+**Hai tệp trùng tên `run_tn0.py`** — phân biệt bằng thư mục:
+
+```
+scripts/run_tn0.py             chạy code CỦA ĐỒ ÁN trong src/, và in bảng --compare
+scripts/mobivital/run_tn0.py   chạy code CỦA TÁC GIẢ (autoreg_training, mobivital_gen,
+                               evaluate, prep_breath_final)
+
+Nằm trong mobivital/  =>  chạy code của họ.
 
 data/        KHÔNG commit, để trên Google Drive
 runs/        KHÔNG commit, checkpoint và kết quả
