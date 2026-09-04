@@ -33,7 +33,7 @@ Bài báo ghi tác giả dùng **GTX 1080 Ti, 11 GB** — ít hơn L4 — mà v�
 trong `no_grad()`. PyTorch hiện hành cấp theo cờ `model.training`. Không cài lại
 `torch==2.3.0` được vì bản đó không có wheel cho Python 3.13.
 
-Vá: `scripts/mobivital/patch_eval.py`, thêm **đúng một dòng** `model.eval()`.
+Vá: `scripts/mobivital/apply_patched_files.py`, thêm **đúng một dòng** `model.eval()`.
 Model chỉ gồm `nn.LSTM(dropout=0)` và `nn.Linear` nên train và eval cho forward
 giống hệt — không đổi kết quả, chỉ đổi cách xin bộ nhớ.
 

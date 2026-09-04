@@ -3,7 +3,7 @@
 Dùng chung bởi `scripts/mobivital/run_tn0.py` và `scripts/run_tn0.py`.
 
 Đồ án sửa code tác giả đúng MỘT dòng: thêm `model.eval()` vào
-`inference/mobivital_gen.py`, xem `scripts/mobivital/patch_eval.py`. Hàm dưới
+`inference/mobivital_gen.py`, xem `scripts/mobivital/apply_patched_files.py`. Hàm dưới
 xác nhận:
 
     1. chỉ đúng tệp đó bị đổi, không tệp nào khác

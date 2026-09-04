@@ -39,7 +39,7 @@ MỘT DÒNG SỬA TRONG CODE TÁC GIẢ
 chế độ train nên cuDNN cấp thêm vùng nhớ dự trữ cho backward — 15.1 GB cho lô
 6708 chuỗi của một buổi ghi. Đo thật: T4 và L4 đều tràn ngay ở buổi ghi 1/1874.
 
-`scripts/mobivital/patch_eval.py` thêm đúng một dòng `model.eval()`, có chú thích
+`scripts/mobivital/apply_patched_files.py` thêm đúng một dòng `model.eval()`, có chú thích
 đánh dấu rõ trong file. Model chỉ gồm `nn.LSTM(dropout=0)` và `nn.Linear` nên
 train và eval cho forward giống hệt — vá này không đổi kết quả, chỉ đổi cách xin
 bộ nhớ. Sau khi vá, chọn kênh chạy trên GPU mất vài phút thay vì 1 giờ 20 CPU.
