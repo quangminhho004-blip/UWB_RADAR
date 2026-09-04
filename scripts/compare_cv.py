@@ -1,7 +1,7 @@
 """So các cấu hình đã chạy trong một thực nghiệm CV.
 
     python scripts/compare_cv.py --experiment tn1
-    python scripts/compare_cv.py --experiment tn1 --so-doi lstm
+    python scripts/compare_cv.py --experiment tn1 --baseline lstm
 
 HAI BẢNG
 
@@ -86,7 +86,7 @@ def thang_hoa_thua(a, b):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--experiment", required=True, help="tên thực nghiệm, ví dụ tn1")
-parser.add_argument("--so-doi", dest="so_doi", default=None,
+parser.add_argument("--baseline", default=None,
                     help="tên model làm mốc để đếm thắng/hoà/thua, ví dụ lstm")
 parser.add_argument("--final", action="store_true",
                     help="chế độ test GHIJ: gộp nhiều seed thành mean +- std "
@@ -163,10 +163,10 @@ print("NGƯỜI, không theo buổi ghi — mỗi người có số buổi khác
 
 # --- Bảng 2: thắng / hoà / thua ---
 
-if args.so_doi:
-    moc = [r for r in tong if r["model"] == args.so_doi]
+if args.baseline:
+    moc = [r for r in tong if r["model"] == args.baseline]
     if not moc:
-        sys.exit("không thấy cấu hình nào dùng model '%s'" % args.so_doi)
+        sys.exit("không thấy cấu hình nào dùng model '%s'" % args.baseline)
     moc_id = moc[0]["run_id"][:-len("_tong")]
     diem_moc = diem_tung_buoi(args.experiment, moc_id)
 
