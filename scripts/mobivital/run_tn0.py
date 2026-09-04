@@ -8,7 +8,7 @@ CÓ HAI TỆP TÊN run_tn0.py, ĐỪNG NHẦM:
     scripts/run_tn0.py                Chạy code CỦA ĐỒ ÁN trong src/,
                                       và in bảng so sánh --compare
 
-Phân biệt bằng thư mục: nằm trong mobivital/ nghĩa là chạy code của họ.
+Phân biệt bằng thư mục: nằm trong mobivital/ nghĩa là chạy code của tác giả.
 
     python scripts/mobivital/run_tn0.py --case prep   sinh data_final/*.npy
     python scripts/mobivital/run_tn0.py --case a      tính điểm từ tệp có sẵn
@@ -17,7 +17,7 @@ Phân biệt bằng thư mục: nằm trong mobivital/ nghĩa là chạy code c�
 
 KHÔNG SỬA MỘT DÒNG NÀO TRONG CODE MOBIVITAL
 
-Script này chỉ `cd` vào thư mục repo của họ rồi gọi lệnh, đúng như README ghi.
+Script này chỉ `cd` vào thư mục repo MobiVital rồi gọi lệnh, đúng như README ghi.
 Mỗi lệnh được **in nguyên văn ra màn hình trước khi chạy**, nên đọc output là
 thấy đủ chuỗi lệnh của tác giả:
 
@@ -33,14 +33,14 @@ VIỆC DUY NHẤT LÀM THÊM: GIỮ REPO TÁC GIẢ SẠCH
     inference/methods/tripod_mobivital_pre_invert_0.9.txt
 
 mà tên đó trùng một tệp **đã có sẵn trong repo tác giả**. Chạy là ghi đè lên tệp
-của họ, chạy lần hai lại đè lần một. Nên ngay sau mỗi lần chạy, script:
+của tác giả, chạy lần hai lại đè lần một. Nên ngay sau mỗi lần chạy, script:
 
     1. chép tệp vừa sinh -> inference/methods/<tên>.txt   (để evaluate.py đọc)
     2. chép tệp vừa sinh -> runs/tn0/<tên>.txt         (để đối chiếu về sau)
     3. git checkout khôi phục tệp gốc của tác giả
     4. xoá tệp tạm <tên>.txt
 
-Cuối mỗi lần chạy có đụng repo họ, script kiểm `git status --porcelain` phải
+Cuối mỗi lần chạy có đụng repo MobiVital, script kiểm `git status --porcelain` phải
 trống và dừng hẳn nếu không.
 
 MỘT DÒNG SỬA TRONG CODE TÁC GIẢ

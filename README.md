@@ -34,12 +34,12 @@ Bảng 4 bài báo gốc:
 | Variance | 0.514 |
 | **Oracle** (được nhìn nhịp thở thật) | **0.943** |
 
-Dựng lại bằng chính code của họ, không sửa dòng nào — xem
+Dựng lại bằng chính code của tác giả, không sửa dòng nào — xem
 [notebooks/TN0.md](notebooks/TN0.md):
 
 ```
-TN0a  chấm file kết quả họ commit sẵn      0.819481   khớp bài báo
-TN0b  checkpoint của họ, mình tự chạy      0.822175
+TN0a  chấm file kết quả tác giả commit sẵn      0.819481   khớp bài báo
+TN0b  checkpoint tác giả, đồ án tự chạy    0.822175
 TN0c  tự train lại từ đầu                  0.798748
 ```
 
@@ -63,9 +63,9 @@ external/mobivital/dataset/mobivital/tripod/   1874 CSV, 13 GB
 | # | lệnh | ra cái gì |
 |---|---|---|
 | 1 | `unzip tripod.zip -d external/mobivital/dataset/mobivital/` | 1874 CSV |
-| 2 | `python scripts/mobivital/setup_dataset.py` | vá 52 tên file lỗi thời, giấu dữ liệu khỏi git của họ |
-| 3 | `cd external/mobivital && python dataset_preparation/prep_breath_final.py` | `data_final/*.npy` — **pipeline gốc**, script của họ |
-| 4 | `python scripts/make_npz.py` | `by_user/*.npz` — **pipeline của mình** |
+| 2 | `python scripts/mobivital/setup_dataset.py` | vá 52 tên file lỗi thời, giấu dữ liệu khỏi git của MobiVital |
+| 3 | `cd external/mobivital && python dataset_preparation/prep_breath_final.py` | `data_final/*.npy` — **pipeline gốc**, script của tác giả |
+| 4 | `python scripts/make_npz.py` | `by_user/*.npz` — **pipeline của đồ án** |
 | 5 | `python scripts/check_data.py` | đối chiếu hai bên, phải khớp từng byte |
 | 6 | `python scripts/make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
 
@@ -75,7 +75,7 @@ Chạy `notebooks/DATA_PREPARE.ipynb` một lần là hai tệp `by_user.tar` v�
 bước 4 và 6 (~16 phút). CSV thô 13 GB không cất lên Drive vì pipeline MobiVital
 đọc thẳng CSV, mà tải lại từ Zenodo chỉ mất 4 phút.
 
-`data/` chỉ chứa thứ pipeline của mình sinh ra. `scripts/mobivital/` chỉ **dọn
+`data/` chỉ chứa thứ pipeline của đồ án sinh ra. `scripts/mobivital/` chỉ **dọn
 chỗ** — việc đọc CSV do chính `prep_breath_final.py` của MobiVital làm, nguyên
 bản, 0 dòng sửa.
 
@@ -104,7 +104,7 @@ scripts/     gọi src/ theo đúng thứ tự; notebook chỉ chạy một dòn
   run_final_test.py    train đủ ABCDEFKL, test GHIJ một lần duy nhất
   save_results.py      nén runs/<thực nghiệm>/ thành runs/<thực nghiệm>.zip
   mobivital/           chạy code tác giả nguyên bản
-    setup_dataset.py   vá 52 tên tệp lỗi thời, giấu dữ liệu khỏi git của họ
+    setup_dataset.py   vá 52 tên tệp lỗi thời, giấu dữ liệu khỏi git MobiVital
     run_tn0.py         TN0 pipeline MOBIVITAL: --case prep|a|b|c
 notebooks/   thí nghiệm, chạy trên Colab
 docs/        luật thí nghiệm và lý do thiết kế
@@ -117,7 +117,7 @@ scripts/run_tn0.py             chạy code CỦA ĐỒ ÁN trong src/, và in b�
 scripts/mobivital/run_tn0.py   chạy code CỦA TÁC GIẢ (autoreg_training, mobivital_gen,
                                evaluate, prep_breath_final)
 
-Nằm trong mobivital/  =>  chạy code của họ.
+Nằm trong mobivital/  =>  chạy code của tác giả.
 
 data/        KHÔNG commit, để trên Google Drive
 runs/        KHÔNG commit, checkpoint và kết quả
@@ -188,7 +188,7 @@ ghi thô qua bộ chọn kênh. Không phải `train_mse`: cửa sổ lúc train
 | `LSTMMultiStep` làm baseline | bộ chọn kênh dùng chung cho LSTM và TCN |
 
 [`src/mobivital_reference.py`](src/mobivital_reference.py) là chỗ duy nhất chạm vào code
-MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file script nào của họ.
+MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file script nào của tác giả.
 
 
 ## Chuỗi bằng chứng
@@ -201,7 +201,7 @@ MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file sc
 [Colab] TN0    a  chấm bảng MobiVital commit sẵn   -> khớp Table 4 bài báo (0.819)
                b  checkpoint có sẵn, tự chọn kênh
                c  train lại từ đầu
-               chạy hai lần: code MobiVital bản gốc (0 dòng sửa), rồi code mình
+               chạy hai lần: code MobiVital bản gốc (0 dòng sửa), rồi code đồ án
                -> a và b khớp tới chữ số cuối, lựa chọn kênh trùng 537/537
 
 [Colab] TN1..TN6       TCN, 4 fold                       <- từ đây trở đi

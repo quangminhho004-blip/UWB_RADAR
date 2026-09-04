@@ -13,7 +13,7 @@ Giải thích cho [TN0.ipynb](TN0.ipynb).
 | TN0b | ckpt MobiVital → `mobivital_gen.py` → TXT mới → `evaluate.py` | inference chọn bin/method |
 | TN0c | `.npy` → `autoreg_training.py` → ckpt mới → `mobivital_gen.py` → TXT → `evaluate.py` | công thức train |
 
-Mỗi bậc thêm đúng một việc do mình tự làm. Bậc nào lệch đầu tiên thì lỗi nằm ở đúng cái
+Mỗi bậc thêm đúng một việc do đồ án tự làm. Bậc nào lệch đầu tiên thì lỗi nằm ở đúng cái
 vừa thêm.
 
 ---
@@ -163,7 +163,7 @@ Ngưỡng `0.9` lọc **dữ liệu train**. Ngưỡng `0.8` lọc **ứng viên
   không rò rỉ.
 - `seed = 1234` ghi cứng ở `autoreg_training.py:14` ⇒ chạy script gốc chỉ train lại được
   **một lần**. Muốn nhiều seed để tính `± ` thì phải gọi hàm `train()` qua `mv_run.py`,
-  lúc đó mình tự khởi tạo model nên tự đặt seed được.
+  lúc đó đồ án tự khởi tạo model nên tự đặt seed được.
 
 ---
 
@@ -297,8 +297,8 @@ chọn mù nên chỉ đạt 0.819.
 
 | thí nghiệm | kết quả |
 |---|---|
-| lựa chọn của MobiVital đứng hạng mấy trên model mình (trong ~120 ứng viên) | hạng **2–4**, cá biệt 8 |
-| chênh điểm giữa hạng nhất và lựa chọn của họ | 0.5–1.8 trên tổng ~40 = **1–4%** |
+| lựa chọn của MobiVital đứng hạng mấy trên model đồ án (trong ~120 ứng viên) | hạng **2–4**, cá biệt 8 |
+| chênh điểm giữa hạng nhất và lựa chọn của MobiVital | 0.5–1.8 trên tổng ~40 = **1–4%** |
 | đổi số luồng CPU (1 vs 10) có lật lựa chọn không | **0/20** |
 | thêm nhiễu 1e-6 → 1e-2 vào toàn bộ trọng số | **0/20** ở mọi mức |
 
@@ -314,16 +314,16 @@ cuối chỉ 0.003, và bài báo đã được dựng lại đúng.
 
 ---
 
-## Mục 8 — đối chiếu pipeline của mình
+## Mục 8 — đối chiếu pipeline của đồ án
 
 Notebook làm ba việc hai lần: mục 2–4 bằng code MobiVital bản gốc, mục 6 bằng
-code của mình. Cả hai chạy **trong cùng một phiên Colab, cùng một GPU** — bắt
+code của đồ án. Cả hai chạy **trong cùng một phiên Colab, cùng một GPU** — bắt
 buộc, vì bước chọn kênh là `argmax` và GPU với CPU cộng số theo thứ tự khác nhau
 nên hai ứng viên gần bằng điểm có thể đảo thứ hạng (xem Mục 5).
 
 ### Ba module đối một
 
-| việc | MobiVital | của mình |
+| việc | MobiVital | của đồ án |
 |---|---|---|
 | train | `training/autoreg_training.py` | `src/training.py` |
 | chọn kênh | `inference/mobivital_gen.py` | `src/scoring.py` |
@@ -342,7 +342,7 @@ c   + vong train            train lai tu dau
 Bậc nào lệch đầu tiên thì lỗi nằm ở đúng bộ phận vừa thêm.
 
 a và b **phải khớp tuyệt đối** — cùng dữ liệu, cùng thuật toán, không có gì ngẫu
-nhiên. c thì không và cũng không cần: vòng train của mình khác họ ở thứ tự xáo
+nhiên. c thì không và cũng không cần: vòng train của đồ án khác ở thứ tự xáo
 trộn và trạng thái sinh số ngẫu nhiên, lệch cỡ đổi seed là bình thường.
 
 ### Vì sao chỉ cần phép kiểm này

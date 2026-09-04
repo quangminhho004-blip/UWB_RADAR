@@ -4,7 +4,7 @@
 
 MỤC ĐÍCH
 
-README của MobiVital ghi chạy như sau, từ trong thư mục repo của họ:
+README của MobiVital ghi chạy như sau, từ trong thư mục repo đó:
 
     python dataset_preparation/prep_breath_final.py
     python -m training.autoreg_training
@@ -12,16 +12,16 @@ README của MobiVital ghi chạy như sau, từ trong thư mục repo của h�
     python -m inference.evaluate -m YOUR_METHOD.txt
 
 Bốn lệnh chạy nguyên bản, không qua lớp bọc nào. CSV giải nén thẳng vào
-`dataset/mobivital/tripod/` — đúng đường dẫn code họ đòi — nên chúng chạy được
-ngay. Script này chỉ thêm hai thứ họ không có:
+`dataset/mobivital/tripod/` — đúng đường dẫn code MobiVital đòi — nên chúng chạy được
+ngay. Script này chỉ thêm hai thứ MobiVital không có:
 
     1. tripod_old_names/   vá 52 tên file lỗi thời, cho evaluate.py
-    2. .git/info/exclude   giấu dữ liệu khỏi git của họ
+    2. .git/info/exclude   giấu dữ liệu khỏi git của MobiVital
 
 MỘT BẢN CSV DUY NHẤT
 
     external/mobivital/dataset/mobivital/tripod/   1874 CSV thật  <- ở đây
-    data/                                          chỉ dữ liệu mình sinh ra
+    data/                                          chỉ dữ liệu đồ án sinh ra
 
 Hai pipeline đọc chung một bản CSV. Nhờ vậy khi `scripts/check_data.py` báo sai
 lệch bằng 0 thì không ai cãi được là do hai bản dữ liệu khác nhau.
@@ -37,7 +37,7 @@ Zenodo. 52 trong 537 dòng ghi mốc ngày tháng 10, bản Zenodo hiện tại 
 
 `evaluate.py` dòng 28 mở file theo tên trong bảng, gặp 52 tên đó là chết giữa
 chừng — mất luôn con số đối chiếu với bài báo. Cách vá: thư mục lối tắt mang tên
-cũ, trỏ vào file thật. Không sửa bảng, không sửa code họ.
+cũ, trỏ vào file thật. Không sửa bảng, không sửa code tác giả.
 
 VÌ SAO PHẢI LÀ THƯ MỤC RIÊNG
 
@@ -50,7 +50,7 @@ Hai script của MobiVital chọn buổi ghi theo hai cách khác nhau:
 đếm thành 589 buổi ghi thay vì 537, tính hai lần cùng một bản ghi.
 
     tripod/            1874 file thật     -> prep_breath_final.py, mobivital_gen.py
-    tripod_old_names/  1874 + 52 lối tắt  -> CHỈ evaluate.py chấm bảng của họ, qua cờ -d
+    tripod_old_names/  1874 + 52 lối tắt  -> CHỈ evaluate.py chấm bảng tác giả, qua cờ -d
 
 BẰNG CHỨNG 52 TÊN ĐÓ LÀ CÙNG BUỔI GHI
 
@@ -115,12 +115,12 @@ print(len(csv_paths), "file CSV trong", CSV_DIR)
 print()
 
 
-# --- 1. Sao lưu bảng kết quả của họ trước khi bị đè ---
+# --- 1. Sao lưu bảng kết quả của tác giả trước khi bị đè ---
 
 os.makedirs(OUT_DIR, exist_ok=True)
 shutil.copy(MOBIVITAL_DIR + "/inference/methods/" + THEIR_TXT,
             OUT_DIR + "/TN0a.txt")
-print("1. sao lưu bảng của họ ->", OUT_DIR + "/TN0a.txt",
+print("1. sao lưu bảng tác giả ->", OUT_DIR + "/TN0a.txt",
       "(" + str(len(open(OUT_DIR + "/TN0a.txt").readlines())) + " dòng)")
 
 
@@ -153,7 +153,7 @@ print("2.", OLD_NAMES_DIR, "-> vá", patched, "tên cũ,",
       len(os.listdir(OLD_NAMES_DIR)), "lối tắt")
 
 
-# --- 3. Giấu dữ liệu khỏi git của họ ---
+# --- 3. Giấu dữ liệu khỏi git của MobiVital ---
 
 exclude_from_git(MOBIVITAL_DIR,
                  ["dataset/", "data_final/",
@@ -172,7 +172,7 @@ for name in names_in_txt:
 
 print()
 print("KIỂM TRA")
-print("   tên trong bảng của họ :", len(names_in_txt))
+print("   tên trong bảng tác giả:", len(names_in_txt))
 print("   mở không được         :", missing, " <- phải là 0")
 print("   thư mục CSV thật      :", len(csv_paths), " <- phải là 1874")
 

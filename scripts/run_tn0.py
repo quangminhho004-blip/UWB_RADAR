@@ -7,7 +7,7 @@ CÓ HAI TỆP TÊN run_tn0.py, ĐỪNG NHẦM:
                                       Còn in bảng ĐẠT/KHÔNG ĐẠT với --compare
     scripts/mobivital/run_tn0.py      Chạy code CỦA TÁC GIẢ
 
-Phân biệt bằng thư mục: nằm trong mobivital/ nghĩa là chạy code của họ.
+Phân biệt bằng thư mục: nằm trong mobivital/ nghĩa là chạy code của tác giả.
 
     python scripts/run_tn0.py --case a       tính điểm từ tệp lựa chọn kênh có sẵn
     python scripts/run_tn0.py --case b       chọn kênh bằng tệp trọng số của tác giả

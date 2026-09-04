@@ -1,4 +1,4 @@
-"""Mượn lại các thành phần ổn định của MobiVital. Không sửa file nào của họ.
+"""Mượn lại các thành phần ổn định của MobiVital. Không sửa file nào của tác giả.
 
     from src import mobivital_reference as mv
     windows = mv.generate_dataset(uwb, gt, 64, 200, 25, 0.9)
@@ -86,7 +86,7 @@ CANDIDATES_PER_SESSION = 120 * 2                                     # 240
 
 
 def new_lstm():
-    """Dựng model LSTM baseline của MobiVital, đúng cấu hình họ công bố."""
+    """Dựng model LSTM baseline của MobiVital, đúng cấu hình tác giả công bố."""
     return LSTMMultiStep(LSTM_HIDDEN_SIZE, LSTM_NUM_LAYERS, FUTURE_LENGTH)
 
 

@@ -35,7 +35,7 @@ drive.mount('/content/drive')
 !python scripts/mobivital/setup_dataset.py
 !cd external/mobivital && python dataset_preparation/prep_breath_final.py
 
-# Dữ liệu của mình, đọc đúng bộ CSV đó
+# Dữ liệu của đồ án, đọc đúng bộ CSV đó
 !python scripts/make_npz.py
 !python scripts/check_data.py
 !python scripts/make_windows.py
@@ -107,7 +107,7 @@ Phải ra `True`. Không thì **Runtime → Change runtime type → T4 GPU**.
 
 | notebook | việc | pipeline |
 |---|---|---|
-| `TN0.ipynb` | dựng lại kết quả MobiVital bằng code gốc, rồi chứng minh pipeline mình cho ra đúng số đó | cả hai |
+| `TN0.ipynb` | dựng lại kết quả MobiVital bằng code gốc, rồi chứng minh pipeline đồ án cho ra đúng số đó | cả hai |
 | `tn1_cv.ipynb` | TCN vs DS-TCN | dev, 4 fold |
 | `tn2_revin.ipynb` | có / không RevIN | dev, 4 fold |
 | `tn3_loss.ipynb` | MSE vs MSE + Pearson | dev, 4 fold |

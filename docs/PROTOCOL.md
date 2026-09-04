@@ -10,7 +10,7 @@ Luật chạy thí nghiệm cho đồ án. Chốt trước khi chạy, không đ
 
 | | **Pipeline TRAIN / VALIDATE** | **Pipeline TEST** |
 |---|---|---|
-| Code | của mình (`scripts/1_`, `scripts/2_` → `.npz` theo từng người) | của họ (`prep_breath_final.py` nguyên bản) |
+| Code | của đồ án (`scripts/make_npz.py`, `scripts/make_windows.py` → `.npz` theo từng người) | của MobiVital (`prep_breath_final.py` nguyên bản) |
 | Dùng để | train model, **chọn cấu hình** qua 4-fold CV | ra **số công bố** trong luận văn |
 | Dữ liệu | pool `ABCDEFKL`, chia 4 fold | train full pool `ABCDEFKL`, test `GHIJ` |
 | Chạy khi nào | mọi thí nghiệm TN1–TN6 | TN0 (reproduce) + bảng so sánh cuối |
@@ -53,7 +53,7 @@ Bảng so sánh cuối chạy **trọn vẹn trong pipeline test**, cho cả LST
 công bằng và tái lập được.
 
 TN0b là **reproduce**: phải dùng pipeline test từ đầu tới cuối, không thay
-preprocessing của mình vào — thay vào thì không còn là reproduce nữa.
+preprocessing của đồ án vào — thay vào thì không còn là reproduce nữa.
 
 Phép bảo hiểm cho việc chuyển cấu hình giữa hai pipeline là TN0a (mục 5).
 
@@ -172,8 +172,8 @@ nghiệm trước. TN1–TN6 đều cho ra **cả hai** số: `cv_score` và `te
 
 | # | tên | so cái gì | pipeline |
 |---|---|---|---|
-| **0a** | Kiểm eval | checkpoint LSTM của họ → eval trên GHIJ, so số trong paper | test |
-| **0b** | Reproduce | train lại LSTM bằng code + params của họ, 3–4 seed → test GHIJ | **test, nguyên bản** |
+| **0a** | Kiểm eval | checkpoint LSTM của tác giả → eval trên GHIJ, so số trong paper | test |
+| **0b** | Reproduce | train lại LSTM bằng code và tham số của tác giả, 3–4 seed → test GHIJ | **test, nguyên bản** |
 | **1** | Kiến trúc | TCN thường vs TCN depthwise-separable | train/validate |
 | **2** | RevIN | người thắng TN1, có vs không RevIN | train/validate |
 | **3** | Loss | MSE thuần vs MSE + Pearson (alpha 0.5 / 0.7 / 0.9) | train/validate |

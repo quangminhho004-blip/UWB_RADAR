@@ -1,4 +1,4 @@
-"""Chứng minh dữ liệu của mình đúng bằng dữ liệu MobiVital dùng.
+"""Chứng minh dữ liệu của đồ án đúng bằng dữ liệu MobiVital dùng.
 
     python scripts/check_data.py
 
@@ -27,7 +27,7 @@ thì không cần chọn ngưỡng, và lệch một chữ số cuối cũng l�
 
 CÁCH GHÉP CẶP
 
-Hai bên xếp buổi ghi theo thứ tự khác nhau: MobiVital dùng `os.listdir()`, mình
+Hai bên xếp buổi ghi theo thứ tự khác nhau: MobiVital dùng `os.listdir()`, đồ án
 dùng `sorted()`. Nên không so theo vị trí, mà lấy chuỗi byte của `gt` làm khoá —
 1500 số float32, không hai buổi ghi nào trùng nhau.
 
@@ -57,7 +57,7 @@ TEST_USERS = ["G", "H", "I", "J"]
 def read_mobivital_npy(path):
     """Đọc file .npy của MobiVital.
 
-    File của họ chứa hai mảng ghi nối tiếp nhau, nên phải gọi np.load hai lần
+    File của MobiVital chứa hai mảng ghi nối tiếp nhau, nên phải gọi np.load hai lần
     trên cùng một file đang mở.
     """
     opened_file = open(path, "rb")
@@ -118,7 +118,7 @@ def compare(label, users, npy_name):
 
         del data, uwb_all, gt_all
 
-    print("    của mình  ", total, "buổi ghi")
+    print("    của đồ án ", total, "buổi ghi")
     print("    MobiVital ", len(table), "buổi ghi")
     print("    khớp TỪNG BYTE %d/%d" % (matched, total))
 

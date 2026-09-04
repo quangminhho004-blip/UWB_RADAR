@@ -76,7 +76,7 @@ Gộp được thành một phép ma trận: trừ trung bình, chia độ lệc
 hướng theo hàng. Gần như biến mất.
 
 **Lọc `invert_detector` — 24.7%.** 240 lần gọi hàm của tác giả. Gộp theo lô được,
-nhưng hàm đó nhập từ repo họ.
+nhưng hàm đó nhập từ repo MobiVital.
 
 **Cái giá:** cả hai đều đổi thứ tự cộng số thực, tức đổi chữ số cuối. Bước chọn
 kênh kết thúc bằng `argmax`; hai ứng viên gần bằng điểm thì đảo thứ hạng. TN0b

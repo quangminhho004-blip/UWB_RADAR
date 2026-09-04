@@ -24,7 +24,7 @@ Chỉ giữ MỘT bản CSV, đặt đúng chỗ `prep_breath_final.py` của Mo
 pipeline đọc chung một bản đó, nên khi `scripts/check_data.py` báo sai lệch bằng
 0 thì không ai cãi được là do hai bản dữ liệu khác nhau.
 
-`data/` từ đây chỉ chứa thứ pipeline của mình sinh ra.
+`data/` từ đây chỉ chứa thứ pipeline của đồ án sinh ra.
 
 Lọc người theo tên file, đúng cách `prep_breath_final.py` dòng 27-31 làm:
 tên `240502_userA_tripod_04_8.csv` thuộc người A.
@@ -63,7 +63,7 @@ def read_one_csv(path):
 
     Đọc y hệt cách MobiVital làm trong prep_breath_final.py: dùng csv.reader rồi
     ép sang float32 NGAY, sau đó mới chuẩn hoá. Nếu đọc ở float64 rồi mới ép
-    xuống thì kết quả lệch với họ ở chữ số thứ 8 -- không ảnh hưởng gì tới model,
+    xuống thì kết quả lệch với MobiVital ở chữ số thứ 8 -- không ảnh hưởng gì tới model,
     nhưng làm giống hệt để khỏi phải giải trình.
     """
     with open(path) as csvfile:

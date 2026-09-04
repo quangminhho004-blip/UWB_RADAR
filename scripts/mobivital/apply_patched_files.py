@@ -1,4 +1,4 @@
-"""Ghi đè các tệp MobiVital đã sửa sẵn, chạy ngay sau khi clone repo họ.
+"""Ghi đè các tệp MobiVital đã sửa sẵn, chạy ngay sau khi clone repo đó.
 
     python scripts/mobivital/apply_patched_files.py
 
@@ -29,7 +29,7 @@ Bước chọn kênh đưa cả một buổi ghi vào LSTM một lần: 129 ứn
     L4 + ghi đè tệp này     -> chạy trọn 1874 buổi ghi trong 17 phút
 
 Bài báo ghi tác giả dùng GTX 1080 Ti, chỉ 11 GB VRAM — còn ít hơn L4 — mà vẫn
-chạy được. `requirements.txt` của họ ghim `torch==2.3.0`; bản đó bỏ qua vùng dự
+chạy được. `requirements.txt` của MobiVital ghim `torch==2.3.0`; bản đó bỏ qua vùng dự
 trữ khi đang trong `torch.no_grad()`. PyTorch hiện hành cấp theo cờ
 `model.training`, không quan tâm `no_grad`. Không cài lại `torch==2.3.0` được vì
 bản đó không có wheel cho Python 3.13.

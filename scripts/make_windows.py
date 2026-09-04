@@ -61,7 +61,7 @@ FUTURE_LENGTH = 25        # số mẫu model phải đoán
 # ===============================================================
 
 
-# Cho Python biết tìm code MobiVital ở đâu, rồi mượn hàm cắt cửa sổ của họ.
+# Cho Python biết tìm code MobiVital ở đâu, rồi mượn hàm cắt cửa sổ của tác giả.
 sys.path.append(os.path.abspath(MOBIVITAL_DIR))
 from training.utils.model_utils import generate_dataset
 
@@ -104,7 +104,7 @@ def save(path, X, y):
 def read_mobivital_npy(path):
     """Đọc file .npy của MobiVital.
 
-    File của họ chứa hai mảng ghi nối tiếp nhau trong cùng một file,
+    File của MobiVital chứa hai mảng ghi nối tiếp nhau trong cùng một file,
     nên phải gọi np.load hai lần trên cùng một file đang mở.
     """
     opened_file = open(path, "rb")

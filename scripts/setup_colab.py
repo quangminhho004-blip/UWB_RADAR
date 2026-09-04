@@ -17,7 +17,7 @@ mục của tiến trình con, ô lệnh sau vẫn đứng ở chỗ cũ.
 BA VIỆC SCRIPT NÀY LÀM
 
     1. clone repo MobiVital rồi GHIM đúng commit dùng cho mọi số liệu.
-       Repo họ không có LICENSE nên không chép vào repo đồ án, phải clone riêng
+       Repo MobiVital không có LICENSE nên không chép vào repo đồ án, phải clone riêng
        mỗi phiên Colab.
     2. cài thư viện thiếu (einops)
 
