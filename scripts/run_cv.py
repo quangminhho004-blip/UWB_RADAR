@@ -28,6 +28,7 @@ Cửa sổ của 2 người validation không được dùng vào việc gì tro
 
 import argparse
 import os
+import subprocess
 import sys
 
 # Bộ nhớ GPU vỡ vụn ở bước chấm điểm: mỗi buổi ghi đẩy 6708 chuỗi một lô, xin
@@ -115,12 +116,23 @@ print()
 
 
 def run_one_fold(fold_name, val_users):
-    """Train trên 6 người, chấm điểm 2 người còn lại. Trả về điểm macro."""
+    """Train trên 6 người, chấm điểm 2 người còn lại. Trả về điểm macro.
+
+    Fold đã có kết quả thì bỏ qua, không train lại. Nhờ vậy Colab ngắt phiên
+    giữa chừng thì chạy lại lệnh cũ là đi tiếp từ fold còn thiếu, thay vì làm
+    lại từ fold 1.
+    """
     train_users = [u for u in DEV_USERS if u not in val_users]
     run_id = config_id + "_" + fold_name
 
     print("-" * 58)
     print(fold_name, " train", "".join(train_users), " chấm", "".join(val_users))
+
+    done = results.find_run(SUMMARY_FILE, args.experiment, run_id)
+    if done is not None:
+        print("   đã có kết quả %.4f — bỏ qua, không train lại"
+              % float(done["score_macro"]))
+        return float(done["score_macro"])
 
     X, y = training.load_windows(train_users, args.corr, folder=WINDOWS_DIR)
     print(X.shape[0], "cửa sổ train")
@@ -179,34 +191,51 @@ def run_one_fold(fold_name, val_users):
     return macro
 
 
+def snapshot():
+    """Nén kết quả rồi chép sang Drive. Gọi sau mỗi fold.
+
+    Bốn fold mất vài giờ, Colab hay ngắt phiên và xoá sạch /content. Không lưu
+    dọc đường thì mất trắng. Tên tệp nén chứa cấu hình nên hai phiên chạy song
+    song không đè zip của nhau.
+    """
+    subprocess.run([sys.executable, "scripts/save_results.py", args.experiment,
+                    "--out", args.experiment + "_" + config_id],
+                   check=False)
+
+
 fold_scores = []
 for fold_name, val_users in FOLDS:
     fold_scores.append(run_one_fold(fold_name, val_users))
+    snapshot()
 
 cv_score = float(np.mean(fold_scores))
 cv_std = float(np.std(fold_scores))
 
 # Một dòng TỔNG cho cả cấu hình, ngoài 4 dòng của 4 fold. Nhờ nó chọn cấu hình
 # chỉ cần lọc summary.csv theo fold == "TONG", không phải tự cộng trung bình.
-results.add_summary({"run_id": config_id + "_tong",
-                     "experiment": args.experiment,
-                     "model": args.model,
-                     "revin": int(revin),
-                     "loss": args.loss,
-                     "alpha": args.alpha,
-                     "corr_threshold": args.corr,
-                     "seed": args.seed,
-                     "fold": "TONG",
-                     "val_users": "".join(DEV_USERS),
-                     "n_params": models.count_params(models.build_model(args.model, revin=revin,
-                                   channels=args.channels,
-                                   kernel_size=args.kernel_size,
-                                   n_blocks=args.n_blocks,
-                                   dropout=args.dropout)),
-                     "epochs": args.epochs,
-                     "score_macro": cv_score,
-                     "score_std": cv_std,
-                     "n_sessions": 4}, SUMMARY_FILE)
+#
+# Chạy lại lệnh cũ sau khi đã xong đủ 4 fold thì dòng này đã có; ghi nữa là
+# trùng. Bỏ qua để lệnh vẫn chạy được và vẫn in ra bảng tổng kết.
+if results.find_run(SUMMARY_FILE, args.experiment, config_id + "_tong") is None:
+    results.add_summary({"run_id": config_id + "_tong",
+                         "experiment": args.experiment,
+                         "model": args.model,
+                         "revin": int(revin),
+                         "loss": args.loss,
+                         "alpha": args.alpha,
+                         "corr_threshold": args.corr,
+                         "seed": args.seed,
+                         "fold": "TONG",
+                         "val_users": "".join(DEV_USERS),
+                         "n_params": models.count_params(models.build_model(args.model, revin=revin,
+                                       channels=args.channels,
+                                       kernel_size=args.kernel_size,
+                                       n_blocks=args.n_blocks,
+                                       dropout=args.dropout)),
+                         "epochs": args.epochs,
+                         "score_macro": cv_score,
+                         "score_std": cv_std,
+                         "n_sessions": 4}, SUMMARY_FILE)
 
 print()
 print("=" * 58)

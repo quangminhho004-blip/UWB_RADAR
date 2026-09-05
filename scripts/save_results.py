@@ -68,9 +68,15 @@ def summary_rows(name):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("name", help="tên thực nghiệm, ví dụ tn0 hoặc tn1")
+parser.add_argument("--out", default=None,
+                    help="tên tệp nén, mặc định trùng tên thực nghiệm. "
+                         "Dùng khi hai phiên Colab cùng chạy một thực nghiệm "
+                         "và không được đè zip của nhau")
 args = parser.parse_args()
 
 name = args.name
+# Tên thư mục lấy theo thực nghiệm; tên tệp nén thì tách ra để đặt riêng được.
+out_name = args.out or name
 folder = RUNS_DIR + "/" + name
 
 if not os.path.isdir(folder):
@@ -101,11 +107,13 @@ with open(folder + "/README.txt", "w") as f:
 
 # --- Nén ---
 
-archive = RUNS_DIR + "/" + name + ".zip"
-if os.path.exists(archive):
-    os.remove(archive)
+archive = RUNS_DIR + "/" + out_name + ".zip"
 
-shutil.make_archive(RUNS_DIR + "/" + name, "zip", root_dir=RUNS_DIR, base_dir=name)
+# Nén ra tên tạm rồi mới thay: mất phiên giữa lúc nén thì bản trước vẫn còn
+# nguyên. Trước đây xoá tệp cũ TRƯỚC khi nén, hỏng giữa chừng là mất cả hai.
+tmp_base = RUNS_DIR + "/" + out_name + ".dang_nen"
+shutil.make_archive(tmp_base, "zip", root_dir=RUNS_DIR, base_dir=name)
+os.replace(tmp_base + ".zip", archive)
 
 print("%s/  ->  %s   (%.1f MB)" % (folder, archive, os.path.getsize(archive) / 1e6))
 print("   %d dòng metric trong summary.csv" % len(rows))
@@ -115,9 +123,9 @@ subprocess.run("unzip -l " + archive + " | tail -n +4 | head -40", shell=True)
 sys.stdout.flush()
 print()
 if os.path.isdir(DRIVE):
-    shutil.copy(archive, DRIVE + "/" + name + ".zip")
+    shutil.copy(archive, DRIVE + "/" + out_name + ".zip")
     print()
-    print("đã chép sang", DRIVE + "/" + name + ".zip")
+    print("đã chép sang", DRIVE + "/" + out_name + ".zip")
 
 print()
-print("Giải nén lại đúng chỗ cũ:  unzip %s.zip -d runs/" % name)
+print("Giải nén lại đúng chỗ cũ:  unzip %s.zip -d runs/" % out_name)
