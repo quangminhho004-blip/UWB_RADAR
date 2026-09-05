@@ -34,7 +34,6 @@ không phụ thuộc phần cứng.
 import csv
 import os
 import subprocess
-import time
 
 
 SUMMARY_COLUMNS = [
@@ -79,9 +78,23 @@ def device_name():
 
 
 def append_row(path, columns, fields):
-    """Thêm một dòng vào file CSV. Tự tạo header nếu file chưa có."""
+    """Thêm một dòng vào file CSV. Tự tạo header nếu file chưa có.
+
+    Nếu file đã có mà header khác `columns` thì DỪNG. Ghi tiếp vào file có
+    header khác sẽ làm lệch cột: dòng mới ít hơn một giá trị thì mọi giá trị
+    phía sau trượt sang ô bên cạnh, và đọc lại bằng DictReader không báo lỗi
+    gì — điểm số rơi vào cột tên model, cột điểm thành rỗng.
+    """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     need_header = not os.path.exists(path)
+
+    if not need_header:
+        existing_header = next(csv.reader(open(path)), None)
+        if existing_header is not None and existing_header != columns:
+            raise ValueError(
+                "header của %s khác với cột đang ghi — ghi tiếp sẽ lệch cột.\n"
+                "  file có : %s\n  đang ghi: %s"
+                % (path, existing_header, columns))
 
     opened_file = open(path, "a", newline="")
     writer = csv.writer(opened_file)
@@ -89,6 +102,21 @@ def append_row(path, columns, fields):
         writer.writerow(columns)
     writer.writerow([fields.get(name, "") for name in columns])
     opened_file.close()
+
+
+def find_run(path, experiment, run_id):
+    """Dòng đã có của một lần chạy, hoặc None. Khoá là (experiment, run_id).
+
+    Cần cả hai vì `run_id` chỉ duy nhất TRONG một thực nghiệm — tn1 và tn2 đều
+    có thể có `lstm_mse_corr0.9_seed0_val_AB`.
+    """
+    if not os.path.exists(path):
+        return None
+
+    for row in csv.DictReader(open(path)):
+        if row.get("experiment") == experiment and row.get("run_id") == run_id:
+            return row
+    return None
 
 
 def write_rows(path, columns, rows):
@@ -104,11 +132,28 @@ def write_rows(path, columns, rows):
 
 
 def add_summary(fields, path):
-    """Thêm một dòng vào summary.csv. Tự điền timestamp, git_commit, device."""
+    """Thêm một dòng vào summary.csv. Tự điền git_commit và device.
+
+    DỪNG nếu đã có dòng cùng (experiment, run_id). Trước đây chạy lại một lần
+    chạy đã xong thì nối thêm dòng thứ hai, và `compare_cv.py --final` đếm nó
+    thành một seed nữa — ba seed báo thành bốn, độ lệch chuẩn bị bóp nhỏ vì có
+    giá trị lặp.
+
+    Cột `timestamp` giữ lại để không lệch với các file đã ghi từ trước, nhưng
+    không điền nữa: `git_commit` chỉ ra bản code chính xác hơn.
+    """
     fields = dict(fields)
-    fields.setdefault("timestamp", time.strftime("%Y-%m-%d %H:%M"))
     fields.setdefault("git_commit", git_commit())
     fields.setdefault("device", device_name())
+
+    old = find_run(path, fields.get("experiment"), fields.get("run_id"))
+    if old is not None:
+        raise ValueError(
+            "đã có kết quả cho (%s, %s) trong %s — không ghi đè.\n"
+            "  điểm đã lưu: %s\n"
+            "  Muốn chạy lại thì đổi --experiment, hoặc xoá dòng cũ trước."
+            % (fields.get("experiment"), fields.get("run_id"), path,
+               old.get("score_macro")))
 
     append_row(path, SUMMARY_COLUMNS, fields)
 
