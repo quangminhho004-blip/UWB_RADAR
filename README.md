@@ -215,6 +215,10 @@ run_final_test.py   ABCDEFKL -> final.pth -> test GHIJ   -> .txt + scores.csv
 Mỗi lần chạy thêm một dòng vào `runs/summary.csv`. **G H I J không bao giờ được
 nhìn lúc chọn cấu hình** — xem [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
+Vì sao chia bốn fold như vậy, vì sao ghép cặp người như thế, mỗi cấu hình train
+bao nhiêu lần, và bằng chứng của từng con số nằm ở đâu:
+[docs/CHIA_DU_LIEU.md](docs/CHIA_DU_LIEU.md).
+
 ## Kết quả và metric
 
 Mỗi thực nghiệm một thư mục `runs/<tên>/`, chứa đủ checkpoint, đường cong loss,
