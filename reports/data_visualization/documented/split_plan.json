@@ -1,0 +1,107 @@
+{
+  "folds": [
+    {
+      "name": "val_AB",
+      "train": [
+        "C",
+        "D",
+        "E",
+        "F",
+        "K",
+        "L"
+      ],
+      "validation": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "val_CE",
+      "train": [
+        "A",
+        "B",
+        "D",
+        "F",
+        "K",
+        "L"
+      ],
+      "validation": [
+        "C",
+        "E"
+      ]
+    },
+    {
+      "name": "val_DF",
+      "train": [
+        "A",
+        "B",
+        "C",
+        "E",
+        "K",
+        "L"
+      ],
+      "validation": [
+        "D",
+        "F"
+      ]
+    },
+    {
+      "name": "val_KL",
+      "train": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ],
+      "validation": [
+        "K",
+        "L"
+      ]
+    }
+  ],
+  "final_train": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "K",
+    "L"
+  ],
+  "final_test": [
+    "G",
+    "H",
+    "I",
+    "J"
+  ],
+  "inference": "uwb only; ground truth is used only after channel selection",
+  "source": "documented",
+  "corr": 0.9,
+  "sessions": {
+    "A": 224,
+    "B": 156,
+    "C": 211,
+    "D": 206,
+    "E": 126,
+    "F": 102,
+    "G": 134,
+    "H": 138,
+    "I": 145,
+    "J": 120,
+    "K": 148,
+    "L": 116
+  },
+  "train_windows": {
+    "A": 42640,
+    "B": 39104,
+    "C": 47996,
+    "D": 53300,
+    "E": 25792,
+    "F": 9256,
+    "K": 50804,
+    "L": 23816
+  }
+}

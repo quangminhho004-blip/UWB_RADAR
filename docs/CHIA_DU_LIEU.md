@@ -365,3 +365,61 @@ print(min(ket))
 - [PROTOCOL.md](PROTOCOL.md) — giao thức thí nghiệm, quy tắc không nhìn `G H I J`
 - `scripts/run_cv.py` — định nghĩa bốn fold, phần `FOLDS` đầu tệp
 - `runs/README.md` — ý nghĩa từng cột trong bảng kết quả
+
+
+## 10. Visualize data và xuất phần chia validation / inference
+
+Mở `notebooks/VISUALIZE_DATA.ipynb` trong VS Code, chọn **Select Kernel →
+Python Environments → .venv**, rồi **Run All**. Biểu đồ hiển thị trực tiếp dưới
+các ô code, không cần mở HTML. Notebook mặc định dùng số tham chiếu; đổi
+`SOURCE = "actual"` để đọc NPZ thực tế. Phần tín hiệu tự bỏ qua ở chế độ tham chiếu.
+Đặt `SAVE_PNG = True` nếu muốn lưu thêm ảnh.
+
+Nếu tạo môi trường trên máy khác, cài `numpy matplotlib ipykernel` vào Python
+được chọn làm kernel. Script HTML cũ vẫn có thể chạy riêng, từ thư mục gốc dự án:
+
+```bash
+python scripts/visualize_data.py --source documented
+python scripts/visualize_data.py --source actual
+```
+
+- `documented`: không cần thư viện ngoài; sinh báo cáo HTML bằng số tham chiếu ở
+  tài liệu này, ghi rõ chưa đo trên máy.
+- `actual`: cần NumPy và các NPZ do DATA_PREPARE sinh ra; đếm session/cửa sổ thực,
+  kiểm tra tên người và kích thước GT/X/y. Chế độ này không chạy model hay tính điểm test.
+- Kết quả ở `reports/data_visualization/<source>/index.html` và `split_plan.json`.
+  Chế độ actual còn xuất `session_splits.csv`: stage, role, user, đường dẫn NPZ,
+  chỉ số session (bắt đầu từ 0), tên CSV gốc. Manifest tham chiếu dữ liệu, không sao chép.
+- Notebook có thêm heatmap radar, sóng ở một bin và GT; xuất hình PNG khi có dữ liệu.
+  Script đọc cửa sổ actual có thể cần hàng trăm MB RAM cho một người; notebook
+  chỉ đọc header khi đếm, và nạp radar khi xem tín hiệu.
+
+### Validation
+
+Bốn fold dùng định nghĩa chung tại `src/data_splits.py`.
+Train chỉ lấy cửa sổ của sáu người trong fold; validation lấy toàn session của
+hai người còn lại. Không dùng cửa sổ đã lọc corr với GT để chấm validation.
+Lệnh chạy hiện có:
+
+```bash
+python scripts/run_cv.py --experiment tn_visualize_cv --model lstm --seed 0
+```
+
+Lặp lại với seed 1 và 2 khi chạy đầy đủ thí nghiệm. Chọn cấu hình bằng CV, rồi
+train lại đủ ABCDEFKL và đánh giá GHIJ bằng `scripts/run_final_test.py`.
+
+### Inference
+
+Inference là thao tác chạy model, không phải tập dữ liệu thứ tư ngoài
+train/validation/test. Khi kiểm chứng cuối, dữ liệu inference là radar GHIJ;
+khi triển khai, đó là radar của người mới.
+
+`scoring.pick_channel(uwb, model)` nhận radar một session `(1500, 120)` dạng số
+phức và model đã nạp checkpoint, đặt `eval()`. Nó trả sóng được chọn, chỉ số
+ứng viên và số ứng viên còn lại. Không truyền GT vào bộ chọn kênh. GT chỉ được
+dùng sau đó nếu cần tính Pearson. Kết quả chưa phải số nhịp thở BPM và pipeline
+hiện tại chưa xử lý streaming.
+
+**Điểm chưa thống nhất của tài liệu cũ:** PROTOCOL.md còn mô tả xem GHIJ trong
+phát triển và chưa chốt số seed. Phần mới tuân theo CHIA_DU_LIEU.md và run_cv.py:
+không chấm GHIJ trong CV; dùng seed 0, 1, 2 khi đánh giá đầy đủ.

@@ -50,12 +50,7 @@ from src import training
 
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
-FOLDS = [("val_AB", ["A", "B"]),
-         ("val_CE", ["C", "E"]),
-         ("val_DF", ["D", "F"]),
-         ("val_KL", ["K", "L"])]
-
-DEV_USERS = ["A", "B", "C", "D", "E", "F", "K", "L"]
+from src.data_splits import FOLDS, DEV_USERS
 
 WINDOWS_DIR = "data/processed/windows/dev_cv"
 SUMMARY_FILE = "runs/summary.csv"
