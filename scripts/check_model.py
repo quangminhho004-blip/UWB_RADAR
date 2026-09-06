@@ -20,6 +20,8 @@ KIỂM GÌ
                  số tham số, lưu và nạp lại state_dict
     bilstm       hai chiều thật, Linear nhận đủ 2*hidden, và chứng minh
                  h[-2],h[-1] KHÁC output[:,-1,:]
+    cnn_lstm     một chiều, chuỗi rút từ 200 xuống 50, hai tầng conv
+                 stride 2, không có pooling thêm
     tcn/ds_tcn   norm=weight thì BatchNorm bị gỡ hẳn và WeightNorm được áp
 
 Không kiểm chất lượng dự báo — việc đó là của run_cv.py.
@@ -120,6 +122,34 @@ def check_bilstm(model, hidden):
              "đầu ra khớp với cách lấy từ h_n")
 
 
+def check_cnn_lstm(model, hidden, conv_channels):
+    print("\n5. Riêng CNN-LSTM")
+    check(not model.lstm.bidirectional,
+          "LSTM MỘT chiều, nên output[:, -1, :] là đúng")
+    check(model.lstm.input_size == conv_channels,
+          "LSTM nhận %d chiều, bằng số kênh tích chập" % conv_channels)
+    check(model.lstm.hidden_size == hidden, "hidden đúng %d" % hidden)
+
+    print("\n6. Khối tích chập rút ngắn chuỗi 200 -> 50")
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.eval()
+    with torch.no_grad():
+        after_conv = model.conv(x.unsqueeze(1))
+    print("   (4, 1, %d)  ->  %s" % (mv.HISTORY_LENGTH, tuple(after_conv.shape)))
+    check(after_conv.shape == (4, conv_channels, mv.HISTORY_LENGTH // 4),
+          "ra đúng (4, %d, %d)" % (conv_channels, mv.HISTORY_LENGTH // 4))
+
+    print("\n7. Hai tầng tích chập, cả hai stride 2")
+    convs = [m for m in model.conv if isinstance(m, nn.Conv1d)]
+    print("   %d lớp Conv1d, stride %s"
+          % (len(convs), [c.stride[0] for c in convs]))
+    check(len(convs) == 2, "đúng hai tầng tích chập")
+    check(all(c.stride[0] == 2 for c in convs), "cả hai đều stride 2")
+    check(not any(isinstance(m, (nn.MaxPool1d, nn.AvgPool1d))
+                  for m in model.modules()),
+          "không có tầng pooling nào thêm")
+
+
 def check_tcn(model, norm):
     print("\n5. Riêng TCN")
     n_batchnorm = sum(1 for m in model.modules() if isinstance(m, nn.BatchNorm1d))
@@ -138,13 +168,15 @@ def check_tcn(model, norm):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", required=True,
-                    help="lstm | bilstm | tcn | ds_tcn")
+                    help="lstm | bilstm | cnn_lstm | tcn | ds_tcn")
 parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE)
 parser.add_argument("--channels", type=int, default=64)
 parser.add_argument("--kernel_size", type=int, default=3)
 parser.add_argument("--n_blocks", type=int, default=6)
 parser.add_argument("--dropout", type=float, default=0.0)
 parser.add_argument("--norm", default="batch", choices=["batch", "weight"])
+parser.add_argument("--conv_channels", type=int, default=32)
+parser.add_argument("--conv_kernel", type=int, default=5)
 parser.add_argument("--revin", default="false")
 parser.add_argument("--compare-with", dest="compare_with", default=None,
                     help="tên model đem so số tham số, ví dụ lstm")
@@ -161,7 +193,9 @@ def build(name, hidden):
                               kernel_size=args.kernel_size,
                               n_blocks=args.n_blocks,
                               dropout=args.dropout,
-                              norm=args.norm)
+                              norm=args.norm,
+                              conv_channels=args.conv_channels,
+                              conv_kernel=args.conv_kernel)
 
 
 print("Kiểm model:", args.model)
@@ -172,6 +206,8 @@ check_save_load(model, lambda: build(args.model, args.hidden))
 
 if args.model == "bilstm":
     check_bilstm(model, args.hidden)
+elif args.model == "cnn_lstm":
+    check_cnn_lstm(model, args.hidden, args.conv_channels)
 elif args.model in ("tcn", "ds_tcn"):
     check_tcn(model, args.norm)
 

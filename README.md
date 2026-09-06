@@ -222,7 +222,7 @@ bao nhiêu lần, và bằng chứng của từng con số nằm ở đâu:
 Cấu hình đầy đủ của từng model trong TN1, kể cả tham số lấy mặc định:
 [docs/CAU_HINH_TN1.txt](docs/CAU_HINH_TN1.txt).
 
-Các model nhận `--model lstm | bilstm | tcn | ds_tcn`.
+Các model nhận `--model lstm | bilstm | cnn_lstm | tcn | ds_tcn`.
 
 ## Kết quả và metric
 

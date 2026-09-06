@@ -70,7 +70,7 @@ SUMMARY_FILE = "runs/summary.csv"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="ds_tcn",
-                    help="lstm | bilstm | tcn | ds_tcn")
+                    help="lstm | bilstm | cnn_lstm | tcn | ds_tcn")
 parser.add_argument("--revin", default="false", help="true | false")
 parser.add_argument("--loss", default="mse", help="mse | mse_pearson")
 parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE khi loss=mse_pearson")
@@ -91,6 +91,11 @@ parser.add_argument("--dropout", type=float, default=0.0,
 parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE,
                     help="số chiều ẩn của LSTM. Mặc định 352 là cấu hình "
                          "MobiVital công bố; 67 cho ~56k tham số, ngang DS-TCN-64")
+parser.add_argument("--conv_channels", type=int, default=32,
+                    help="số kênh của khối tích chập trong cnn_lstm")
+parser.add_argument("--conv_kernel", type=int, default=5,
+                    help="bề rộng bộ lọc tích chập trong cnn_lstm. "
+                         "kernel 5 phủ 0,1 giây ở tần số lấy mẫu 50 Hz")
 parser.add_argument("--norm", default="batch", choices=["batch", "weight"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
                          "weight là bản đúng chuẩn Bai et al. mục 3.4")
@@ -112,6 +117,10 @@ revin = args.revin.lower() == "true"
 if args.model in ("lstm", "bilstm"):
     # Họ hồi quy: chỉ có hidden, không có tham số nào của TCN.
     arch_tag = "" if args.hidden == mv.LSTM_HIDDEN_SIZE else "_h%d" % args.hidden
+elif args.model == "cnn_lstm":
+    # Không có "cấu hình gốc" nào để lấy làm mặc định, nên ghi đủ ba con số
+    # quyết định kiến trúc. Đổi bất kỳ cái nào là ra tên khác, không đè kết quả.
+    arch_tag = "_h%d_c%d_k%d" % (args.hidden, args.conv_channels, args.conv_kernel)
 else:
     # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
     arch_tag = "_c%d" % args.channels
@@ -157,7 +166,9 @@ model = models.build_model(args.model, revin=revin,
                                    kernel_size=args.kernel_size,
                                    n_blocks=args.n_blocks,
                                    dropout=args.dropout,
-                                   norm=args.norm)
+                                   norm=args.norm,
+                                   conv_channels=args.conv_channels,
+                                   conv_kernel=args.conv_kernel)
 n_params = models.count_params(model)
 print(n_params, "tham số")
 print()

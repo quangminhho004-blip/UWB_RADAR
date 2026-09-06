@@ -246,6 +246,89 @@ class TCN(nn.Module):
         return y
 
 
+class CNNLSTM(nn.Module):
+    """Tích chập rút đặc trưng cục bộ rồi đưa vào LSTM. Dự báo đa bước.
+
+    KHÔNG PHẢI ConvLSTM
+
+    `ConvLSTM` (Shi et al. 2015, NeurIPS) là kiến trúc khác: đưa tích chập vào
+    BÊN TRONG ô LSTM, thay phép nhân ma trận bằng tích chập. Ở đây tích chập
+    đứng TRƯỚC, rút đặc trưng rồi mới đưa vào LSTM thường. Tên đúng là CNN-LSTM.
+
+    Ý tưởng ghép tích chập với hồi quy theo CLDNN (Sainath, Vinyals, Senior,
+    Sak 2015, ICASSP) — "Convolutional, Long Short-Term Memory, Fully Connected
+    Deep Neural Networks". Khác CLDNN ở chỗ bỏ khối DNN phía sau, thay bằng một
+    tầng tuyến tính, vì bài toán chỉ cần xuất 25 mẫu.
+
+    LUỒNG DỮ LIỆU
+
+        (batch, 200)              200 mẫu quá khứ
+          -> (batch, 1, 200)
+          -> Conv1d(1, 32, k=5, s=2, p=2) -> BatchNorm -> ReLU   -> (b, 32, 100)
+          -> Conv1d(32, 32, k=5, s=2, p=2) -> BatchNorm -> ReLU  -> (b, 32,  50)
+          -> đổi trục                                            -> (b, 50, 32)
+          -> LSTM(input_size=32, hidden, 2 tầng, MỘT chiều)
+          -> output[:, -1, :]                                    -> (b, hidden)
+          -> Linear(hidden, 25)                                  -> (b, 25)
+
+    VÌ SAO output[:, -1, :] Ở ĐÂY LÀ ĐÚNG
+
+    LSTM này MỘT chiều, nên bước cuối đã đọc hết chuỗi. Chỗ phải tránh
+    `output[:, -1, :]` là LSTM HAI chiều — xem lớp BiLSTM bên dưới.
+
+    ĐƯỢC GÌ SO VỚI LSTM THUẦN
+
+    Mỗi bước LSTM nhận 32 số mô tả một ĐOẠN sóng, thay vì một mẫu đơn lẻ. Và
+    chuỗi ngắn đi bốn lần, từ 200 bước tuần tự xuống 50 — đây chính là nút thắt
+    tốc độ của LSTM, vì 200 bước không song song hoá được.
+
+    GIỚI HẠN PHẢI GHI KHI BÁO CÁO
+
+    Kiến trúc này đổi ĐỒNG THỜI hai thứ: cách trích đặc trưng, và độ dài chuỗi
+    đưa vào LSTM. Nếu nó thắng thì chưa biết nhờ cái nào. Đối chứng rẻ để tách
+    hai nguyên nhân: thay hai tầng tích chập bằng AvgPool 200 xuống 50 rồi đưa
+    vào LSTM — nếu bản AvgPool cũng thắng thì công là của việc rút ngắn chuỗi,
+    không phải của đặc trưng tích chập.
+
+    THAM SỐ MẶC ĐỊNH
+
+        conv_channels 32, conv_kernel 5, hai tầng stride 2, hidden 58
+        -> 55.667 tham số, xấp xỉ DS-TCN-64 (56.281) và LSTM-67 (56.908)
+
+    Chọn 32 kênh để phần tích chập nhẹ, dồn ngân sách cho LSTM — thứ TN1 chứng
+    minh là hợp bài toán. kernel 5 phủ 0,1 giây ở tần số lấy mẫu 50 Hz, cỡ một
+    đoạn dốc của sóng thở.
+    """
+
+    def __init__(self, hidden_size=58, conv_channels=32, conv_kernel=5,
+                 num_layers=2, future_len=25):
+        super().__init__()
+        dem = conv_kernel // 2          # giữ độ dài chia đôi đúng khi stride 2
+
+        self.conv = nn.Sequential(
+            nn.Conv1d(1, conv_channels, conv_kernel, stride=2, padding=dem),
+            nn.BatchNorm1d(conv_channels),
+            nn.ReLU(),
+            nn.Conv1d(conv_channels, conv_channels, conv_kernel,
+                      stride=2, padding=dem),
+            nn.BatchNorm1d(conv_channels),
+            nn.ReLU(),
+        )
+        self.lstm = nn.LSTM(input_size=conv_channels, hidden_size=hidden_size,
+                            num_layers=num_layers, batch_first=True)
+        self.linear = nn.Linear(hidden_size, future_len)
+
+    def forward(self, x):
+        if x.dim() == 2:
+            x = x.unsqueeze(1)                   # (b, 200) -> (b, 1, 200)
+
+        x = self.conv(x)                         # -> (b, 32, 50)
+        x = x.transpose(1, 2)                    # -> (b, 50, 32)
+
+        x, _ = self.lstm(x)
+        return self.linear(x[:, -1, :])          # một chiều nên bước cuối là đủ
+
+
 class BiLSTM(nn.Module):
     """LSTM hai chiều, dự báo đa bước. Cùng giao diện với LSTMMultiStep.
 
@@ -316,9 +399,18 @@ def build_model(name, revin=False, **kwargs):
         hidden = kwargs.get("hidden") or mv.LSTM_HIDDEN_SIZE
         return BiLSTM(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
 
+    if name == "cnn_lstm":
+        return CNNLSTM(hidden_size=kwargs.get("hidden") or 58,
+                       conv_channels=kwargs.get("conv_channels", 32),
+                       conv_kernel=kwargs.get("conv_kernel", 5),
+                       num_layers=mv.LSTM_NUM_LAYERS,
+                       future_len=mv.FUTURE_LENGTH)
+
     # LSTM không nhận các tham số riêng của TCN; lọc bớt để build_model dùng
     # được chung một bộ đối số cho mọi model.
     kwargs.pop("hidden", None)
+    kwargs.pop("conv_channels", None)
+    kwargs.pop("conv_kernel", None)
 
     if name == "tcn":
         return TCN(separable=False, revin=revin, **kwargs)
