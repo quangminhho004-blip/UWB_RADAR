@@ -69,7 +69,8 @@ SUMMARY_FILE = "runs/summary.csv"
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model", default="ds_tcn", help="lstm | tcn | ds_tcn")
+parser.add_argument("--model", default="ds_tcn",
+                    help="lstm | bilstm | tcn | ds_tcn")
 parser.add_argument("--revin", default="false", help="true | false")
 parser.add_argument("--loss", default="mse", help="mse | mse_pearson")
 parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE khi loss=mse_pearson")
@@ -105,15 +106,22 @@ revin = args.revin.lower() == "true"
 # Tên cấu hình phải chứa channels: TCN-64 và TCN-200 cùng model, cùng loss,
 # cùng seed — không đưa channels vào thì hai cấu hình ra CÙNG một tên, ghi đè
 # kết quả của nhau. Model lstm không có channels nên bỏ qua.
-arch_tag = "" if args.model == "lstm" else "_c%d" % args.channels
-if args.model == "lstm" and args.hidden != mv.LSTM_HIDDEN_SIZE:
-    arch_tag = "_h%d" % args.hidden
-if args.model != "lstm" and (args.kernel_size != 3 or args.n_blocks != 6):
-    arch_tag += "_k%d_n%d" % (args.kernel_size, args.n_blocks)
+# Hậu tố CHỈ thêm khi giá trị khác mặc định, nhờ đó tên của mọi lần chạy cũ
+# không đổi khi thêm tuỳ chọn mới. Ví dụ lstm_mse_corr0.9_seed0 giữ nguyên dù
+# về sau có thêm --hidden, --norm hay tuỳ chọn nào nữa.
+if args.model in ("lstm", "bilstm"):
+    # Họ hồi quy: chỉ có hidden, không có tham số nào của TCN.
+    arch_tag = "" if args.hidden == mv.LSTM_HIDDEN_SIZE else "_h%d" % args.hidden
+else:
+    # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
+    arch_tag = "_c%d" % args.channels
+    if args.kernel_size != 3 or args.n_blocks != 6:
+        arch_tag += "_k%d_n%d" % (args.kernel_size, args.n_blocks)
+    if args.norm != "batch":
+        arch_tag += "_" + args.norm
+
 if args.dropout != 0.0:
     arch_tag += "_do%g" % args.dropout
-if args.model != "lstm" and args.norm != "batch":
-    arch_tag += "_" + args.norm
 
 run_id = "%s%s%s_%s_corr%s_seed%d" % (
     args.model, arch_tag, "_revin" if revin else "",

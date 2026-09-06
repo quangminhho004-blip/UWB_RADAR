@@ -246,10 +246,59 @@ class TCN(nn.Module):
         return y
 
 
+class BiLSTMMultiStep(nn.Module):
+    """LSTM hai chiều, cùng giao diện với LSTMMultiStep của MobiVital.
+
+    VÌ SAO ĐỌC HAI CHIỀU LÀ HỢP LỆ
+
+    Model nhận 200 mẫu quá khứ và đoán 25 mẫu tiếp theo. Cả 200 mẫu vào đều CÓ
+    SẴN lúc dự báo, nên đọc chúng theo chiều nào cũng được. "Tương lai" cần đoán
+    là mẫu 201-225, model không hề thấy. Không có rò rỉ.
+
+    Bản một chiều của MobiVital chỉ dùng trạng thái ở bước cuối, nên thông tin từ
+    mẫu thứ 1 phải sống sót qua 200 bước cổng mới tới được đầu ra. Đọc thêm chiều
+    ngược thì đầu ra thấy được cả hai đầu cửa sổ.
+
+    CHỖ RẤT DỄ SAI: KHÔNG DÙNG output[:, -1, :]
+
+    Với LSTM hai chiều, `output` có dạng (batch, 200, 2*hidden):
+
+        output[:, t, :hidden]    chiều xuôi tại bước t
+        output[:, t, hidden:]    chiều ngược tại bước t
+
+    Lấy `output[:, -1, :]` thì nửa đầu là chiều xuôi đã đọc hết 200 mẫu — đúng.
+    Nhưng nửa sau là chiều ngược MỚI ĐỌC ĐÚNG MỘT MẪU, vì với chiều ngược thì
+    bước cuối chính là bước đầu tiên nó xử lý. Nửa thông tin gần như trống.
+
+    Cách đúng là lấy từ `h_n`, dạng (num_layers*2, batch, hidden):
+
+        h[-2]   tầng cuối, chiều xuôi, đã đọc hết
+        h[-1]   tầng cuối, chiều ngược, đã đọc hết
+
+    Ghép hai cái đó mới ra đặc trưng đầy đủ hai chiều.
+    """
+
+    def __init__(self, hidden_size, num_layers, future_len):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size=1, hidden_size=hidden_size,
+                            num_layers=num_layers, batch_first=True,
+                            bidirectional=True)
+        self.linear = nn.Linear(2 * hidden_size, future_len)
+
+    def forward(self, x):
+        if x.dim() == 2:
+            x = x.unsqueeze(-1)                  # (batch, 200) -> (batch, 200, 1)
+
+        _, (h, _) = self.lstm(x)
+        features = torch.cat([h[-2], h[-1]], dim=1)   # (batch, 2*hidden)
+        return self.linear(features)
+
+
 def build_model(name, revin=False, **kwargs):
     """Dựng model theo tên, để notebook chỉ cần truyền chuỗi.
 
         build_model("lstm")
+        build_model("bilstm", hidden=41)
         build_model("tcn")
         build_model("ds_tcn", revin=True, channels=96)
     """
@@ -257,6 +306,11 @@ def build_model(name, revin=False, **kwargs):
         # RevIN không áp cho baseline. hidden mặc định là 352 của MobiVital;
         # các tham số riêng của TCN (kernel_size, n_blocks...) không dùng ở đây.
         return mv.new_lstm(kwargs.get("hidden"))
+
+    if name == "bilstm":
+        # Cùng số tầng và độ dài dự báo với LSTM, chỉ đổi chiều đọc.
+        hidden = kwargs.get("hidden") or mv.LSTM_HIDDEN_SIZE
+        return BiLSTMMultiStep(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
 
     # LSTM không nhận các tham số riêng của TCN; lọc bớt để build_model dùng
     # được chung một bộ đối số cho mọi model.
