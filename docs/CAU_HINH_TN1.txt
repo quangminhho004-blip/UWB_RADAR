@@ -270,8 +270,8 @@ external/mobivital/checkpoints/optimal_params.json
         --channels 32 --n_blocks 3 --seed 0
 
     PHẢI gõ đủ --channels 32 --n_blocks 3. Mặc định hai cờ này là 64 và 6, tức
-    cấu hình TCN. Quên gõ thì ra model 73.593 tham số, chạy trơn tru mà sai
-    kiến trúc. Vì vậy run_id của modern_tcn LUÔN ghi cả hai con số, quên là
+    cấu hình TCN. Quên cả hai thì ra model 196.313 tham số, quên mỗi
+    --n_blocks thì ra 73.593. Cả hai đều chạy trơn tru mà sai kiến trúc. Vì vậy run_id của modern_tcn LUÔN ghi cả hai con số, quên là
     thành tên khác chứ không đè kết quả cũ.
 
   KẾT QUẢ   chưa chạy

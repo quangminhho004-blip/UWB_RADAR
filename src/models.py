@@ -78,8 +78,15 @@ class RevIN(nn.Module):
     """
 
     def normalize(self, x):
+        # Bám đúng mã tác giả: phương sai KHÔNG hiệu chỉnh Bessel, và epsilon
+        # cộng TRONG căn chứ không ngoài.
+        #     tác giả   sqrt(var(unbiased=False) + eps)
+        #     dễ viết   std() + eps          <- lệch hai chỗ
+        # Với cửa sổ gần phẳng hai công thức lệch nhau nhiều; trên dữ liệu này
+        # cửa sổ phẳng nhất đo được có std 0,0092 nên lệch tối đa 5%, còn
+        # 99,85% cửa sổ lệch dưới 2%. Lệch nhỏ, nhưng sửa thì miễn phí.
         self.mean = x.mean(dim=1, keepdim=True)
-        self.std = x.std(dim=1, keepdim=True) + 1e-5
+        self.std = torch.sqrt(x.var(dim=1, keepdim=True, unbiased=False) + 1e-5)
         return (x - self.mean) / self.std
 
     def denormalize(self, y):
