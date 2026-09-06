@@ -119,61 +119,151 @@ def print_final_table(rows, experiment):
     print()
 
 
+def strip_seed(config_id):
+    """Bỏ hậu tố _seed<N>. Nhiều seed của cùng một cấu hình gom về một tên."""
+    return re.sub(r"_seed\d+$", "", config_id)
+
+
 def print_cv_table(rows, totals, experiment):
-    """Bảng 1: cv_score của từng cấu hình, kèm điểm từng fold."""
+    """Bảng 1: một dòng mỗi CẤU HÌNH, gộp các seed thành cv_mean ± std.
+
+    HAI LOẠI ĐỘ LỆCH CHUẨN, ĐỪNG LẪN
+
+        seed_std   đổi hạt giống thì cv_score dao động bao nhiêu
+        fold_std   trong MỘT seed, bốn fold lệch nhau bao nhiêu
+
+    fold_std lớn hơn seed_std nhiều lần vì đổi người test tác động mạnh hơn đổi
+    hạt giống. Chỉ seed_std mới dùng để nói hai cấu hình có khác nhau thật hay
+    không; fold_std nói dữ liệu giữa các người khác nhau ra sao.
+
+    Trước đây mỗi seed in thành một dòng riêng, xếp hạng lẫn với nhau — đọc
+    bảng dễ nhặt nhầm seed may nhất của một cấu hình rồi tưởng nó thắng.
+    """
+    groups = {}
+    for r in totals:
+        groups.setdefault(strip_seed(r["run_id"][:-len("_tong")]), []).append(r)
+
     print()
     print("BẢNG 1 — cv_score, thực nghiệm %s" % experiment)
-    print("%-32s %10s %10s %9s   %s"
-          % ("cấu hình", "tham số", "cv_score", "cv_std", "từng fold"))
-    print("-" * 100)
+    print("%-30s %9s %5s %10s %9s %9s   %s"
+          % ("cấu hình", "tham số", "seed", "cv_mean", "seed_std", "fold_std",
+             "từng seed"))
+    print("-" * 110)
 
-    for r in totals:
-        config_id = r["run_id"][:-len("_tong")]
-        fold_rows = sorted((x for x in rows if x["fold"] not in ("", "TONG")
-                            and x["run_id"].startswith(config_id + "_")),
-                           key=lambda x: x["fold"])
-        detail = "  ".join("%s %.4f" % (x["fold"].replace("val_", ""),
-                                        float(x["score_macro"]))
-                           for x in fold_rows)
-        print("%-32s %10s %10.6f %9.6f   %s"
-              % (config_id, r["n_params"], float(r["score_macro"]),
-                 float(r["score_std"] or 0), detail))
+    def group_mean(name):
+        return np.mean([float(r["score_macro"]) for r in groups[name]])
+
+    for name in sorted(groups, key=lambda k: -group_mean(k)):
+        seed_rows = sorted(groups[name], key=lambda r: int(r["seed"]))
+        scores = [float(r["score_macro"]) for r in seed_rows]
+        fold_stds = [float(r["score_std"] or 0) for r in seed_rows]
+
+        # Độ lệch chuẩn MẪU (ddof=1) vì ba seed là mẫu rút từ vô số seed có thể
+        # có. Một seed thì không có gì để so, in N/A thay vì số 0 gây hiểu nhầm
+        # là "không dao động".
+        seed_std = "%9.6f" % np.std(scores, ddof=1) if len(scores) > 1 else "      N/A"
+        detail = "  ".join("s%s %.4f" % (r["seed"], s)
+                           for r, s in zip(seed_rows, scores))
+
+        print("%-30s %9s %5d %10.6f %s %9.6f   %s"
+              % (name, seed_rows[0]["n_params"], len(scores),
+                 float(np.mean(scores)), seed_std, float(np.mean(fold_stds)),
+                 detail))
 
     print()
-    print("cv_score = trung bình điểm macro của 4 fold. Điểm macro = trung bình theo")
-    print("NGƯỜI, không theo buổi ghi — mỗi người có số buổi khác nhau.")
+    print("cv_mean  = trung bình cv_score của các seed. cv_score của một seed là")
+    print("           trung bình điểm macro 4 fold; macro = trung bình theo NGƯỜI.")
+    print("seed_std = dao động giữa các seed. Chênh lệch giữa hai cấu hình nhỏ hơn")
+    print("           số này thì chưa kết luận được.")
+    print("fold_std = dao động giữa 4 fold, trung bình trên các seed. Nói dữ liệu")
+    print("           giữa các người khác nhau ra sao, KHÔNG dùng để so cấu hình.")
+
+    seed_counts = {name: len(g) for name, g in groups.items()}
+    if len(set(seed_counts.values())) > 1:
+        print()
+        print("CHÚ Ý: các cấu hình KHÔNG cùng số seed — %s."
+              % ", ".join("%s:%d" % (n, k) for n, k in sorted(seed_counts.items())))
+        print("So cv_mean của 3 seed với cv_mean của 1 seed là so hai đại lượng khác")
+        print("nhau. Chạy đủ cùng tập seed rồi hãy xếp hạng.")
 
 
 def print_win_tie_loss_table(totals, experiment, baseline_model):
-    """Bảng 2: đếm thắng/hoà/thua trên từng buổi ghi so với một cấu hình mốc."""
-    baseline_rows = [r for r in totals if r["model"] == baseline_model]
-    if not baseline_rows:
-        sys.exit("không thấy cấu hình nào dùng model '%s'" % baseline_model)
+    """Bảng 2: đếm thắng/hoà/thua trên từng buổi ghi so với một cấu hình mốc.
 
-    baseline_id = baseline_rows[0]["run_id"][:-len("_tong")]
-    baseline_scores = session_scores(experiment, baseline_id)
-    if not baseline_scores:
-        sys.exit("không đọc được điểm từng buổi ghi của " + baseline_id)
+    So CÙNG SEED với CÙNG SEED. Lấy seed 1 của cấu hình này so seed 0 của mốc
+    là trộn hai nguồn chênh lệch — kiến trúc và hạt giống — vào một con số.
 
-    print()
-    print("BẢNG 2 — thắng / hoà / thua trên TỪNG buổi ghi, mốc là %s" % baseline_id)
-    print("%-32s %8s %7s %7s %9s   %s"
-          % ("cấu hình", "thắng", "hoà", "thua", "tổng", "chênh lệch điểm"))
-    print("-" * 100)
-
+    Chỉ đếm những seed mà CẢ HAI bên đều có. Bên nào thiếu seed thì ghi ra, để
+    không âm thầm so 3 seed với 1 seed.
+    """
+    # {seed: dòng TONG} cho mốc và cho từng cấu hình khác.
+    by_config = {}
     for r in totals:
         config_id = r["run_id"][:-len("_tong")]
-        if config_id == baseline_id:
-            continue
-        scores = session_scores(experiment, config_id)
-        wins, ties, losses, total = win_tie_loss(scores, baseline_scores)
-        gap = float(r["score_macro"]) - float(baseline_rows[0]["score_macro"])
-        print("%-32s %8d %7d %7d %9d   %+.6f"
-              % (config_id, wins, ties, losses, total, gap))
+        by_config.setdefault(strip_seed(config_id), {})[int(r["seed"])] = r
+
+    baseline_name = None
+    for r in totals:
+        if r["model"] == baseline_model:
+            baseline_name = strip_seed(r["run_id"][:-len("_tong")])
+            break
+    if baseline_name is None:
+        sys.exit("không thấy cấu hình nào dùng model '%s'" % baseline_model)
+
+    baseline_seeds = by_config[baseline_name]
 
     print()
-    print("Hoà = chênh lệch dưới %g. Tổng phải là 1289 buổi ghi của 8 người dev."
-          % TIE_MARGIN)
+    print("BẢNG 2 — thắng / hoà / thua trên TỪNG buổi ghi, mốc là %s" % baseline_name)
+    print("%-30s %5s %8s %7s %7s %9s   %s"
+          % ("cấu hình", "seed", "thắng", "hoà", "thua", "tổng", "chênh cv_mean"))
+    print("-" * 110)
+
+    baseline_mean = np.mean([float(r["score_macro"]) for r in baseline_seeds.values()])
+
+    for name in sorted(by_config):
+        if name == baseline_name:
+            continue
+
+        shared_seeds = sorted(set(by_config[name]) & set(baseline_seeds))
+        if not shared_seeds:
+            print("%-30s   không có seed nào trùng với mốc" % name)
+            continue
+
+        wins = ties = losses = total = 0
+        counted_seeds = []
+        for seed in shared_seeds:
+            a = session_scores(experiment, "%s_seed%d" % (name, seed))
+            b = session_scores(experiment, "%s_seed%d" % (baseline_name, seed))
+            if not a or not b:
+                continue
+            w, t, l, n = win_tie_loss(a, b)
+            wins += w
+            ties += t
+            losses += l
+            total += n
+            counted_seeds.append(seed)
+
+        # Không có tệp điểm thì báo hẳn ra. In dãy số 0 sẽ trông như "hoà tất
+        # cả" trong khi thật ra là thiếu dữ liệu.
+        if not counted_seeds:
+            print("%-30s   thiếu tệp scores_*.csv, không đếm được" % name)
+            continue
+
+        gap = np.mean([float(by_config[name][s]["score_macro"])
+                       for s in by_config[name]]) - baseline_mean
+        print("%-30s %5d %8d %7d %7d %9d   %+.6f"
+              % (name, len(counted_seeds), wins, ties, losses, total, gap))
+
+        unmatched = sorted(set(by_config[name]) ^ set(baseline_seeds))
+        if unmatched:
+            print("%-30s   bỏ qua seed %s vì chỉ một bên có"
+                  % ("", ", ".join(str(x) for x in unmatched)))
+
+    print()
+    print("Hoà = chênh lệch dưới %g." % TIE_MARGIN)
+    print("Mỗi seed phủ 1289 buổi ghi của 8 người dev, nên cột tổng là")
+    print("1289 x số seed — đây là số CẶP seed-buổi ghi, không phải số buổi ghi")
+    print("độc lập. Đừng dùng nó làm cỡ mẫu cho bất kỳ phép tính nào.")
 
 
 # ---------------------------------------------------------------
