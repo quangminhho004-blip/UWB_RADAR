@@ -8,7 +8,7 @@ runs/
 ├── summary.csv          bảng metric chung cả đồ án, mỗi lần chạy một dòng
 │
 ├── tn0/                 <- notebooks/TN0.ipynb
-│   ├── TN0a.txt  TN0b.txt  TN0c.txt      lựa chọn kênh, pipeline MobiVital
+│   ├── TN0a.txt  TN0b.txt              lựa chọn kênh, pipeline MobiVital
 │   ├── ours_b.txt  ours_c.txt            lựa chọn kênh, pipeline đồ án
 │   ├── scores_*.csv                      điểm từng buổi ghi, 537 dòng
 │   ├── compare.csv                       bảng ĐẠT / KHÔNG ĐẠT

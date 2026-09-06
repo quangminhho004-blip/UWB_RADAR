@@ -38,13 +38,39 @@ Dựng lại bằng chính code của tác giả, không sửa dòng nào — xe
 [notebooks/TN0.md](notebooks/TN0.md):
 
 ```
-TN0a  chấm file kết quả tác giả commit sẵn      0.819481   khớp bài báo
-TN0b  checkpoint tác giả, đồ án tự chạy    0.822175
-TN0c  tự train lại từ đầu                  0.798748
+TN0a  chấm file kết quả tác giả commit sẵn   0.819481   khớp bài báo, lệch 0.00048
+TN0b  checkpoint tác giả, đồ án tự chạy      0.822175   537/537 kênh trùng
+TN0c  tự train lại từ đầu                    0.812839   chỉ tham khảo
 ```
+
+Ba số trên lấy từ lần chạy Colab ghi trong [notebooks/TN0.ipynb](notebooks/TN0.ipynb).
+TN0a và TN0b tất định nên chạy ở đâu cũng ra đúng số đó; TN0c train lại từ đầu nên
+đổi theo phiên bản thư viện và phần cứng, không phải tiêu chí đạt/trượt.
 
 `Oracle 0.943` là trần trên. MobiVital đạt `0.819`. **Dư địa là 0.124** — mọi cải tiến
 chỉ có thể ăn trong khoảng này.
+
+### TN1 — kiến trúc
+
+Bốn cấu hình, mỗi cấu hình 3 seed. `cv_score` chọn cấu hình, `GHIJ` chỉ để báo cáo:
+
+| cấu hình | tham số | CV (3 seed) | GHIJ (3 seed) |
+|---|---|---|---|
+| LSTM hidden 352 | 1.502.713 | 0.7570 ± 0.0041 | **0.8103 ± 0.0154** |
+| LSTM hidden 67 | 56.908 | 0.7532 ± 0.0020 | 0.8017 ± 0.0025 |
+| DS-TCN 64 kênh | 56.281 | 0.7421 ± 0.0007 | 0.7958 ± 0.0154 |
+| TCN 64 kênh | 151.513 | 0.7423 ± 0.0044 | chưa chạy |
+
+**Thay LSTM bằng TCN không cải thiện.** Cả hai biến thể TCN đều thấp hơn LSTM ở
+cả hai tập, và ba dải seed không chồng nhau ở CV.
+
+**Thu nhỏ LSTM 96% gần như không mất gì.** Từ 1,5 triệu xuống 57 nghìn tham số,
+điểm giảm 0.0038 ở CV và 0.0086 ở GHIJ — cả hai đều nhỏ hơn dao động do đổi hạt
+giống của chính LSTM-352 (0.0041 và 0.0154).
+
+Ở cùng ngân sách khoảng 56 nghìn tham số, LSTM hơn DS-TCN rõ ràng trên tập phát
+triển (0.0111, hai dải seed tách rời) nhưng trên tập test khoảng cách thu hẹp
+còn 0.0059 và hai dải chồng nhau, chưa phân định được.
 
 ## Chuẩn bị dữ liệu
 
@@ -151,13 +177,35 @@ Trong `runs/<tên>/` có đủ checkpoint, đường cong loss, bảng lựa ch�
 từng buổi ghi và metric. Xong thì nén lại mang đi:
 
 ```bash
-python scripts/save_results.py tn1     # -> runs/tn1.zip
-unzip tn1.zip -d runs/                 # bung lại đúng chỗ cũ
+python scripts/save_results.py tn1                    # -> runs/tn1.zip
+python scripts/save_results.py tn1 --out tn1_phien2   # -> runs/tn1_phien2.zip
+unzip tn1.zip -d runs/                                # bung lại đúng chỗ cũ
 ```
 
-Ngoài ra hai script nhận chung bộ cờ: `--model lstm|tcn|ds_tcn`,
-`--revin true|false`, `--loss mse|mse_pearson`, `--alpha`, `--corr`, `--seed`,
-`--epochs`.
+Trên Colab, `save_results.py` chép luôn tệp nén sang Drive. Và hai script train
+**tự gọi nó** — `run_cv.py` sau mỗi fold, `run_final_test.py` sau mỗi lần chạy —
+nên ngắt phiên giữa chừng cũng không mất phần đã xong. Tên tệp nén chứa cấu hình
+nên hai phiên chạy song song không đè lên nhau.
+
+Chạy lại một lệnh đã có kết quả thì script bỏ qua, không train lại.
+
+Hai script nhận chung một bộ cờ:
+
+```
+--model lstm|tcn|ds_tcn      --revin true|false
+--loss mse|mse_pearson       --alpha        trọng số MSE khi dùng mse_pearson
+--corr                       ngưỡng lọc cửa sổ train, mặc định 0.9
+--seed                       --epochs
+
+--hidden                     chiều ẩn LSTM, mặc định 352
+--channels                   số kênh TCN, mặc định 64
+--kernel_size --n_blocks --dropout        riêng cho TCN
+```
+
+Không gõ cờ nào thì nó lấy mặc định — cấu hình MobiVital công bố trong
+`checkpoints/optimal_params.json`. Cờ đi vào tên lần chạy, và hậu tố chỉ xuất
+hiện khi giá trị **khác mặc định**, nên tên của các lần chạy cũ không đổi khi
+thêm cờ mới.
 
 ```
 run_cv.py           ABCDEFKL -> 4 fold (train 6, chấm 2) -> cv_score
