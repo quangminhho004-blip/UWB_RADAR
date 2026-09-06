@@ -42,3 +42,7 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+
+# Notebook nháp để riêng, không đưa lên git: 424 KB output, trùng nội dung với
+# notebooks/TN0.ipynb đã commit. Giữ trên máy để tra lại.
+notebooks/tn0_reproduce.ipynb
