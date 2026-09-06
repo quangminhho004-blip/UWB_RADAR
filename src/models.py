@@ -246,8 +246,12 @@ class TCN(nn.Module):
         return y
 
 
-class BiLSTMMultiStep(nn.Module):
-    """LSTM hai chiều, cùng giao diện với LSTMMultiStep của MobiVital.
+class BiLSTM(nn.Module):
+    """LSTM hai chiều, dự báo đa bước. Cùng giao diện với LSTMMultiStep.
+
+    Nhận 200 mẫu quá khứ, xuất thẳng 25 mẫu tiếp theo trong MỘT lần —
+    không đoán từng mẫu rồi nạp ngược vào. Trong luận văn gọi là
+    "BiLSTM dự báo đa bước", bảng kết quả viết ngắn là BiLSTM-41.
 
     VÌ SAO ĐỌC HAI CHIỀU LÀ HỢP LỆ
 
@@ -310,7 +314,7 @@ def build_model(name, revin=False, **kwargs):
     if name == "bilstm":
         # Cùng số tầng và độ dài dự báo với LSTM, chỉ đổi chiều đọc.
         hidden = kwargs.get("hidden") or mv.LSTM_HIDDEN_SIZE
-        return BiLSTMMultiStep(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
+        return BiLSTM(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
 
     # LSTM không nhận các tham số riêng của TCN; lọc bớt để build_model dùng
     # được chung một bộ đối số cho mọi model.
