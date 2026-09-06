@@ -1,0 +1,188 @@
+"""Kiểm một kiến trúc trước khi đem đi train.
+
+    python scripts/check_model.py --model bilstm --hidden 41
+    python scripts/check_model.py --model tcn --channels 64 --norm weight
+    python scripts/check_model.py --model lstm --hidden 67 --compare-with lstm
+
+VÌ SAO CẦN
+
+Một lần chạy CV mất một tới ba giờ. Bản cài đặt sai một chi tiết thì model vẫn
+chạy, vẫn ra số, rồi cho kết luận "kiến trúc này thua" trong khi thật ra là code
+hỏng. Kiểm trước mất vài giây.
+
+Đây là chỗ dễ sai nhất từng gặp: với LSTM hai chiều, `output[:, -1, :]` cho nửa
+chiều xuôi đã đọc hết 200 mẫu, nhưng nửa chiều ngược mới đọc một mẫu — vì với
+chiều ngược thì bước cuối chính là bước đầu tiên nó xử lý. Phải lấy từ `h_n`.
+
+KIỂM GÌ
+
+    chung        shape vào ra, giá trị hữu hạn, gradient lan ngược được,
+                 số tham số, lưu và nạp lại state_dict
+    bilstm       hai chiều thật, Linear nhận đủ 2*hidden, và chứng minh
+                 h[-2],h[-1] KHÁC output[:,-1,:]
+    tcn/ds_tcn   norm=weight thì BatchNorm bị gỡ hẳn và WeightNorm được áp
+
+Không kiểm chất lượng dự báo — việc đó là của run_cv.py.
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("."))
+
+import torch
+import torch.nn as nn
+
+from src import mobivital_reference as mv
+from src import models
+
+
+def check(condition, description):
+    """In một dòng kết quả. Sai thì dừng cả script."""
+    print("   %-58s %s" % (description, "đạt" if condition else "KHÔNG ĐẠT"))
+    if not condition:
+        raise SystemExit("\nDỪNG — bản cài đặt có vấn đề, đừng đem đi train.")
+
+
+def check_common(model, name):
+    print("\n1. Hình dạng vào ra và giá trị")
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.eval()
+    with torch.no_grad():
+        y = model(x)
+    print("   vào %s  ->  ra %s" % (tuple(x.shape), tuple(y.shape)))
+    check(y.shape == (4, mv.FUTURE_LENGTH),
+         "ra đúng (4, %d)" % mv.FUTURE_LENGTH)
+    check(bool(torch.isfinite(y).all()), "mọi giá trị hữu hạn")
+
+    print("\n2. Gradient")
+    model.train()
+    model(x).sum().backward()
+    n_with_grad = sum(1 for p in model.parameters() if p.grad is not None)
+    total = len(list(model.parameters()))
+    print("   %d/%d tham số nhận được gradient" % (n_with_grad, total))
+    check(n_with_grad == total, "mọi tham số đều lan ngược tới")
+
+    print("\n3. Số tham số")
+    n = models.count_params(model)
+    print("   %d" % n)
+    return n
+
+
+def check_save_load(model, rebuild):
+    """Lưu rồi nạp lại phải ra đúng số cũ — điều kiện để checkpoint dùng được."""
+    print("\n4. Lưu và nạp lại state_dict")
+    x = torch.randn(2, mv.HISTORY_LENGTH)
+    model.eval()
+    with torch.no_grad():
+        before = model(x)
+
+    tmp_path = "/tmp/check_model_tam.pth"
+    torch.save(model.state_dict(), tmp_path)
+    reloaded = rebuild()
+    reloaded.load_state_dict(torch.load(tmp_path, map_location="cpu"))
+    reloaded.eval()
+    with torch.no_grad():
+        after = reloaded(x)
+    os.remove(tmp_path)
+
+    check(torch.equal(before, after), "nạp lại cho ra đúng đầu ra cũ")
+
+
+def check_bilstm(model, hidden):
+    print("\n5. Riêng BiLSTM")
+    check(model.lstm.bidirectional, "nn.LSTM bật bidirectional")
+    check(model.lstm.num_layers == mv.LSTM_NUM_LAYERS,
+         "đúng %d tầng như LSTM gốc" % mv.LSTM_NUM_LAYERS)
+    check(model.linear.in_features == 2 * hidden,
+         "Linear nhận %d chiều, gấp đôi hidden" % (2 * hidden))
+
+    print("\n6. h[-2],h[-1] phải KHÁC output[:,-1,:]")
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.eval()
+    with torch.no_grad():
+        out, (h, _) = model.lstm(x.unsqueeze(-1))
+        correct_way = torch.cat([h[-2], h[-1]], dim=1)
+        wrong_way = out[:, -1, :]
+
+    forward_same = torch.allclose(correct_way[:, :hidden], wrong_way[:, :hidden])
+    backward_same = torch.allclose(correct_way[:, hidden:], wrong_way[:, hidden:])
+    print("   chênh lệch lớn nhất: %.6f"
+          % (correct_way - wrong_way).abs().max().item())
+    check(forward_same, "nửa chiều xuôi giống nhau, đúng như mong đợi")
+    check(not backward_same,
+         "nửa chiều ngược KHÁC nhau — đây là chỗ dễ dùng nhầm")
+
+    print("\n7. forward dùng đúng h[-2],h[-1]")
+    with torch.no_grad():
+        check(torch.allclose(model(x), model.linear(correct_way)),
+             "đầu ra khớp với cách lấy từ h_n")
+
+
+def check_tcn(model, norm):
+    print("\n5. Riêng TCN")
+    n_batchnorm = sum(1 for m in model.modules() if isinstance(m, nn.BatchNorm1d))
+    param_names = [t for t, _ in model.named_parameters()]
+    has_weightnorm = any("parametrizations" in t or t.endswith("_g")
+                        for t in param_names)
+    print("   %d lớp BatchNorm1d, WeightNorm: %s" % (n_batchnorm, has_weightnorm))
+
+    if norm == "weight":
+        check(n_batchnorm == 0, "BatchNorm bị gỡ hẳn khi bật WeightNorm")
+        check(has_weightnorm, "WeightNorm thật sự được áp lên trọng số")
+    else:
+        check(n_batchnorm > 0, "có BatchNorm như mong đợi")
+        check(not has_weightnorm, "không có WeightNorm")
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--model", required=True,
+                    help="lstm | bilstm | tcn | ds_tcn")
+parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE)
+parser.add_argument("--channels", type=int, default=64)
+parser.add_argument("--kernel_size", type=int, default=3)
+parser.add_argument("--n_blocks", type=int, default=6)
+parser.add_argument("--dropout", type=float, default=0.0)
+parser.add_argument("--norm", default="batch", choices=["batch", "weight"])
+parser.add_argument("--revin", default="false")
+parser.add_argument("--compare-with", dest="compare_with", default=None,
+                    help="tên model đem so số tham số, ví dụ lstm")
+parser.add_argument("--compare-hidden", dest="compare_hidden", type=int, default=None,
+                    help="hidden của model đem so")
+args = parser.parse_args()
+
+
+def build(name, hidden):
+    return models.build_model(name,
+                              revin=args.revin.lower() == "true",
+                              hidden=hidden,
+                              channels=args.channels,
+                              kernel_size=args.kernel_size,
+                              n_blocks=args.n_blocks,
+                              dropout=args.dropout,
+                              norm=args.norm)
+
+
+print("Kiểm model:", args.model)
+model = build(args.model, args.hidden)
+
+n_params = check_common(model, args.model)
+check_save_load(model, lambda: build(args.model, args.hidden))
+
+if args.model == "bilstm":
+    check_bilstm(model, args.hidden)
+elif args.model in ("tcn", "ds_tcn"):
+    check_tcn(model, args.norm)
+
+if args.compare_with:
+    print("\n8. So số tham số với %s" % args.compare_with)
+    other = build(args.compare_with, args.compare_hidden or mv.LSTM_HIDDEN_SIZE)
+    n_other = models.count_params(other)
+    gap_percent = 100 * (n_params / n_other - 1)
+    print("   %-12s %d" % (args.model, n_params))
+    print("   %-12s %d   (lệch %+.1f%%)" % (args.compare_with, n_other, gap_percent))
+    check(abs(gap_percent) < 5.0,
+         "lệch dưới 5%, so được ở cùng ngân sách tham số")
+
+print("\nTẤT CẢ ĐẠT — bản cài đặt dùng được.")
