@@ -85,6 +85,9 @@ parser.add_argument("--n_blocks", type=int, default=6,
 parser.add_argument("--dropout", type=float, default=0.0,
                     help="spatial dropout (Bai mục 3.4). Mặc định 0.0 cho khớp "
                          "LSTM của MobiVital, để TN1 chỉ đổi đúng một biến")
+parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE,
+                    help="số chiều ẩn của LSTM. Mặc định 352 là cấu hình "
+                         "MobiVital công bố; 67 cho ~56k tham số, ngang DS-TCN-64")
 parser.add_argument("--experiment", required=True,
                     help="tên thực nghiệm, ví dụ tn1 — quyết định thư mục runs/<tên>/")
 args = parser.parse_args()
@@ -98,6 +101,8 @@ revin = args.revin.lower() == "true"
 # cùng seed — không đưa channels vào thì hai cấu hình ra CÙNG một tên, ghi đè
 # kết quả của nhau. Model lstm không có channels nên bỏ qua.
 arch_tag = "" if args.model == "lstm" else "_c%d" % args.channels
+if args.model == "lstm" and args.hidden != mv.LSTM_HIDDEN_SIZE:
+    arch_tag = "_h%d" % args.hidden
 if args.model != "lstm" and (args.kernel_size != 3 or args.n_blocks != 6):
     arch_tag += "_k%d_n%d" % (args.kernel_size, args.n_blocks)
 if args.dropout != 0.0:
@@ -139,6 +144,7 @@ def run_one_fold(fold_name, val_users):
 
     training.set_seed(args.seed)
     model = models.build_model(args.model, revin=revin,
+                                   hidden=args.hidden,
                                    channels=args.channels,
                                    kernel_size=args.kernel_size,
                                    n_blocks=args.n_blocks,
@@ -228,6 +234,7 @@ if results.find_run(SUMMARY_FILE, args.experiment, config_id + "_tong") is None:
                          "fold": "TONG",
                          "val_users": "".join(DEV_USERS),
                          "n_params": models.count_params(models.build_model(args.model, revin=revin,
+                                       hidden=args.hidden,
                                        channels=args.channels,
                                        kernel_size=args.kernel_size,
                                        n_blocks=args.n_blocks,

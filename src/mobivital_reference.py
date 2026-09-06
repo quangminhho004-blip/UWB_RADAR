@@ -85,9 +85,18 @@ WINDOWS_PER_SEQUENCE = (1500 - HISTORY_LENGTH) // FUTURE_LENGTH      # 52
 CANDIDATES_PER_SESSION = 120 * 2                                     # 240
 
 
-def new_lstm():
-    """Dựng model LSTM baseline của MobiVital, đúng cấu hình tác giả công bố."""
-    return LSTMMultiStep(LSTM_HIDDEN_SIZE, LSTM_NUM_LAYERS, FUTURE_LENGTH)
+def new_lstm(hidden_size=None):
+    """Dựng model LSTM baseline của MobiVital.
+
+    Không truyền gì thì đúng cấu hình tác giả công bố: hidden 352, 2 lớp.
+
+    Truyền hidden_size để thu nhỏ. Dùng cho đối chứng "hơn vì kiến trúc hay hơn
+    vì kích thước": LSTM hidden 67 có 56.908 tham số, xấp xỉ DS-TCN-64 (56.281).
+    Số lớp và độ dài dự báo giữ nguyên để chỉ đổi đúng một biến.
+    """
+    if hidden_size is None:
+        hidden_size = LSTM_HIDDEN_SIZE
+    return LSTMMultiStep(hidden_size, LSTM_NUM_LAYERS, FUTURE_LENGTH)
 
 
 def link_runs_to_drive():

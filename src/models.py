@@ -208,7 +208,9 @@ def build_model(name, revin=False, **kwargs):
         build_model("ds_tcn", revin=True, channels=96)
     """
     if name == "lstm":
-        return mv.new_lstm()          # RevIN không áp cho baseline
+        # RevIN không áp cho baseline. hidden mặc định là 352 của MobiVital;
+        # các tham số riêng của TCN (kernel_size, n_blocks...) không dùng ở đây.
+        return mv.new_lstm(kwargs.get("hidden"))
 
     if name == "tcn":
         return TCN(separable=False, revin=revin, **kwargs)
