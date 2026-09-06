@@ -219,6 +219,9 @@ Vì sao chia bốn fold như vậy, vì sao ghép cặp người như thế, m�
 bao nhiêu lần, và bằng chứng của từng con số nằm ở đâu:
 [docs/CHIA_DU_LIEU.md](docs/CHIA_DU_LIEU.md).
 
+Cấu hình đầy đủ của từng model trong TN1, kể cả tham số lấy mặc định:
+[docs/CAU_HINH_TN1.txt](docs/CAU_HINH_TN1.txt).
+
 ## Kết quả và metric
 
 Mỗi thực nghiệm một thư mục `runs/<tên>/`, chứa đủ checkpoint, đường cong loss,

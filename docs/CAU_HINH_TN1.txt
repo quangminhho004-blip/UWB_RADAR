@@ -1,0 +1,272 @@
+================================================================================
+CẤU HÌNH ĐẦY ĐỦ CỦA CÁC MODEL TRONG TN1
+================================================================================
+
+Liệt kê MỌI tham số, kể cả tham số lấy giá trị mặc định và không gõ ra ở dòng
+lệnh. Nguồn: đọc trực tiếp từ src/models.py, src/training.py,
+src/mobivital_reference.py và external/mobivital/utils/models.py.
+
+
+================================================================================
+PHẦN CHUNG — MỌI CẤU HÌNH TN1 DÙNG GIỐNG HỆT NHAU
+================================================================================
+
+Bộ tham số huấn luyện lấy nguyên từ MobiVital,
+external/mobivital/checkpoints/optimal_params.json
+
+  DỮ LIỆU VÀO / RA
+    độ dài cửa sổ vào          200 mẫu
+    số mẫu phải dự báo          25 mẫu
+    tần số lấy mẫu              50 Hz
+    hình dạng vào              (batch, 200)
+    hình dạng ra               (batch, 25)
+
+  CẮT CỬA SỔ TRAIN
+    bước trượt                  25 mẫu
+    ngưỡng lọc                  corr(sóng, nhịp thở thật) > 0.9
+    nguồn                       data/processed/windows/dev_cv/
+    số cửa sổ, 8 người dev      292.708
+
+  HUẤN LUYỆN
+    thuật toán tối ưu           Adam
+    learning rate               0.0001
+    weight decay                0        (mặc định của torch.optim.Adam)
+    betas                       (0.9, 0.999)   (mặc định)
+    eps                         1e-8           (mặc định)
+    số epoch                    20
+    kích thước lô               64
+    xáo trộn mỗi epoch          có
+    hàm loss                    MSE
+    lịch giảm learning rate     không dùng
+    gradient clipping           không dùng
+    early stopping              không dùng
+    validation mỗi epoch        không dùng
+    độ chính xác số             float32   (không dùng AMP)
+
+  DATALOADER
+    num_workers                 0
+    pin_memory                  bật khi có GPU
+    drop_last                   không
+
+  HẠT GIỐNG
+    seed                        0, 1, 2   (mỗi cấu hình chạy ba lần)
+    đặt cho                     random, numpy, torch, torch.cuda
+
+  CHIA DỮ LIỆU
+    người phát triển            A B C D E F K L   1289 buổi ghi
+    người test                  G H I J            537 buổi ghi
+    số fold                     4
+    fold                        val_AB  train CDEFKL  chấm AB
+                                val_CE  train ABDFKL  chấm CE
+                                val_DF  train ABCEKL  chấm DF
+                                val_KL  train ABCDEF  chấm KL
+
+  CHẤM ĐIỂM
+    chấm trên                   buổi ghi thô, không dùng cửa sổ đã lọc
+    số ứng viên mỗi buổi ghi    240   (120 kênh radar x 2 phép biến đổi)
+    lọc ứng viên                invert_detector < 0.8, còn khoảng 129
+    cửa sổ mỗi ứng viên         52
+    tiêu chí chọn kênh          tổng Pearson của 52 cửa sổ, lấy argmax
+    chỉ số báo cáo              score_macro = trung bình Pearson theo NGƯỜI
+
+
+================================================================================
+1. lstm_mse_corr0.9_seed{0,1,2}          -- baseline MobiVital
+================================================================================
+
+  KIẾN TRÚC   LSTMMultiStep, lấy nguyên từ external/mobivital/utils/models.py
+
+    lớp LSTM                    nn.LSTM
+      input_size                1
+      hidden_size               352
+      num_layers                2
+      bidirectional             không
+      dropout giữa các lớp      0.0
+      batch_first               có
+    lấy đặc trưng               output[:, -1, :]   trạng thái ở bước cuối
+    lớp ra                      nn.Linear(352, 25)
+    chuẩn hoá                   không có
+    hàm kích hoạt               chỉ có cổng bên trong LSTM
+
+  SỐ THAM SỐ                    1.502.713
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model lstm --seed 0
+
+  KẾT QUẢ   cv 0.756997 +- 0.004141      ghij 0.810302 +- 0.015399
+
+
+================================================================================
+2. lstm_h67_mse_corr0.9_seed{0,1,2}      -- LSTM thu nhỏ về ngân sách DS-TCN
+================================================================================
+
+  KIẾN TRÚC   giống hệt mục 1, đổi ĐÚNG MỘT tham số
+
+    lớp LSTM                    nn.LSTM
+      input_size                1
+      hidden_size               67        <-- khác mục 1
+      num_layers                2
+      bidirectional             không
+      dropout giữa các lớp      0.0
+      batch_first               có
+    lấy đặc trưng               output[:, -1, :]
+    lớp ra                      nn.Linear(67, 25)
+    chuẩn hoá                   không có
+
+  SỐ THAM SỐ                    56.908      (giảm 96,2% so với mục 1)
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model lstm --hidden 67 --seed 0
+
+  KẾT QUẢ   cv 0.753208 +- 0.001966      ghij 0.801683 +- 0.002507
+
+
+================================================================================
+3. tcn_c64_mse_corr0.9_seed{0,1,2}       -- TCN, tích chập thường
+================================================================================
+
+  KIẾN TRÚC   TCN, theo Bai et al. 2018 (arXiv:1803.01271)
+
+    lớp vào                     nn.Conv1d(1, 64, kernel_size=1)
+    số khối                     6
+    mỗi khối                    2 tầng tích chập, cùng độ giãn, rồi cộng nối tắt
+    độ giãn theo khối           1, 2, 4, 8, 16, 32
+    kernel_size                 3
+    số kênh                     64
+    tầm nhìn                    (3-1) x 2 x (1+2+4+8+16+32) + 1 = 253 >= 200
+    đệm                         bên TRÁI (k-1)*d, cắt phần thừa bên phải
+                                (tích chập nhân quả, Bai mục 3.2)
+    một tầng                    conv -> BatchNorm1d(64) -> ReLU -> Dropout1d
+    chuẩn hoá                   BatchNorm      <-- LỆCH Bai mục 3.4 (WeightNorm)
+    dropout                     0.0
+    nhánh 1x1 trên đường tắt    không có, vì số kênh vào và ra bằng nhau
+    lấy đặc trưng               x[:, :, -1]    vị trí thời gian cuối
+    lớp ra                      nn.Linear(64, 25)
+    RevIN                       không
+
+  SỐ THAM SỐ                    151.513
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model tcn --channels 64 --seed 0
+
+  KẾT QUẢ   cv 0.742338 +- 0.004369      ghij chưa chạy
+
+
+================================================================================
+4. ds_tcn_c64_mse_corr0.9_seed{0,1,2}    -- DS-TCN, tích chập tách depthwise
+================================================================================
+
+  KIẾN TRÚC   giống hệt mục 3, đổi ĐÚNG MỘT thứ: phép tích chập
+
+    lớp vào                     nn.Conv1d(1, 64, kernel_size=1)
+    số khối                     6
+    mỗi khối                    2 tầng tích chập, cùng độ giãn, rồi cộng nối tắt
+    độ giãn theo khối           1, 2, 4, 8, 16, 32
+    kernel_size                 3
+    số kênh                     64
+    tầm nhìn                    253 >= 200
+    đệm                         bên TRÁI (k-1)*d, cắt phần thừa bên phải
+    phép tích chập              TÁCH LÀM HAI BƯỚC   <-- khác mục 3
+      depthwise                 nn.Conv1d(64, 64, 3, dilation=d, groups=64)
+                                mỗi kênh một bộ lọc riêng, không trộn kênh
+      pointwise                 nn.Conv1d(64, 64, 1)
+                                kernel 1, chỉ trộn kênh
+                                Howard et al. 2017 mục 3.1, pt (3) và (5)
+    một tầng                    depthwise -> pointwise -> BatchNorm1d(64)
+                                -> ReLU -> Dropout1d
+    chuẩn hoá                   BatchNorm      đúng Howard mục 3.1
+    dropout                     0.0
+    lấy đặc trưng               x[:, :, -1]
+    lớp ra                      nn.Linear(64, 25)
+    RevIN                       không
+
+  SỐ THAM SỐ                    56.281
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model ds_tcn --channels 64 --seed 0
+
+  KẾT QUẢ   cv 0.742110 +- 0.000673      ghij 0.795783 +- 0.015413
+
+
+================================================================================
+5. tcn_c64_weight_mse_corr0.9_seed{0,1,2}   -- TCN đúng chuẩn Bai   CHƯA CHẠY
+================================================================================
+
+  KIẾN TRÚC   giống hệt mục 3, đổi ĐÚNG MỘT thứ: cách chuẩn hoá
+
+    chuẩn hoá                   WeightNorm     đúng Bai mục 3.4
+                                w = g * v / ||v||
+                                viết lại trọng số, không phải lớp riêng
+    lớp BatchNorm               bị bỏ, thay bằng nn.Identity
+    mọi thứ khác                giống hệt mục 3
+
+  SỐ THAM SỐ                    sẽ in ra khi chạy
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model tcn --channels 64 \\
+        --norm weight --seed 0
+
+  KẾT QUẢ   chưa chạy
+
+
+================================================================================
+BẢNG TÓM TẮT
+================================================================================
+
+  cấu hình              tham số       cv_score        ghij
+  --------------------------------------------------------------------
+  lstm                1.502.713   0.7570 +- 0.0041   0.8103 +- 0.0154
+  lstm_h67               56.908   0.7532 +- 0.0020   0.8017 +- 0.0025
+  tcn_c64               151.513   0.7423 +- 0.0044   chưa chạy
+  ds_tcn_c64             56.281   0.7421 +- 0.0007   0.7958 +- 0.0154
+  tcn_c64_weight              ?   chưa chạy          chưa chạy
+
+  MobiVital công bố trong bài báo: 0.819
+  Oracle, trần trên khi chọn được kênh tốt nhất: 0.943
+
+
+================================================================================
+BA CHỖ CỐ Ý LỆCH TÀI LIỆU GỐC
+================================================================================
+
+1. Số kênh TCN là 64, không chọn theo Bai mục A.1
+
+   Bai chọn số kênh sao cho model to xấp xỉ model hồi quy đem so. Ở đây thu nhỏ
+   model chính là mục tiêu, nên cố ý để nhỏ.
+
+2. Chuẩn hoá BatchNorm thay WeightNorm ở nhánh tcn
+
+   Bai mục 3.4 dùng WeightNorm. Chọn BatchNorm để nhánh tcn và ds_tcn chuẩn hoá
+   giống nhau, nhờ đó so hai nhánh chỉ đổi đúng một biến là phép tích chập.
+
+   Lập luận đó chỉ đòi hai nhánh GIỐNG NHAU, không đòi phải là BatchNorm. Vì vậy
+   mục 5 chạy bản đúng chuẩn để đóng lỗ hổng này.
+
+   Nhánh ds_tcn không lệch: Howard mục 3.1 vốn dùng BatchNorm.
+
+3. Không có nhánh 1x1 trên đường nối tắt
+
+   Bai thêm nó khi số kênh vào và ra khác nhau (mục 3.4, Hình 1b). Ở đây mọi
+   khối giữ nguyên 64 kênh nên không cần.
+
+Trích dẫn từng tham số về đúng mục và phương trình của bài báo: docs/THAM_CHIEU.md
+
+
+================================================================================
+TỰ KIỂM LẠI CÁC SỐ TRÊN
+================================================================================
+
+  from src import models
+  for ten, kw in [("lstm",       {}),
+                  ("lstm",       {"hidden": 67}),
+                  ("tcn",        {"channels": 64}),
+                  ("ds_tcn",     {"channels": 64}),
+                  ("tcn",        {"channels": 64, "norm": "weight"})]:
+      m = models.build_model(ten, **kw)
+      print(ten, kw, models.count_params(m))
+
+  Xem toàn bộ tham số của một model:
+
+      m = models.build_model("lstm", hidden=67)
+      for t, p in m.named_parameters():
+          print("%-28s %-18s %7d" % (t, tuple(p.shape), p.numel()))
