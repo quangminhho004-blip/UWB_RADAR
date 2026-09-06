@@ -94,6 +94,10 @@ parser.add_argument("--conv_channels", type=int, default=32,
 parser.add_argument("--conv_kernel", type=int, default=5,
                     help="bề rộng bộ lọc tích chập trong cnn_lstm. "
                          "kernel 5 phủ 0,1 giây ở tần số lấy mẫu 50 Hz")
+parser.add_argument("--kernel_large", type=int, default=31,
+                    help="ModernTCN: kernel nhánh rộng")
+parser.add_argument("--kernel_small", type=int, default=5,
+                    help="ModernTCN: kernel nhánh hẹp")
 parser.add_argument("--norm", default="batch", choices=["batch", "weight"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
                          "weight là bản đúng chuẩn Bai et al. mục 3.4")
@@ -119,6 +123,13 @@ elif args.model == "cnn_lstm":
     # Không có "cấu hình gốc" nào để lấy làm mặc định, nên ghi đủ ba con số
     # quyết định kiến trúc. Đổi bất kỳ cái nào là ra tên khác, không đè kết quả.
     arch_tag = "_h%d_c%d_k%d" % (args.hidden, args.conv_channels, args.conv_kernel)
+elif args.model == "modern_tcn":
+    # Mặc định --channels 64 và --n_blocks 6 là của TCN, KHÔNG phải của
+    # ModernTCN (32 và 3). Quên gõ cờ thì ra model khác hẳn mà vẫn chạy trơn.
+    # Vì vậy ghi cả hai con số vào tên, không phụ thuộc mặc định.
+    arch_tag = "_c%d_n%d" % (args.channels, args.n_blocks)
+    if args.kernel_large != 31 or args.kernel_small != 5:
+        arch_tag += "_kl%d_ks%d" % (args.kernel_large, args.kernel_small)
 else:
     # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
     arch_tag = "_c%d" % args.channels
@@ -173,6 +184,8 @@ def run_one_fold(fold_name, val_users):
                                    dropout=args.dropout,
                                    norm=args.norm,
                                    conv_channels=args.conv_channels,
+                                   kernel_large=args.kernel_large,
+                                   kernel_small=args.kernel_small,
                                    conv_kernel=args.conv_kernel)
 
     run_dir = EXP_DIR + "/" + run_id
@@ -266,6 +279,8 @@ if results.find_run(SUMMARY_FILE, args.experiment, config_id + "_tong") is None:
                                        dropout=args.dropout,
                                    norm=args.norm,
                                    conv_channels=args.conv_channels,
+                                   kernel_large=args.kernel_large,
+                                   kernel_small=args.kernel_small,
                                    conv_kernel=args.conv_kernel)),
                          "epochs": args.epochs,
                          "score_macro": cv_score,

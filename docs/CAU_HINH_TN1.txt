@@ -200,13 +200,119 @@ external/mobivital/checkpoints/optimal_params.json
     lớp BatchNorm               bị bỏ, thay bằng nn.Identity
     mọi thứ khác                giống hệt mục 3
 
-  SỐ THAM SỐ                    sẽ in ra khi chạy
+  SỐ THAM SỐ                    150.745
+
+    Ít hơn mục 3 đúng 1.536 = 12 lớp x 128. Mỗi BatchNorm1d(64) có 128 tham số
+    (64 hệ số nhân, 64 hệ số dịch), bị gỡ hẳn. WeightNorm chỉ thêm 64 mỗi lớp
+    (một hệ số g cho mỗi kênh ra), tổng 768. 151.513 - 1.536 + 768 = 150.745.
 
   LỆNH
     python scripts/run_cv.py --experiment tn1 --model tcn --channels 64 \\
         --norm weight --seed 0
 
   KẾT QUẢ   chưa chạy
+
+
+================================================================================
+6. modern_tcn_c32_n3_mse_corr0.9_seed{0,1,2}   -- ModernTCN   CHƯA CHẠY
+================================================================================
+
+  KIẾN TRÚC   ModernTCN, Luo & Wang 2024 ICLR
+
+    Viết theo MÃ của tác giả, không theo mô tả trong bài báo:
+    ModernTCN-short-term/models/ModernTCN.py
+    lớp Block, lớp ReparamLargeKernelConv, hàm forward_feature
+
+    CHIA ĐOẠN
+      đệm                       lặp giá trị cuối 4 lần, nối vào CUỐI
+                                pad_len = patch_size - patch_stride = 8 - 4
+                                là HẰNG SỐ, không phải phần dư phép chia
+      độ dài sau đệm            204
+      lớp chia đoạn             nn.Conv1d(1, 32, kernel_size=8, stride=4)
+      chuẩn hoá sau đó          nn.BatchNorm1d(32)
+      số đoạn                   50        (200 // 4)
+      chồng lấn                 2 đoạn cạnh nhau dùng chung 4 mẫu
+
+    THÂN
+      số khối                   3
+      số kênh                   32
+      mỗi khối, theo thứ tự
+        nhánh rộng              Conv1d(32,32,31,padding=15,groups=32,bias=False)
+                                -> BatchNorm1d(32)
+        nhánh hẹp               Conv1d(32,32,5,padding=2,groups=32,bias=False)
+                                -> BatchNorm1d(32)
+        cộng hai nhánh          nhánh rộng + nhánh hẹp
+        chuẩn hoá               BatchNorm1d(32)
+        FFN                     Conv1d(32,64,1) -> Dropout -> GELU
+                                -> Conv1d(64,32,1) -> Dropout
+        nối tắt                 vào + FFN(...)     ĐÚNG MỘT CÁI, ôm cả khối
+      tích chập hai nhánh       KHÔNG có bias, vì BatchNorm ngay sau
+      dropout                   0.0
+      hàm kích hoạt             GELU              (TCN mục 3 và 4 dùng ReLU)
+
+    LỚP RA
+      lấy đặc trưng             trải phẳng CẢ 50 đoạn, không lấy bước cuối
+      lớp ra                    nn.Linear(50 x 32 = 1600, 25)
+      RevIN                     không
+      tách xu thế / mùa vụ      không
+
+  SỐ THAM SỐ                    56.985
+
+    phân bố    lớp chia đoạn          352    0,6%
+               3 khối tích chập    16.608   29,1%
+               lớp ra              40.025   70,2%
+
+    70% nằm ở lớp ra vì trải phẳng cả 50 đoạn. Đây là thiết kế gốc, không phải
+    lỗi cài đặt. So với LSTM-67 (56.908) lệch +0,14%.
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model modern_tcn \
+        --channels 32 --n_blocks 3 --seed 0
+
+    PHẢI gõ đủ --channels 32 --n_blocks 3. Mặc định hai cờ này là 64 và 6, tức
+    cấu hình TCN. Quên gõ thì ra model 73.593 tham số, chạy trơn tru mà sai
+    kiến trúc. Vì vậy run_id của modern_tcn LUÔN ghi cả hai con số, quên là
+    thành tên khác chứ không đè kết quả cũ.
+
+  KẾT QUẢ   chưa chạy
+
+
+================================================================================
+BỐN CHỖ CỐ Ý LỆCH MÃ GỐC ModernTCN, CÓ LÝ DO
+================================================================================
+
+1. Bỏ ConvFFN2
+
+   Block.__init__ của tác giả khai báo ffn2pw1, ffn2act, ffn2pw2, ffn2drop1,
+   ffn2drop2. forward KHÔNG gọi cái nào. Chúng được đếm vào số tham số mà không
+   tham gia dự báo.
+
+   Giữ lại thì số tham số báo cáo phồng lên vì phần chết, so cùng ngân sách
+   tham số với LSTM-67 mất ý nghĩa.
+
+   Khối đó vốn để trộn thông tin giữa các BIẾN. Chuỗi ở đây một biến.
+
+2. Bỏ các phép reshape theo trục biến
+
+   Mã gốc mang chiều M cho chuỗi nhiều biến, reshape qua lại giữa (B,M,D,N) và
+   (B*M,D,N). Ở đây M luôn bằng 1 nên mọi reshape đó là phép đồng nhất.
+
+3. Không gộp hai nhánh kernel lúc suy luận
+
+   Mã gốc có structural_reparam gộp nhánh 31 và nhánh 5 thành một tích chập
+   duy nhất khi suy luận. Không dùng, vì gộp chỉ đổi tốc độ chứ không đổi hàm
+   số, mà đồ án chấm điểm chứ không đo tốc độ ở đây.
+
+4. Tắt RevIN và tắt tách xu thế / mùa vụ
+
+   Bài gốc có cả hai. Bật thêm là đổi thêm biến so với các cấu hình TN1 khác.
+   RevIN đã có thí nghiệm riêng ở TN2.
+
+GIỚI HẠN PHẢI GHI KHI BÁO CÁO
+
+  Cấu hình này do đồ án chọn để vừa ngân sách 56-60k tham số, KHÔNG phải cấu
+  hình tác giả đã chứng minh tốt trên bài toán nào. Kết luận chỉ phát biểu được
+  là "ModernTCN ở cấu hình nhỏ này cho ra như vậy trên dữ liệu này".
 
 
 ================================================================================
@@ -219,7 +325,10 @@ BẢNG TÓM TẮT
   lstm_h67               56.908   0.7532 +- 0.0020   0.8017 +- 0.0025
   tcn_c64               151.513   0.7423 +- 0.0044   chưa chạy
   ds_tcn_c64             56.281   0.7421 +- 0.0007   0.7958 +- 0.0154
-  tcn_c64_weight              ?   chưa chạy          chưa chạy
+  tcn_c64_weight        150.745   0,7463 +- 0,0030   chưa chạy
+  bilstm_h41             57.507   0,7398 +- 0,0046   chưa chạy
+  cnn_lstm_h58           55.667   0,7527 +- 0,0037   chưa chạy
+  modern_tcn_c32_n3      56.985   chưa chạy          chưa chạy
 
   MobiVital công bố trong bài báo: 0.819
   Oracle, trần trên khi chọn được kênh tốt nhất: 0.943
@@ -261,7 +370,10 @@ TỰ KIỂM LẠI CÁC SỐ TRÊN
                   ("lstm",       {"hidden": 67}),
                   ("tcn",        {"channels": 64}),
                   ("ds_tcn",     {"channels": 64}),
-                  ("tcn",        {"channels": 64, "norm": "weight"})]:
+                  ("tcn",        {"channels": 64, "norm": "weight"}),
+                  ("bilstm",     {"hidden": 41}),
+                  ("cnn_lstm",   {"hidden": 58}),
+                  ("modern_tcn", {"channels": 32, "n_blocks": 3})]:
       m = models.build_model(ten, **kw)
       print(ten, kw, models.count_params(m))
 

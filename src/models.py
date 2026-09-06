@@ -320,14 +320,14 @@ class CNNLSTM(nn.Module):
     def __init__(self, hidden_size=58, conv_channels=32, conv_kernel=5,
                  num_layers=2, future_len=25):
         super().__init__()
-        dem = conv_kernel // 2          # giữ độ dài chia đôi đúng khi stride 2
+        pad = conv_kernel // 2          # giữ độ dài chia đôi đúng khi stride 2
 
         self.conv = nn.Sequential(
-            nn.Conv1d(1, conv_channels, conv_kernel, stride=2, padding=dem),
+            nn.Conv1d(1, conv_channels, conv_kernel, stride=2, padding=pad),
             nn.BatchNorm1d(conv_channels),
             nn.ReLU(),
             nn.Conv1d(conv_channels, conv_channels, conv_kernel,
-                      stride=2, padding=dem),
+                      stride=2, padding=pad),
             nn.BatchNorm1d(conv_channels),
             nn.ReLU(),
         )
@@ -398,6 +398,170 @@ class BiLSTM(nn.Module):
         return self.linear(features)
 
 
+class ModernTCNBlock(nn.Module):
+    """Một khối ModernTCN, bám theo lớp Block trong mã của tác giả.
+
+    Nguồn: ModernTCN-short-term/models/ModernTCN.py, lớp Block và lớp
+    ReparamLargeKernelConv.
+
+    LUỒNG TRONG KHỐI
+
+        vào ──┬─ dw_large  ─┐
+              │             ├─ cộng ─ BatchNorm ─ pw1 ─ GELU ─ pw2 ─┐
+              ├─ dw_small  ─┘                                       │
+              └───────────────── nối tắt ──────────────────────────(+)─ ra
+
+    CHỈ MỘT NỐI TẮT, ÔM CẢ KHỐI
+
+    Dễ tưởng có hai: một quanh phần tích chập, một quanh phần FFN, như khối
+    Transformer quen thuộc. Mã gốc không vậy — nó giữ `input = x` ở đầu
+    `forward` rồi mới `x = input + x` ở dòng cuối cùng, sau khi đã đi hết cả
+    tích chập lẫn FFN.
+
+    HAI NHÁNH KERNEL, KHÔNG PHẢI MỘT
+
+    Nhánh rộng 31 bắt phụ thuộc xa, nhánh hẹp 5 bắt chi tiết gần, cộng thẳng
+    vào nhau. Đây là lối tái tham số hoá cấu trúc: lúc suy luận hai nhánh gộp
+    lại thành đúng một phép tích chập, nhưng lúc huấn luyện phải để rời.
+
+    Mỗi nhánh tự mang BatchNorm riêng, và tích chập KHÔNG có bias — vì
+    BatchNorm ngay sau đó có sẵn tham số dịch, thêm bias là thừa.
+
+    KHÔNG CÓ ConvFFN2
+
+    Mã gốc khai báo đủ bộ `ffn2pw1`, `ffn2act`, `ffn2pw2`, `ffn2drop1`,
+    `ffn2drop2` trong `__init__` nhưng `forward` KHÔNG gọi cái nào. Chúng nằm
+    trong model, được đếm vào số tham số, mà không tham gia dự báo.
+
+    Ở đây bỏ hẳn. Giữ lại thì số tham số báo cáo sẽ phồng lên vì phần chết,
+    khiến so sánh cùng ngân sách tham số với LSTM-67 mất ý nghĩa.
+
+    Khối đó vốn để trộn thông tin giữa các BIẾN. Chuỗi ở đây chỉ có MỘT biến,
+    nên dù có gọi cũng không trộn được gì.
+    """
+
+    def __init__(self, channels, kernel_large=31, kernel_small=5, ffn_ratio=2,
+                 dropout=0.0):
+        super().__init__()
+        self.dw_large = nn.Sequential(
+            nn.Conv1d(channels, channels, kernel_large, padding=kernel_large // 2,
+                      groups=channels, bias=False),
+            nn.BatchNorm1d(channels))
+        self.dw_small = nn.Sequential(
+            nn.Conv1d(channels, channels, kernel_small, padding=kernel_small // 2,
+                      groups=channels, bias=False),
+            nn.BatchNorm1d(channels))
+        self.norm = nn.BatchNorm1d(channels)
+
+        wide = channels * ffn_ratio
+        self.ffn = nn.Sequential(
+            nn.Conv1d(channels, wide, 1),
+            nn.Dropout(dropout),
+            nn.GELU(),
+            nn.Conv1d(wide, channels, 1),
+            nn.Dropout(dropout))
+
+    def forward(self, x):
+        residual = x
+        x = self.norm(self.dw_large(x) + self.dw_small(x))
+        return residual + self.ffn(x)
+
+
+class ModernTCN(nn.Module):
+    """Chia chuỗi thành đoạn rồi xử lý bằng tích chập kernel lớn.
+
+    Luo, Wang (2024), ICLR — "ModernTCN: A Modern Pure Convolution Structure
+    for General Time Series Analysis".
+
+    Viết theo mã của tác giả, nhánh dự báo ngắn hạn:
+    ModernTCN-short-term/models/ModernTCN.py
+
+    LUỒNG DỮ LIỆU
+
+        (batch, 200)                    200 mẫu quá khứ
+          -> lặp giá trị cuối 4 lần     -> 204
+          -> Conv1d(1, 32, k=8, s=4)    -> (batch, 32, 50)
+          -> BatchNorm1d(32)
+          -> 3 khối ModernTCN           -> (batch, 32, 50)
+          -> trải phẳng                 -> (batch, 1600)
+          -> Linear(1600, 25)           -> (batch, 25)
+
+    CHIA ĐOẠN CHỒNG LẤN
+
+    Bề rộng đoạn 8, bước dịch 4: hai đoạn liền nhau dùng chung 4 mẫu. Chuỗi
+    200 mẫu thành 50 đoạn.
+
+    ĐỆM BẰNG CÁCH LẶP GIÁ TRỊ CUỐI, KHÔNG PHẢI ĐỆM 0
+
+    Mã gốc: `pad = x[:, :, -1:].repeat(1, 1, pad_len)` rồi nối vào cuối, với
+    `pad_len = patch_size - patch_stride`. Đệm 0 sẽ bịa ra một bậc nhảy giả ở
+    cuối cửa sổ — đúng chỗ model cần nhìn kỹ nhất để dự báo bước kế tiếp.
+
+    Số đệm là hằng 4, KHÔNG phải phần dư của phép chia. Chỗ này tôi từng tính
+    sai thành 0, ra 49 đoạn thay vì 50; model vẫn chạy, vẫn ra điểm, chỉ là
+    sai kiến trúc. check_model.py kiểm đúng con số 50 để chặn.
+
+    KHÁC HAI KIẾN TRÚC ĐÃ CHẠY Ở ĐÂU
+
+        TCN (Bai)     từng mẫu một, kernel 3, độ giãn 1-2-4-8-16-32 để phủ xa
+        ModernTCN     chia đoạn trước, kernel 31 phủ xa ngay trong một lớp
+
+        CNN-LSTM      rút 200 xuống 50 rồi đưa vào LSTM xử lý tuần tự
+        ModernTCN     rút 200 xuống 50 rồi xử lý cả 50 bước song song
+
+    PHẦN LỚN THAM SỐ NẰM Ở LỚP RA
+
+    Linear(1600, 25) tốn 40.025 tham số, khoảng 70% tổng số. Ba khối tích chập
+    chỉ chiếm chưa tới 17.000. Đây là hệ quả của việc trải phẳng toàn bộ 50
+    đoạn, vốn có trong thiết kế gốc, không phải lỗi cài đặt.
+
+    HAI CHỖ CỐ Ý KHÔNG THEO MÃ GỐC, CÓ LÝ DO
+
+    1. Bỏ ConvFFN2, phần mã gốc khai báo mà không gọi — xem ModernTCNBlock.
+
+    2. Bỏ mọi thao tác reshape theo trục biến. Mã gốc mang theo chiều M cho
+       chuỗi nhiều biến; ở đây M luôn bằng 1 nên các phép reshape đó là phép
+       đồng nhất. Bỏ đi cho đọc được, không đổi phép tính.
+
+    Hai thứ trong bài gốc CHƯA bật ở bản đầu: RevIN, và tách xu thế khỏi mùa
+    vụ. Bật thêm là đổi thêm biến, để dành lần sau.
+    """
+
+    def __init__(self, channels=32, patch_size=8, patch_stride=4, n_blocks=3,
+                 kernel_large=31, kernel_small=5, ffn_ratio=2, dropout=0.0,
+                 revin=False):
+        super().__init__()
+        self.patch_size = patch_size
+        self.patch_stride = patch_stride
+        self.pad_len = patch_size - patch_stride
+
+        self.patch_embed = nn.Sequential(
+            nn.Conv1d(1, channels, patch_size, stride=patch_stride),
+            nn.BatchNorm1d(channels))
+        self.blocks = nn.Sequential(*[
+            ModernTCNBlock(channels, kernel_large, kernel_small, ffn_ratio, dropout)
+            for _ in range(n_blocks)])
+
+        n_patch = mv.HISTORY_LENGTH // patch_stride
+        self.output_linear = nn.Linear(channels * n_patch, mv.FUTURE_LENGTH)
+        self.revin = RevIN() if revin else None
+
+    def forward(self, x):
+        if self.revin is not None:
+            x = self.revin.normalize(x)
+
+        x = x.unsqueeze(1)                                  # (b, 1, 200)
+        tail = x[:, :, -1:].repeat(1, 1, self.pad_len)      # lặp mẫu cuối
+        x = torch.cat([x, tail], dim=-1)                    # (b, 1, 204)
+        x = self.patch_embed(x)                             # (b, 32, 50)
+        x = self.blocks(x)
+        y = self.output_linear(x.flatten(1))                # (b, 25)
+
+        if self.revin is not None:
+            y = self.revin.denormalize(y)
+        return y
+
+
 def build_model(name, revin=False, **kwargs):
     """Dựng model theo tên, để notebook chỉ cần truyền chuỗi.
 
@@ -416,6 +580,14 @@ def build_model(name, revin=False, **kwargs):
         hidden = kwargs.get("hidden") or mv.LSTM_HIDDEN_SIZE
         return BiLSTM(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
 
+    if name == "modern_tcn":
+        return ModernTCN(channels=kwargs.get("channels", 32),
+                         n_blocks=kwargs.get("n_blocks", 3),
+                         kernel_large=kwargs.get("kernel_large", 31),
+                         kernel_small=kwargs.get("kernel_small", 5),
+                         dropout=kwargs.get("dropout", 0.0),
+                         revin=revin)
+
     if name == "cnn_lstm":
         return CNNLSTM(hidden_size=kwargs.get("hidden") or 58,
                        conv_channels=kwargs.get("conv_channels", 32),
@@ -428,6 +600,8 @@ def build_model(name, revin=False, **kwargs):
     kwargs.pop("hidden", None)
     kwargs.pop("conv_channels", None)
     kwargs.pop("conv_kernel", None)
+    kwargs.pop("kernel_large", None)
+    kwargs.pop("kernel_small", None)
 
     if name == "tcn":
         return TCN(separable=False, revin=revin, **kwargs)

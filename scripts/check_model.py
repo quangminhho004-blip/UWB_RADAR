@@ -25,6 +25,9 @@ KIỂM GÌ
     tcn/ds_tcn   norm=weight thì BatchNorm bị gỡ hẳn và WeightNorm được áp
     revin        không thêm tham số học được, đảo ngược được, và có
                  đổi đầu ra thật
+    modern_tcn   chia đúng 50 đoạn, đệm bằng cách lặp mẫu cuối, hai
+                 nhánh kernel đều có tác dụng, chỉ một nối tắt, và
+                 không sót phần khai báo mà không gọi
 
 Không kiểm chất lượng dự báo — việc đó là của run_cv.py.
 """
@@ -167,7 +170,7 @@ def check_revin(model, build_without_revin):
     model.eval()
     with torch.no_grad():
         normed = model.revin.normalize(x)
-        restored = model.revin.denormalize(chuan)
+        restored = model.revin.denormalize(normed)
     print("   sau chuẩn hoá: trung bình %.4f, độ lệch %.4f"
           % (normed.mean().item(), normed.std().item()))
     check(abs(normed.mean().item()) < 0.01, "trung bình về gần 0")
@@ -200,9 +203,60 @@ def check_tcn(model, norm):
         check(not has_weightnorm, "không có WeightNorm")
 
 
+def check_moderntcn(model, channels):
+    print("\n5. Riêng ModernTCN — chia đoạn")
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.eval()
+    with torch.no_grad():
+        z = x.unsqueeze(1)
+        padded = torch.cat([z, z[:, :, -1:].repeat(1, 1, model.pad_len)], dim=-1)
+        patched = model.patch_embed(padded)
+    print("   (4, 1, %d) -> đệm %s -> đoạn %s"
+          % (mv.HISTORY_LENGTH, tuple(padded.shape), tuple(patched.shape)))
+    check(model.pad_len == model.patch_size - model.patch_stride,
+          "đệm %d = patch_size - patch_stride, hằng số" % model.pad_len)
+    check(patched.shape == (4, channels, 50), "ra đúng 50 đoạn, không phải 49")
+
+    print("\n6. Đệm bằng cách LẶP giá trị cuối, không phải đệm 0")
+    tail = padded[:, :, -model.pad_len:]
+    last = z[:, :, -1:].expand_as(tail)
+    print("   %d giá trị đệm, lệch lớn nhất so với mẫu cuối: %.6f"
+          % (model.pad_len, (tail - last).abs().max().item()))
+    check(torch.equal(tail, last), "mọi giá trị đệm bằng đúng mẫu cuối")
+    check(tail.abs().sum().item() > 0, "không phải đệm 0")
+
+    print("\n7. Cả hai nhánh kernel đều nối vào forward")
+    block = model.blocks[0]
+    with torch.no_grad():
+        base = model(x).clone()
+        for ten in ("dw_large", "dw_small"):
+            conv = getattr(block, ten)[0]
+            saved = conv.weight.detach().clone()
+            conv.weight.zero_()
+            doi = not torch.allclose(model(x), base)
+            conv.weight.copy_(saved)
+            check(doi, "xoá %s làm đổi đầu ra — nhánh này có tác dụng" % ten)
+
+    print("\n8. Đúng MỘT nối tắt, ôm cả khối")
+    with torch.no_grad():
+        u = torch.randn(4, channels, 50)
+        thu_cong = u + block.ffn(block.norm(block.dw_large(u) + block.dw_small(u)))
+        check(torch.allclose(block(u), thu_cong, atol=1e-6),
+              "khối = vào + ffn(norm(lớn + nhỏ)), không có nối tắt thứ hai")
+
+    print("\n9. Không có phần khai báo mà không dùng")
+    ten_module = [t for t, _ in model.named_modules()]
+    print("   %d module, không có tên nào chứa 'ffn2'" % len(ten_module))
+    check(not any("ffn2" in t for t in ten_module),
+          "ConvFFN2 bị bỏ hẳn — mã gốc khai báo nhưng forward không gọi")
+    check(not any(isinstance(m, nn.Conv1d) and m.bias is not None
+                  for m in [block.dw_large[0], block.dw_small[0]]),
+          "hai nhánh depthwise không có bias, vì BatchNorm ngay sau")
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", required=True,
-                    help="lstm | bilstm | cnn_lstm | tcn | ds_tcn")
+                    help="lstm | bilstm | cnn_lstm | tcn | ds_tcn | modern_tcn")
 parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE)
 parser.add_argument("--channels", type=int, default=64)
 parser.add_argument("--kernel_size", type=int, default=3)
@@ -211,6 +265,8 @@ parser.add_argument("--dropout", type=float, default=0.0)
 parser.add_argument("--norm", default="batch", choices=["batch", "weight"])
 parser.add_argument("--conv_channels", type=int, default=32)
 parser.add_argument("--conv_kernel", type=int, default=5)
+parser.add_argument("--kernel_large", type=int, default=31)
+parser.add_argument("--kernel_small", type=int, default=5)
 parser.add_argument("--revin", default="false")
 parser.add_argument("--compare-with", dest="compare_with", default=None,
                     help="tên model đem so số tham số, ví dụ lstm")
@@ -229,7 +285,9 @@ def build(name, hidden):
                               dropout=args.dropout,
                               norm=args.norm,
                               conv_channels=args.conv_channels,
-                              conv_kernel=args.conv_kernel)
+                              conv_kernel=args.conv_kernel,
+                              kernel_large=args.kernel_large,
+                              kernel_small=args.kernel_small)
 
 
 print("Kiểm model:", args.model)
@@ -242,6 +300,8 @@ if args.model == "bilstm":
     check_bilstm(model, args.hidden)
 elif args.model == "cnn_lstm":
     check_cnn_lstm(model, args.hidden, args.conv_channels)
+elif args.model == "modern_tcn":
+    check_moderntcn(model, args.channels)
 elif args.model in ("tcn", "ds_tcn"):
     check_tcn(model, args.norm)
     if args.revin.lower() == "true":
@@ -251,7 +311,7 @@ elif args.model in ("tcn", "ds_tcn"):
             dropout=args.dropout, norm=args.norm))
 
 if args.compare_with:
-    print("\n8. So số tham số với %s" % args.compare_with)
+    print("\nSO SỐ THAM SỐ với %s" % args.compare_with)
     other = build(args.compare_with, args.compare_hidden or mv.LSTM_HIDDEN_SIZE)
     n_other = models.count_params(other)
     gap_percent = 100 * (n_params / n_other - 1)

@@ -49,7 +49,7 @@ giống hệt — không đổi kết quả, chỉ đổi cách xin bộ nhớ.
 
 ## 2. Thời gian đi đâu — một buổi ghi
 
-Đo trên L4, buổi ghi đầu của người G, 129 ứng viên sống sót → 6708 cửa sổ:
+Đo trên buổi ghi đầu của người G, 129 ứng viên sống sót → 6708 cửa sổ:
 
 | bước | thiết bị | thời gian | phần trăm |
 |---|---|---|---|
