@@ -53,11 +53,28 @@ from src import mobivital_reference as mv
 class RevIN(nn.Module):
     """Chuẩn hoá theo từng mẫu, rồi trả lại thang đo cũ ở đầu ra.
 
+    Kim, Kim, Tae, Park, Choi, Choo (2022), ICLR — "Reversible Instance
+    Normalization for Accurate Time-Series Forecasting against Distribution
+    Shift".
+
     Mỗi cửa sổ 200 mẫu có mức nền và biên độ riêng: người thở sâu hay nông,
     ngồi gần hay xa radar. Model phải học vừa hình dạng vừa mấy thứ đó.
 
     RevIN gỡ phần đó ra: trừ trung bình, chia độ lệch chuẩn, cho model chỉ lo
     hình dạng. Xong thì nhân lại và cộng lại vào đầu ra.
+
+    MỘT CHỖ LỆCH BÀI GỐC, CÓ LÝ DO
+
+    Bài gốc có thêm hai tham số học được gamma và beta, áp sau khi chuẩn hoá.
+    Ở đây bỏ chúng đi, vì TN2 so CÙNG một kiến trúc có và không có RevIN —
+    thêm tham số học được là hai cấu hình khác số tham số, không còn cô lập
+    đúng một biến. Bỏ chúng thì bật hay tắt RevIN cho ra đúng cùng số tham số.
+
+    TRẠNG THÁI GIỮA HAI LƯỢT GỌI
+
+    `normalize` cất mean và std vào chính đối tượng để `denormalize` dùng lại.
+    Trong một lượt forward thì normalize luôn chạy trước, nên không sao. Nhưng
+    gọi `denormalize` riêng lẻ là lấy nhầm giá trị của lượt trước.
     """
 
     def normalize(self, x):

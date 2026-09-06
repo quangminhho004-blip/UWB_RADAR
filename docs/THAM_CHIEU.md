@@ -92,3 +92,26 @@ python scripts/run_cv.py --experiment tn1 --model ds_tcn \
 
 Cả `run_cv.py` và `run_final_test.py` đều nhận bốn cờ này. Bỏ trống thì dùng
 mặc định trong bảng trên. Model `lstm` bỏ qua chúng.
+
+
+## RevIN — dùng ở TN2
+
+| tham số | giá trị | trích dẫn | ghi chú |
+|---|---|---|---|
+| chuẩn hoá theo từng mẫu | trừ trung bình, chia độ lệch chuẩn trên 200 mẫu vào | **Kim et al. 2022, ICLR** | "Reversible Instance Normalization for Accurate Time-Series Forecasting against Distribution Shift" |
+| trả lại thang đo ở đầu ra | nhân std, cộng mean vào 25 mẫu ra | Kim et al. 2022 | phần "reversible" của tên gọi |
+| **tham số học được gamma, beta** | **không dùng** | **lệch bài gốc** | xem bên dưới |
+
+### Vì sao bỏ gamma và beta
+
+Bài gốc áp thêm một phép biến đổi tuyến tính học được sau khi chuẩn hoá.
+
+TN2 so **cùng một kiến trúc** có và không có RevIN. Thêm tham số học được thì
+hai cấu hình khác số tham số, không còn cô lập đúng một biến — đúng cái bẫy đã
+gặp ở BiLSTM, nơi phải hạ hidden từ 67 xuống 41 để giữ ngân sách bằng nhau.
+
+Bỏ gamma và beta thì bật hay tắt RevIN cho ra **đúng cùng số tham số**, nên
+chênh lệch quan sát được chỉ đến từ việc chuẩn hoá.
+
+Đây là giới hạn phải ghi khi báo cáo: kết luận chỉ nói về RevIN **không có phần
+affine**, chưa nói được gì về bản đầy đủ của Kim et al.

@@ -23,6 +23,8 @@ KIỂM GÌ
     cnn_lstm     một chiều, chuỗi rút từ 200 xuống 50, hai tầng conv
                  stride 2, không có pooling thêm
     tcn/ds_tcn   norm=weight thì BatchNorm bị gỡ hẳn và WeightNorm được áp
+    revin        không thêm tham số học được, đảo ngược được, và có
+                 đổi đầu ra thật
 
 Không kiểm chất lượng dự báo — việc đó là của run_cv.py.
 """
@@ -150,6 +152,38 @@ def check_cnn_lstm(model, hidden, conv_channels):
           "không có tầng pooling nào thêm")
 
 
+def check_revin(model, build_without_revin):
+    print("\n6. Riêng RevIN")
+    check(model.revin is not None, "RevIN được gắn vào model")
+
+    n_with = models.count_params(model)
+    n_without = models.count_params(build_without_revin())
+    print("   có RevIN %d tham số, không RevIN %d" % (n_with, n_without))
+    check(n_with == n_without,
+          "số tham số KHÔNG đổi — RevIN không thêm tham số học được")
+
+    print("\n7. RevIN đảo ngược được")
+    x = torch.randn(4, mv.HISTORY_LENGTH) * 5 + 3      # cố ý lệch thang đo
+    model.eval()
+    with torch.no_grad():
+        normed = model.revin.normalize(x)
+        restored = model.revin.denormalize(chuan)
+    print("   sau chuẩn hoá: trung bình %.4f, độ lệch %.4f"
+          % (normed.mean().item(), normed.std().item()))
+    check(abs(normed.mean().item()) < 0.01, "trung bình về gần 0")
+    check(abs(normed.std().item() - 1) < 0.05, "độ lệch chuẩn về gần 1")
+    check(torch.allclose(restored, x, atol=1e-3),
+          "denormalize trả lại đúng đầu vào ban đầu")
+
+    print("\n8. Đầu ra đổi khi bật RevIN")
+    plain = build_without_revin()
+    plain.load_state_dict(model.state_dict(), strict=False)
+    plain.eval()
+    with torch.no_grad():
+        check(not torch.allclose(model(x), plain(x)),
+              "cùng trọng số nhưng đầu ra khác — RevIN có tác dụng thật")
+
+
 def check_tcn(model, norm):
     print("\n5. Riêng TCN")
     n_batchnorm = sum(1 for m in model.modules() if isinstance(m, nn.BatchNorm1d))
@@ -210,6 +244,11 @@ elif args.model == "cnn_lstm":
     check_cnn_lstm(model, args.hidden, args.conv_channels)
 elif args.model in ("tcn", "ds_tcn"):
     check_tcn(model, args.norm)
+    if args.revin.lower() == "true":
+        check_revin(model, lambda: models.build_model(
+            args.model, revin=False, channels=args.channels,
+            kernel_size=args.kernel_size, n_blocks=args.n_blocks,
+            dropout=args.dropout, norm=args.norm))
 
 if args.compare_with:
     print("\n8. So số tham số với %s" % args.compare_with)
