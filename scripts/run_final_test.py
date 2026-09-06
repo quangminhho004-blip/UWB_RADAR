@@ -33,6 +33,7 @@ Khác đúng một chỗ: nhận model bất kỳ. `mobivital_gen.py` dòng 152 
 
 import argparse
 import os
+import subprocess
 import sys
 import time
 
@@ -121,6 +122,15 @@ print("run_id  ", run_id)
 print("thiết bị", results.device_name())
 print()
 
+# Lần chạy đã có kết quả thì dừng ngay, đừng train lại 15 phút rồi mới đụng
+# phải phép chặn trùng ở results.add_summary.
+done = results.find_run(SUMMARY_FILE, args.experiment, run_id)
+if done is not None:
+    print("đã có kết quả macro %s — không chạy lại." % done["score_macro"])
+    print("Muốn chạy lại thì đổi --experiment, hoặc xoá dòng cũ trong",
+          SUMMARY_FILE)
+    raise SystemExit(0)
+
 
 # --- Train trên đủ 8 người ---
 
@@ -202,3 +212,16 @@ print("=" * 58)
 print(EXP_DIR + "/" + run_id + ".txt")
 print(EXP_DIR + "/scores_" + run_id + ".csv")
 print(SUMMARY_FILE)
+
+
+# --- Nén rồi chép sang Drive ---
+#
+# Colab xoá sạch /content khi ngắt phiên. Một lần chạy ở đây mất khoảng 15 phút
+# (train trên đủ 8 người rồi chấm 537 buổi ghi), và notebook thường gọi ba lần
+# liên tiếp cho ba seed — không lưu ngay là mất cả ba.
+#
+# Tên tệp nén chứa cấu hình nên không đè zip của lần chạy nào khác.
+print()
+subprocess.run([sys.executable, "scripts/save_results.py", args.experiment,
+                "--out", args.experiment + "_" + run_id],
+               check=False)
