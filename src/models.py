@@ -40,6 +40,13 @@ Trích dẫn từng tham số: xem docs/THAM_CHIEU.md
 import torch
 import torch.nn as nn
 
+# torch >= 2.1 chuyển weight_norm sang parametrizations; bản cũ vẫn dùng được
+# nhưng có cảnh báo sắp bỏ.
+try:
+    from torch.nn.utils.parametrizations import weight_norm
+except ImportError:
+    from torch.nn.utils import weight_norm
+
 from src import mobivital_reference as mv
 
 
@@ -60,6 +67,25 @@ class RevIN(nn.Module):
 
     def denormalize(self, y):
         return y * self.std + self.mean
+
+
+def apply_weight_norm(module):
+    """Bọc WeightNorm lên mọi lớp tích chập bên trong.
+
+    WeightNorm không phải một lớp đặt thêm vào luồng dữ liệu như BatchNorm. Nó
+    viết lại chính trọng số của lớp tích chập:
+
+        w = g * v / ||v||
+
+    `v` là hướng, `g` là một số học được quyết định độ dài. Model học hai thứ
+    đó tách rời nhau. Vì vậy khi bật WeightNorm thì KHÔNG đặt thêm lớp chuẩn
+    hoá nào nữa — xem `_one_layer`.
+
+    Nhánh tách depthwise có hai lớp tích chập nên phải bọc cả hai.
+    """
+    if isinstance(module, nn.Sequential):
+        return nn.Sequential(*[apply_weight_norm(m) for m in module])
+    return weight_norm(module)
 
 
 class TCNBlock(nn.Module):
@@ -95,17 +121,19 @@ class TCNBlock(nn.Module):
     nói ở mục 3.4.
     """
 
-    def __init__(self, channels, kernel_size, dilation, dropout, separable):
+    def __init__(self, channels, kernel_size, dilation, dropout, separable,
+                 norm="batch"):
         super().__init__()
         self.left_pad = (kernel_size - 1) * dilation
 
         # Hai tầng giống hệt nhau, cùng độ giãn — Bai et al. Hình 1(b).
         self.layer_one = self._one_layer(channels, kernel_size, dilation,
-                                       dropout, separable)
+                                         dropout, separable, norm)
         self.layer_two = self._one_layer(channels, kernel_size, dilation,
-                                       dropout, separable)
+                                         dropout, separable, norm)
 
-    def _one_layer(self, channels, kernel_size, dilation, dropout, separable):
+    def _one_layer(self, channels, kernel_size, dilation, dropout, separable,
+                   norm):
         """Một tầng: tích chập giãn -> chuẩn hoá -> ReLU -> dropout."""
         if separable:
             # Depthwise: mỗi kênh một bộ lọc riêng, không trộn kênh.
@@ -119,9 +147,17 @@ class TCNBlock(nn.Module):
         else:
             conv = nn.Conv1d(channels, channels, kernel_size, dilation=dilation)
 
+        if norm == "weight":
+            conv = apply_weight_norm(conv)
+            norm_layer = nn.Identity()      # WeightNorm nằm trong chính conv
+        elif norm == "batch":
+            norm_layer = nn.BatchNorm1d(channels)
+        else:
+            raise ValueError("norm phải là 'batch' hoặc 'weight', nhận " + str(norm))
+
         return nn.ModuleDict({
             "conv": conv,
-            "norm": nn.BatchNorm1d(channels),
+            "norm": norm_layer,
             "act": nn.ReLU(),
             "drop": nn.Dropout1d(dropout),
         })
@@ -169,17 +205,27 @@ class TCN(nn.Module):
     channels mặc định 64 là CỐ Ý LỆCH bài báo. Bai mục A.1 chọn số kênh sao cho
     model to xấp xỉ model hồi quy đem so; ở đây thu nhỏ model chính là mục tiêu
     của đồ án. Đây là giới hạn của TN1, TN5 sẽ quét lại.
+
+    norm mặc định "batch" cũng LỆCH bài báo — Bai mục 3.4 dùng WeightNorm. Lý do
+    chọn BatchNorm là để nhánh ds_tcn (Howard 2017 mục 3.1, vốn dùng BatchNorm)
+    và nhánh tcn chuẩn hoá giống nhau, nhờ đó so hai nhánh chỉ đổi đúng một biến
+    là phép tích chập.
+
+    Nhưng lập luận đó chỉ đòi hai nhánh GIỐNG NHAU, không đòi phải là BatchNorm;
+    chọn WeightNorm cho cả hai cũng thoả. Nên bản đúng chuẩn Bai chạy được bằng
+    norm="weight", và kết luận về tcn chỉ nên phát biểu kèm tên kiểu chuẩn hoá
+    đã dùng.
     """
 
     def __init__(self, channels=64, kernel_size=3, n_blocks=6,
-                 dropout=0.0, separable=False, revin=False):
+                 dropout=0.0, separable=False, revin=False, norm="batch"):
         super().__init__()
         self.input_conv = nn.Conv1d(1, channels, 1)
 
         blocks = []
         for i in range(n_blocks):
             blocks.append(TCNBlock(channels, kernel_size, 2 ** i,
-                                   dropout, separable))
+                                   dropout, separable, norm))
         self.blocks = nn.Sequential(*blocks)
 
         self.output_linear = nn.Linear(channels, mv.FUTURE_LENGTH)
@@ -211,6 +257,10 @@ def build_model(name, revin=False, **kwargs):
         # RevIN không áp cho baseline. hidden mặc định là 352 của MobiVital;
         # các tham số riêng của TCN (kernel_size, n_blocks...) không dùng ở đây.
         return mv.new_lstm(kwargs.get("hidden"))
+
+    # LSTM không nhận các tham số riêng của TCN; lọc bớt để build_model dùng
+    # được chung một bộ đối số cho mọi model.
+    kwargs.pop("hidden", None)
 
     if name == "tcn":
         return TCN(separable=False, revin=revin, **kwargs)
