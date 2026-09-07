@@ -186,9 +186,17 @@ if args.dropout_kind != "channel":
     # khác loại dropout không đè tên nhau.
     arch_tag += "_dp" + args.dropout_kind[:2]
 
+# alpha PHẢI nằm trong tên. Không có nó thì --alpha 0.3, 0.5, 0.7 ra CÙNG
+# một config_id, và cơ chế bỏ qua fold đã xong sẽ nuốt luôn hai lần chạy
+# sau — bảng in ra ba dòng giống hệt nhau, trông như đã chạy đủ.
+# Chỉ thêm khi loss là mse_pearson, nên mọi tên cũ dùng mse giữ nguyên.
+loss_tag = args.loss
+if args.loss == "mse_pearson":
+    loss_tag += "_a%g" % args.alpha
+
 config_id = "%s%s%s_%s_corr%s_seed%d" % (
     args.model, arch_tag, "_revin" if revin else "",
-    args.loss, args.corr, args.seed)
+    loss_tag, args.corr, args.seed)
 
 os.makedirs(EXP_DIR, exist_ok=True)
 
