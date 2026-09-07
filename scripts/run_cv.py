@@ -121,6 +121,10 @@ parser.add_argument("--norm", default="batch",
                     choices=["batch", "weight", "none"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
                          "weight là bản đúng chuẩn Bai et al. mục 3.4")
+parser.add_argument("--folds", default="all",
+                    help="all = chạy đủ 4 fold. Hoặc liệt kê cách nhau bằng dấu "
+                         "phẩy, ví dụ val_KL. Chạy một fold là VÒNG SÀNG LỌC, "
+                         "không phải vòng kết luận — xem docs/SANG_LOC.md")
 parser.add_argument("--experiment", required=True,
                     help="tên thực nghiệm, ví dụ tn1 — quyết định thư mục runs/<tên>/")
 args = parser.parse_args()
@@ -295,7 +299,21 @@ def snapshot():
 
 
 fold_scores = []
-for fold_name, val_users in FOLDS:
+# Lọc fold theo --folds. Tên sai thì báo ngay, đừng để chạy xong mới biết
+# thiếu fold.
+if args.folds == "all":
+    chosen = FOLDS
+else:
+    want = [x.strip() for x in args.folds.split(",")]
+    known = [f for f, _ in FOLDS]
+    for x in want:
+        if x not in known:
+            raise SystemExit("không có fold tên %s. Có: %s" % (x, ", ".join(known)))
+    chosen = [(f, u) for f, u in FOLDS if f in want]
+    print("CHỈ chạy %d/%d fold: %s" % (len(chosen), len(FOLDS), ", ".join(want)))
+    print("Đây là vòng sàng lọc. Điểm KHÔNG so được với cv_score đủ 4 fold.")
+
+for fold_name, val_users in chosen:
     fold_scores.append(run_one_fold(fold_name, val_users))
     snapshot()
 
@@ -307,7 +325,16 @@ cv_std = float(np.std(fold_scores))
 #
 # Chạy lại lệnh cũ sau khi đã xong đủ 4 fold thì dòng này đã có; ghi nữa là
 # trùng. Bỏ qua để lệnh vẫn chạy được và vẫn in ra bảng tổng kết.
-if results.find_run(SUMMARY_FILE, args.experiment, config_id + "_tong") is None:
+# Dòng TONG chỉ có nghĩa khi chạy ĐỦ 4 fold. Chạy một phần mà vẫn ghi thì
+# compare_cv đọc phải một "cv_score" tính từ một fold — số đó cao hơn hẳn và
+# đảo cả thứ hạng, xem docs/SANG_LOC.md. Bốn dòng fold vẫn được ghi bình
+# thường, nên chạy nốt các fold còn lại thì dòng TONG tự có.
+du_bon_fold = len(chosen) == len(FOLDS)
+if not du_bon_fold:
+    print("\nCHƯA đủ 4 fold nên KHÔNG ghi dòng TONG vào summary.csv.")
+    print("Chạy nốt các fold còn lại thì dòng đó tự có.")
+if du_bon_fold and results.find_run(
+        SUMMARY_FILE, args.experiment, config_id + "_tong") is None:
     results.add_summary({"run_id": config_id + "_tong",
                          "experiment": args.experiment,
                          "model": args.model,
@@ -342,9 +369,13 @@ if results.find_run(SUMMARY_FILE, args.experiment, config_id + "_tong") is None:
 
 print()
 print("=" * 58)
-for i in range(len(FOLDS)):
-    print("   %-8s %.4f" % (FOLDS[i][0], fold_scores[i]))
-print("   cv_score %.6f   <- số dùng để chọn cấu hình" % cv_score)
-print("   cv_std   %.6f   <- chỉ để báo cáo" % cv_std)
+for (fold_name, _), diem in zip(chosen, fold_scores):
+    print("   %-8s %.4f" % (fold_name, diem))
+if du_bon_fold:
+    print("   cv_score %.6f   <- số dùng để chọn cấu hình" % cv_score)
+    print("   cv_std   %.6f   <- chỉ để báo cáo" % cv_std)
+else:
+    print("   trung bình %d fold %.6f   <- VÒNG SÀNG LỌC, không phải cv_score"
+          % (len(chosen), cv_score))
 print("=" * 58)
 print(SUMMARY_FILE)
