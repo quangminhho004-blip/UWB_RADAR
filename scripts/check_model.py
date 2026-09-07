@@ -28,6 +28,12 @@ KIỂM GÌ
     modern_tcn   chia đúng 50 đoạn, đệm bằng cách lặp mẫu cuối, hai
                  nhánh kernel đều có tác dụng, chỉ một nối tắt, và
                  không sót phần khai báo mà không gọi
+    gru          một chiều nên output[:, -1, :] là đúng, Linear KHÔNG
+                 gấp đôi hidden như BiLSTM
+    mix_linear   hai cách đếm tham số (47 numel / 63 số thật), tham số
+                 phức nhận gradient và Adam đổi được, forward không còn
+                 lệnh print của mã gốc, hai nhánh đều tác động tới đầu
+                 ra, và mix_alpha đúng là trọng số trộn
 
 Không kiểm chất lượng dự báo — việc đó là của run_cv.py.
 """
@@ -229,13 +235,13 @@ def check_moderntcn(model, channels):
     block = model.blocks[0]
     with torch.no_grad():
         base = model(x).clone()
-        for ten in ("dw_large", "dw_small"):
-            conv = getattr(block, ten)[0]
+        for name in ("dw_large", "dw_small"):
+            conv = getattr(block, name)[0]
             saved = conv.weight.detach().clone()
             conv.weight.zero_()
-            doi = not torch.allclose(model(x), base)
+            changed = not torch.allclose(model(x), base)
             conv.weight.copy_(saved)
-            check(doi, "xoá %s làm đổi đầu ra — nhánh này có tác dụng" % ten)
+            check(changed, "xoá %s làm đổi đầu ra — nhánh này có tác dụng" % name)
 
     print("\n8. Đúng MỘT nối tắt, ôm cả khối")
     with torch.no_grad():
@@ -254,9 +260,106 @@ def check_moderntcn(model, channels):
           "hai nhánh depthwise không có bias, vì BatchNorm ngay sau")
 
 
+def check_gru(model, hidden):
+    print("\n5. Riêng GRU")
+    check(not model.gru.bidirectional,
+          "GRU MỘT chiều, nên output[:, -1, :] là đúng")
+    check(model.gru.num_layers == mv.LSTM_NUM_LAYERS,
+          "đúng %d tầng như LSTM gốc" % mv.LSTM_NUM_LAYERS)
+    check(model.gru.hidden_size == hidden, "hidden đúng %d" % hidden)
+    check(model.linear.in_features == hidden,
+          "Linear nhận %d chiều — KHÔNG gấp đôi như BiLSTM" % hidden)
+
+    print("\n6. forward dùng đúng output[:, -1, :]")
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.eval()
+    with torch.no_grad():
+        output, _ = model.gru(x.unsqueeze(-1))
+        check(torch.allclose(model(x), model.linear(output[:, -1, :])),
+              "đầu ra khớp với cách lấy bước cuối")
+
+    print("\n7. Mỗi đơn vị GRU tốn 3 khối trọng số, LSTM tốn 4")
+    n_gru = sum(p.numel() for p in model.gru.parameters())
+    first_layer = 3 * (hidden * 1 + hidden * hidden + 2 * hidden)
+    print("   tầng đầu tính tay %d, cả %d tầng %d"
+          % (first_layer, model.gru.num_layers, n_gru))
+    check(n_gru > first_layer, "còn tầng thứ hai nữa")
+
+
+def check_mix_linear(model):
+    print("\n5. Riêng MixLinear — hai cách đếm tham số")
+    numel = sum(p.numel() for p in model.parameters())
+    n_real = models.count_params(model)
+    n_complex = sum(p.numel() for p in model.parameters() if p.is_complex())
+    print("   numel() báo %d, số thật %d, trong đó %d số phức"
+          % (numel, n_real, n_complex))
+    check(n_real == numel + n_complex, "số thật = numel cộng thêm phần ảo")
+    check(n_complex > 0, "có tham số phức thật — đúng thiết kế nhánh tần số")
+
+    print("\n6. Tham số phức nhận gradient và Adam cập nhật được")
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.train()
+    model(x).sum().backward()
+    complex_params = [p for p in model.parameters() if p.is_complex()]
+    check(all(p.grad is not None for p in complex_params), "mọi tham số phức có gradient")
+    before = complex_params[0].detach().clone()
+    opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+    for _ in range(3):
+        opt.zero_grad()
+        nn.functional.mse_loss(model(x), torch.randn(4, mv.FUTURE_LENGTH)).backward()
+        opt.step()
+    check(not torch.equal(before, complex_params[0]), "Adam đổi được tham số phức")
+    check(bool(torch.isfinite(complex_params[0]).all()), "giá trị vẫn hữu hạn sau 3 bước")
+
+    print("\n7. forward không còn lệnh print của mã gốc")
+    import inspect
+    source = inspect.getsource(type(model).forward)
+    source += inspect.getsource(type(model)._time_domain)
+    source += inspect.getsource(type(model)._freq_domain)
+    check("print(" not in source,
+          "không có print — mã tác giả bỏ quên hai lệnh, đã gỡ")
+
+    print("\n8. Cả nhánh thời gian lẫn nhánh tần số đều tác động tới đầu ra")
+    model.eval()
+    with torch.no_grad():
+        base = model(x).clone()
+        for name in ("TLinear1", "FLinear1"):
+            w = getattr(model, name).weight
+            saved = w.detach().clone()
+            w.zero_()
+            changed = not torch.allclose(model(x), base)
+            w.copy_(saved)
+            check(changed, "xoá %s làm đổi đầu ra" % name)
+
+    print("\n9. mix_alpha đúng là trọng số trộn hai nhánh")
+    with torch.no_grad():
+        z = x.unsqueeze(-1)
+        mean = z.mean(dim=1).unsqueeze(1)
+        u = (z - mean).permute(0, 2, 1)
+        u = model.conv1d(u.reshape(-1, 1, model.seq_len)).reshape(
+            -1, 1, model.seq_len) + u
+        u = u.reshape(4, 1, -1, model.period_len).permute(0, 1, 3, 2)
+        time_part = model._time_domain(u, 4)[:, :model.pred_len, :]
+        freq_part = model._freq_domain(u, 4)[:, :model.pred_len, :]
+        mixed = (time_part * model.alpha + freq_part * (1 - model.alpha)
+                 + mean).squeeze(-1)
+        check(torch.allclose(model(x), mixed, atol=1e-5),
+              "đầu ra = thời_gian*%.2f + tần_số*%.2f + trung bình"
+              % (model.alpha, 1 - model.alpha))
+
+    print("\n10. Chia đoạn đúng số")
+    n_seg = model.seq_len // model.period_len
+    print("   %d mẫu / đoạn %d = %d đoạn, lưới %dx%d"
+          % (model.seq_len, model.period_len, n_seg,
+             model.sqrt_seg_num_x, model.sqrt_seg_num_x))
+    check(n_seg == 20, "đúng 20 đoạn")
+    check(model.sqrt_seg_num_x == 5, "lưới 5x5, đủ chứa 20 đoạn")
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", required=True,
-                    help="lstm | bilstm | cnn_lstm | tcn | ds_tcn | modern_tcn")
+                    help="lstm | bilstm | gru | cnn_lstm | tcn | ds_tcn | "
+                         "modern_tcn | mix_linear")
 parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE)
 parser.add_argument("--channels", type=int, default=64)
 parser.add_argument("--kernel_size", type=int, default=3)
@@ -267,6 +370,9 @@ parser.add_argument("--conv_channels", type=int, default=32)
 parser.add_argument("--conv_kernel", type=int, default=5)
 parser.add_argument("--kernel_large", type=int, default=31)
 parser.add_argument("--kernel_small", type=int, default=5)
+parser.add_argument("--period_len", type=int, default=10)
+parser.add_argument("--lpf", type=int, default=5)
+parser.add_argument("--mix_alpha", type=float, default=0.5)
 parser.add_argument("--revin", default="false")
 parser.add_argument("--compare-with", dest="compare_with", default=None,
                     help="tên model đem so số tham số, ví dụ lstm")
@@ -287,7 +393,10 @@ def build(name, hidden):
                               conv_channels=args.conv_channels,
                               conv_kernel=args.conv_kernel,
                               kernel_large=args.kernel_large,
-                              kernel_small=args.kernel_small)
+                              kernel_small=args.kernel_small,
+                              period_len=args.period_len,
+                              lpf=args.lpf,
+                              mix_alpha=args.mix_alpha)
 
 
 print("Kiểm model:", args.model)
@@ -298,6 +407,10 @@ check_save_load(model, lambda: build(args.model, args.hidden))
 
 if args.model == "bilstm":
     check_bilstm(model, args.hidden)
+elif args.model == "gru":
+    check_gru(model, args.hidden)
+elif args.model == "mix_linear":
+    check_mix_linear(model)
 elif args.model == "cnn_lstm":
     check_cnn_lstm(model, args.hidden, args.conv_channels)
 elif args.model == "modern_tcn":

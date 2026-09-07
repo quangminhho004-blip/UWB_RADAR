@@ -316,6 +316,148 @@ GIỚI HẠN PHẢI GHI KHI BÁO CÁO
 
 
 ================================================================================
+7. gru_h77_mse_corr0.9_seed{0,1,2}       -- GRU cùng ngân sách LSTM-67  CHƯA CHẠY
+================================================================================
+
+  KIẾN TRÚC   giống mục 2, đổi ĐÚNG MỘT thứ: loại tế bào hồi quy
+
+    lớp hồi quy                 nn.GRU
+      input_size                1
+      hidden_size               77        <-- 67 ở LSTM, xem lý do bên dưới
+      num_layers                2
+      bidirectional             không
+      dropout giữa các lớp      0.0
+      batch_first               có
+    lấy đặc trưng               output[:, -1, :]
+                                ĐÚNG ở đây vì một chiều, khác hẳn BiLSTM
+    lớp ra                      nn.Linear(77, 25)
+    chuẩn hoá                   không có
+
+  VÌ SAO 77 CHỨ KHÔNG PHẢI 67
+
+    LSTM   3 cổng (quên, vào, ra) + một ô nhớ riêng  -> 4 khối trọng số
+    GRU    2 cổng (đặt lại, cập nhật), không ô nhớ   -> 3 khối trọng số
+
+    Cùng ngân sách thì GRU chứa được nhiều đơn vị hơn.
+      GRU-76  55.049  lệch -3,27%
+      GRU-77  56.466  lệch -0,78%   <-- chọn
+      GRU-78  57.901  lệch +1,74%
+
+  SỐ THAM SỐ                    56.466
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model gru --hidden 77 --seed 0
+
+    Hậu tố _h77 LUÔN được ghi, khác lstm và bilstm. GRU không có cấu hình gốc
+    nào của MobiVital để lấy làm mặc định.
+
+  KẾT QUẢ   chưa chạy
+
+
+================================================================================
+8. mix_linear_p10_lpf5_mse_corr0.9_seed{0,1,2}    -- 63 tham số   CHƯA CHẠY
+================================================================================
+
+  KHÔNG PHẢI PHÉP SO CÙNG NGÂN SÁCH. Ít hơn LSTM-67 gần 900 lần. Câu hỏi khác:
+  ít tham số tới mức nào thì vẫn chạm được mức 0,74.
+
+  KIẾN TRÚC   MixLinear, github.com/aitianma/MixLinear, models/MixLinear.py
+
+    Viết theo MÃ của tác giả, không theo mô tả.
+
+    tiền xử lý                  trừ trung bình của chính cửa sổ
+                                Conv1d(1, 1, kernel=11, bias=False) + nối tắt
+    chia đoạn                   20 đoạn, mỗi đoạn 10 mẫu
+
+    NHÁNH THỜI GIAN
+      đệm                       20 đoạn lên 25 để xếp vừa lưới 5x5
+      TLinear1                  nn.Linear(5, 2, bias=False)
+      TLinear2                  nn.Linear(5, 2, bias=False)
+                                ép hai chiều của lưới, mỗi lớp một chiều
+
+    NHÁNH TẦN SỐ
+      FFT                       dọc trục 20 ĐOẠN, không phải dọc 200 mẫu
+      giữ lại                   5 hệ số tần thấp nhất  (lpf = 5)
+      FLinear1                  nn.Linear(5, 2, bias=False), SỐ PHỨC
+      FLinear2                  nn.Linear(2, 3, bias=False), SỐ PHỨC
+      FFT ngược                 rồi lấy phần thực
+
+    TRỘN                        thời_gian * 0,5 + tần_số * 0,5 + trung bình
+    lấy ra                      25 mẫu đầu
+    chuẩn hoá                   chỉ trừ/cộng trung bình, KHÔNG chia độ lệch
+                                chuẩn — biên độ được giữ nguyên
+    RevIN                       không
+
+  SỐ THAM SỐ                    63
+
+    TLinear1, TLinear2, conv1d        31 số thật
+    FLinear1, FLinear2   16 số phức = 32 số thật
+    numel() của PyTorch báo 47, số thật là 63
+
+    Một số phức gồm phần thực và phần ảo, khi train thì CẢ HAI được cập nhật,
+    nhưng numel() đếm là một. count_params trong src/models.py đã sửa để nhân
+    đôi phần phức. Tám model khác không có tham số phức nên số không đổi.
+
+  VÌ SAO ÍT THAM SỐ ĐẾN THẾ
+
+    Không có lớp nào ánh xạ 200 chiều xuống 25 chiều. Mọi phép nén làm trên
+    trục ĐOẠN (20 hoặc 5 phần tử), còn 10 mẫu trong mỗi đoạn đi song song dùng
+    chung trọng số. Số tham số gần như không phụ thuộc độ dài chuỗi.
+
+    Mẹo chính: thay vì một lớp 20 -> 4 tốn 80 trọng số, xếp 20 đoạn thành lưới
+    vuông rồi ép từng chiều bằng lớp 5 -> 2, tốn 10 + 10 = 20 trọng số mà vẫn
+    trộn được mọi đoạn với nhau.
+
+  Ý NGHĨA period_len VÀ lpf
+
+    period_len = 10 là cỡ chia đoạn BÊN TRONG mạng, KHÔNG phải khẳng định một
+    nhịp thở dài 10 mẫu. Ở 50 Hz thì 10 mẫu là 0,2 giây, còn một nhịp thở
+    khoảng 4 giây tức 200 mẫu, đúng bằng cả cửa sổ.
+
+    FFT chạy dọc trục 20 đoạn nên nó hỏi "biên độ đoạn thay đổi tuần hoàn thế
+    nào qua 4 giây". lpf = 5 giữ 5 tần số thấp nhất, tức bỏ dao động nhanh.
+
+  LỆNH
+    python scripts/run_cv.py --experiment tn1 --model mix_linear --seed 0
+
+  KẾT QUẢ   chưa chạy
+
+  RỦI RO PHẢI GHI KHI BÁO CÁO
+
+    63 tham số với lr 1e-4 và 20 epoch có thể CHƯA HỌC XONG. Điểm thấp có thể
+    là "chưa train đủ" chứ không phải "kiến trúc không hợp".
+
+    Phân biệt bằng curve.csv: train_mse còn giảm đều ở epoch 19 thì chưa hội
+    tụ; phẳng từ epoch 5 thì đã học hết.
+
+
+================================================================================
+BA CHỖ CỐ Ý LỆCH MÃ GỐC MixLinear, CÓ LÝ DO
+================================================================================
+
+1. Bỏ hai lệnh print("shape", ...) trong forward
+
+   Mã tác giả bỏ quên chúng. 292.708 cửa sổ x 20 epoch x 4 fold thì ngập màn
+   hình và chậm hẳn.
+
+2. torch.fft.ifft(...).float() đổi thành .real
+
+   Bản gốc ném cảnh báo "Casting complex values to real discards the imaginary
+   part" mỗi lượt gọi. Đã đối chiếu bằng torch.equal: hai cách cho ra ĐÚNG
+   CÙNG giá trị. Sửa hình thức, không đổi phép tính.
+
+3. Bỏ đối tượng configs, nhận tham số rời
+
+   Mã gốc đọc configs.seq_len từ argparse của repo họ. Thêm phần đổi hình dạng
+   (batch, 200) sang (batch, 200, 1) rồi ngược lại ở đầu ra.
+
+GIỮ NGUYÊN phần trừ rồi cộng lại trung bình. Nó chỉ trừ trung bình, KHÔNG chia
+độ lệch chuẩn, nên biên độ được giữ nguyên. Ở TN2, RevIN chia độ lệch chuẩn đã
+kéo DS-TCN xuống 0,0124 vì xoá mất biên độ — thứ đo được có tương quan 0,53 với
+chất lượng kênh. MixLinear không dính bẫy đó.
+
+
+================================================================================
 BẢNG TÓM TẮT
 ================================================================================
 
@@ -328,7 +470,14 @@ BẢNG TÓM TẮT
   tcn_c64_weight        150.745   0,7463 +- 0,0030   chưa chạy
   bilstm_h41             57.507   0,7398 +- 0,0046   chưa chạy
   cnn_lstm_h58           55.667   0,7527 +- 0,0037   chưa chạy
-  modern_tcn_c32_n3      56.985   chưa chạy          chưa chạy
+  modern_tcn_c32_n3      56.985   0,7405 +- 0,0045   chưa chạy
+  gru_h77                56.466   chưa chạy          chưa chạy
+
+  BẢNG RIÊNG — không cùng ngân sách tham số, không so trực tiếp với bảng trên
+
+  cấu hình              tham số       cv_score        ghij
+  --------------------------------------------------------------------
+  mix_linear_p10_lpf5        63   chưa chạy          chưa chạy
 
   MobiVital công bố trong bài báo: 0.819
   Oracle, trần trên khi chọn được kênh tốt nhất: 0.943
@@ -373,7 +522,9 @@ TỰ KIỂM LẠI CÁC SỐ TRÊN
                   ("tcn",        {"channels": 64, "norm": "weight"}),
                   ("bilstm",     {"hidden": 41}),
                   ("cnn_lstm",   {"hidden": 58}),
-                  ("modern_tcn", {"channels": 32, "n_blocks": 3})]:
+                  ("modern_tcn", {"channels": 32, "n_blocks": 3}),
+                  ("gru",        {"hidden": 77}),
+                  ("mix_linear", {})]:
       m = models.build_model(ten, **kw)
       print(ten, kw, models.count_params(m))
 

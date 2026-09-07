@@ -12,30 +12,56 @@ GIAO DIỆN BẮT BUỘC
 Đúng như LSTMMultiStep của MobiVital. Sai shape là hỏng cả chuỗi: bộ chọn kênh
 gọi model 52 lần mỗi ứng viên, rồi so từng cửa sổ 25 mẫu.
 
-BA MODEL
+CHÍN MODEL, CHIA LÀM BA HỌ
 
-    lstm      LSTMMultiStep của MobiVital, làm mốc so sánh
-    tcn       tích chập nhân quả, giãn dần
-    ds_tcn    như trên nhưng tách depthwise + pointwise, ít tham số hơn nhiều
+    hồi quy       đọc lần lượt từng mẫu, mang trạng thái đi theo
+      lstm        LSTMMultiStep của MobiVital, làm mốc so sánh
+      gru         như lstm nhưng tế bào ít cổng hơn
+      bilstm      đọc cả hai chiều, phải lấy đặc trưng từ h_n
+      cnn_lstm    nén 200 xuống 50 bằng tích chập rồi mới đưa vào lstm
 
-Số tham số đo được, mặc định kernel=3, n_blocks=6, hai tầng conv mỗi khối:
+    tích chập     nhìn cả cửa sổ một lúc, không mang trạng thái
+      tcn         nhân quả, giãn dần — Bai et al. 2018
+      ds_tcn      như trên, tách depthwise + pointwise, ít tham số hơn nhiều
+      modern_tcn  chia đoạn trước rồi dùng kernel lớn — Luo & Wang 2024
 
-    model      kênh   tham số      so LSTM
-    lstm        352   1,502,713    --
-    tcn          64     151,513    -90%
-    ds_tcn       64      56,281    -96%
-    tcn         200   1,452,625    -3%     ngang tham số LSTM
-    ds_tcn      352   1,525,945    +2%     ngang tham số LSTM
+    tuyến tính    gần như không có phi tuyến nào
+      mix_linear  ghép nhánh thời gian với nhánh tần số, 63 tham số
 
-RevIN là lớp bọc, dùng được với cả tcn lẫn ds_tcn.
+SỐ THAM SỐ ĐO ĐƯỢC
+
+Tám cấu hình dưới cùng một ngân sách khoảng 56-57k, để so kiến trúc chứ không
+so kích cỡ. Hai dòng đầu và mix_linear nằm ngoài dải đó, có chủ ý.
+
+    cấu hình                       tham số
+    lstm-352                     1.502.713    baseline MobiVital
+    tcn-64                         151.513
+    tcn-64 weightnorm              150.745
+    bilstm-41                       57.507
+    modern_tcn-32                   56.985
+    lstm-67                         56.908    mốc của dải cùng ngân sách
+    gru-77                          56.466
+    ds_tcn-64                       56.281
+    cnn_lstm-58                     55.667
+    mix_linear                          63    ít hơn 900 lần
+
+Tự in lại các số này: xem cuối docs/CAU_HINH_TN1.txt
+
+RevIN là lớp bọc, dùng được với tcn, ds_tcn và modern_tcn.
 
 TÀI LIỆU THAM CHIẾU
 
-    Bai, Kolter & Koltun (2018), arXiv:1803.01271 -- kiến trúc TCN
+    Bai, Kolter & Koltun (2018), arXiv:1803.01271 -- TCN
     Howard et al. (2017), arXiv:1704.04861        -- depthwise separable
+    Sainath, Vinyals, Senior, Sak (2015), ICASSP  -- CLDNN, tiền lệ cnn_lstm
+    Kim, Kim, Tae, Park, Choi, Choo (2022), ICLR  -- RevIN
+    Luo & Wang (2024), ICLR                       -- ModernTCN
+    github.com/aitianma/MixLinear                 -- MixLinear
 
 Trích dẫn từng tham số: xem docs/THAM_CHIEU.md
 """
+
+import math
 
 import torch
 import torch.nn as nn
@@ -569,12 +595,204 @@ class ModernTCN(nn.Module):
         return y
 
 
+class GRU(nn.Module):
+    """Hồi quy có cổng, ít cổng hơn LSTM. Dự báo đa bước.
+
+    Cho GRU đọc hết 200 mẫu rồi lấy trạng thái ở bước cuối để bắn thẳng ra 25
+    mẫu. Giống hệt LSTM baseline, đổi đúng một thứ: loại tế bào hồi quy.
+
+    KHÁC LSTM Ở ĐÂU
+
+        LSTM   3 cổng (quên, vào, ra) + một ô nhớ riêng tách khỏi trạng thái ẩn
+        GRU    2 cổng (đặt lại, cập nhật), KHÔNG có ô nhớ riêng
+
+    Vì bỏ ô nhớ, mỗi đơn vị GRU chỉ tốn 3 khối trọng số thay vì 4, nên cùng số
+    tham số thì GRU chứa được nhiều đơn vị ẩn hơn: 77 so với 67 của LSTM.
+
+    Ở ĐÂY output[:, -1, :] LÀ ĐÚNG, KHÁC VỚI BiLSTM
+
+    GRU này một chiều, nên bước cuối của chuỗi cũng là bước cuối cùng nó xử lý —
+    trạng thái tại đó đã đọc đủ 200 mẫu. Với BiLSTM thì không, và đó là lý do
+    lớp BiLSTM phải lấy từ h_n; xem docstring của lớp đó.
+    """
+
+    def __init__(self, hidden_size, num_layers, future_len):
+        super().__init__()
+        self.gru = nn.GRU(input_size=1, hidden_size=hidden_size,
+                          num_layers=num_layers, batch_first=True)
+        self.linear = nn.Linear(hidden_size, future_len)
+
+    def forward(self, x):
+        if x.dim() == 2:
+            x = x.unsqueeze(-1)
+        output, _ = self.gru(x)
+        return self.linear(output[:, -1, :])
+
+
+class MixLinear(nn.Module):
+    """Ghép nhánh thời gian với nhánh tần số, cực ít tham số.
+
+    Nguồn: github.com/aitianma/MixLinear, models/MixLinear.py, lớp Model.
+
+    LUỒNG DỮ LIỆU
+
+        (batch, 200)
+          -> trừ trung bình của chính cửa sổ
+          -> Conv1d(1, 1, kernel=11) rồi cộng nối tắt      làm mượt
+          -> chia thành 20 đoạn, mỗi đoạn 10 mẫu
+               |
+               +-- nhánh THỜI GIAN: đệm 20 lên 25, xếp thành lưới 5x5,
+               |   ép hai chiều của lưới bằng TLinear1 rồi TLinear2
+               |
+               +-- nhánh TẦN SỐ: FFT dọc trục 20 đoạn, giữ 5 hệ số tần thấp,
+                   FLinear1 rồi FLinear2 (trọng số SỐ PHỨC), rồi FFT ngược
+               |
+          -> trộn: nhánh_thời_gian * 0,5 + nhánh_tần_số * 0,5 + trung bình
+          -> lấy 25 mẫu đầu
+
+    period_len = 10 là cỡ chia đoạn BÊN TRONG mạng, không phải khẳng định một
+    nhịp thở dài 10 mẫu. Ở 50 Hz thì 10 mẫu là 0,2 giây, còn một nhịp thở
+    khoảng 4 giây tức 200 mẫu — đúng bằng cả cửa sổ. FFT chạy dọc trục 20 đoạn,
+    tức nhìn chu kỳ ở thang 0,2 giây trải trên 4 giây; lpf = 5 giữ 5 hệ số tần
+    thấp nhất.
+
+    VÌ SAO CHỈ 63 THAM SỐ
+
+    Không có lớp nào ánh xạ 200 chiều xuống 25 chiều. Mọi phép nén đều làm trên
+    trục ĐOẠN (20 hoặc 5 phần tử), còn 10 mẫu trong mỗi đoạn thì đi song song
+    dùng chung trọng số. Vì vậy số tham số gần như không phụ thuộc độ dài chuỗi.
+
+    ĐẾM THAM SỐ: 47 HAY 63
+
+    Hai lớp FLinear có trọng số SỐ PHỨC. Một số phức là hai con số thật, cả hai
+    đều được cập nhật khi train, nhưng `numel()` của PyTorch đếm nó là một.
+
+        TLinear1, TLinear2, conv1d        31 số thật
+        FLinear1, FLinear2   16 số phức = 32 số thật
+        numel() báo 47, số thật là 63
+
+    `count_params` trong tệp này nhân đôi phần phức nên trả về 63.
+
+    BA CHỖ CỐ Ý LỆCH MÃ TÁC GIẢ
+
+    1. Bỏ hai lệnh `print("shape", ...)` trong `forward`. Mã gốc bỏ quên chúng.
+       292.708 cửa sổ x 20 epoch x 4 fold thì ngập màn hình và chậm hẳn.
+
+    2. `torch.fft.ifft(...).float()` đổi thành `.real`. Bản gốc ném cảnh báo
+       "Casting complex values to real discards the imaginary part" mỗi lượt
+       gọi. Đã đối chiếu: hai cách cho ra ĐÚNG CÙNG giá trị.
+
+    3. Bỏ đối tượng `configs`, nhận tham số rời, và thêm phần đổi hình dạng
+       (batch, 200) sang (batch, 200, 1) rồi ngược lại ở đầu ra.
+
+    GIỮ NGUYÊN PHẦN TRỪ TRUNG BÌNH, VÀ ĐÓ LÀ ĐIỀU MAY
+
+    Mã gốc trừ trung bình của cửa sổ rồi cộng trả lại ở cuối. Nó KHÔNG chia cho
+    độ lệch chuẩn, nên BIÊN ĐỘ được giữ nguyên. Ở TN2, RevIN chia độ lệch chuẩn
+    đã kéo DS-TCN xuống 0,0124 vì xoá mất biên độ — thứ mà đo đạc cho thấy có
+    tương quan 0,53 với chất lượng kênh. MixLinear không dính bẫy đó.
+    """
+
+    def __init__(self, seq_len=None, pred_len=None, period_len=10, lpf=5,
+                 mix_alpha=0.5):
+        super().__init__()
+        self.seq_len = seq_len or mv.HISTORY_LENGTH
+        self.pred_len = pred_len or mv.FUTURE_LENGTH
+        self.period_len = period_len
+        self.lpf = lpf
+        self.alpha = mix_alpha
+
+        self.seg_num_y = math.ceil(self.pred_len / period_len)
+        self.sqrt_seg_num_x = math.ceil(math.sqrt(self.seq_len / period_len))
+
+        self.TLinear1 = nn.Linear(self.sqrt_seg_num_x,
+                                  math.ceil(math.sqrt(self.pred_len / period_len)),
+                                  bias=False)
+        self.TLinear2 = nn.Linear(self.sqrt_seg_num_x,
+                                  math.ceil(math.sqrt(self.pred_len / period_len)),
+                                  bias=False)
+        self.conv1d = nn.Conv1d(1, 1, period_len + 1, stride=1,
+                                padding=period_len // 2, padding_mode="zeros",
+                                bias=False)
+        self.FLinear1 = nn.Linear(lpf, 2, bias=False).to(torch.cfloat)
+        self.FLinear2 = nn.Linear(2, self.seg_num_y, bias=False).to(torch.cfloat)
+
+    def forward(self, x):
+        if x.dim() == 2:
+            x = x.unsqueeze(-1)                              # (b, 200, 1)
+        batch = x.shape[0]
+
+        mean = x.mean(dim=1).unsqueeze(1)
+        x = (x - mean).permute(0, 2, 1)                      # (b, 1, 200)
+        x = self.conv1d(x.reshape(-1, 1, self.seq_len)).reshape(
+            -1, 1, self.seq_len) + x
+        x = x.reshape(batch, 1, -1, self.period_len).permute(0, 1, 3, 2)
+
+        time_branch = self._time_domain(x, batch)
+        freq_branch = self._freq_domain(x, batch)
+
+        y = (time_branch[:, :self.pred_len, :] * self.alpha
+             + freq_branch[:, :self.pred_len, :] * (1 - self.alpha)
+             + mean)
+        return y.squeeze(-1)                                 # (b, 25)
+
+    def _time_domain(self, x, batch):
+        """Xếp 20 đoạn thành lưới 5x5, ép hai chiều của lưới xuống còn 2x2.
+
+        Mẹo của tác giả: thay vì một lớp 20 -> 4 tốn 80 trọng số, xếp 20 đoạn
+        thành lưới vuông rồi ép từng chiều bằng lớp 5 -> 2. Hai lớp như vậy
+        tốn 10 + 10 = 20 trọng số mà vẫn trộn được mọi đoạn với nhau.
+
+        10 mẫu bên trong mỗi đoạn đi song song, dùng chung trọng số — đó là
+        lý do số tham số không phụ thuộc độ dài chuỗi.
+
+        Cột bên phải là hình dạng tensor sau mỗi dòng, với batch 4.
+        """
+        side = self.sqrt_seg_num_x                              # 5
+        # Lưới 5x5 chứa 25 ô nhưng chỉ có 20 đoạn, đệm 5 ô cuối bằng 0.
+        x = nn.functional.pad(x, (0, side ** 2 - x.shape[-1], 0, 0, 0, 0))
+        #                                                       (4, 1, 10, 25)
+        x = x.reshape(batch, 1, self.period_len, side, side)  # (4, 1, 10, 5, 5)
+        # permute đổi chỗ hai chiều cuối, để lớp sau ép nốt chiều còn lại.
+        x = self.TLinear1(x).permute(0, 1, 2, 4, 3)           # (4, 1, 10, 2, 5)
+        x = self.TLinear2(x).permute(0, 1, 2, 4, 3)           # (4, 1, 10, 2, 2)
+
+        x = x.reshape(batch, 1, self.period_len, -1)          # (4, 1, 10, 4)
+        x = x.permute(0, 1, 3, 2)                             # (4, 1, 4, 10)
+        x = x.reshape(batch, 1, -1)                           # (4, 1, 40)
+        return x.permute(0, 2, 1)                             # (4, 40, 1)
+
+    def _freq_domain(self, x, batch):
+        """Giữ 5 hệ số tần thấp, biến đổi bằng trọng số phức, rồi FFT ngược.
+
+        FFT chạy dọc trục 20 ĐOẠN, không phải dọc 200 mẫu. Nó hỏi "biên độ của
+        đoạn thay đổi tuần hoàn thế nào qua 4 giây", đúng thang của nhịp thở.
+
+        Giữ 5 hệ số đầu là giữ 5 tần số THẤP nhất, tức bỏ dao động nhanh và
+        giữ dao động chậm. Nhịp thở là dao động chậm.
+
+        Đây là chỗ duy nhất có trọng số số phức, vì đầu ra của FFT là số phức.
+        """
+        # Cắt lấy lpf hệ số đầu.                                (4, 1, 10, 5) phức
+        spectrum = torch.fft.fft(x, dim=3)[:, :, :, :self.lpf]
+        spectrum = self.FLinear1(spectrum)                    # (4, 1, 10, 2) phức
+        spectrum = self.FLinear2(spectrum)                    # (4, 1, 10, 3) phức
+        spectrum = spectrum.reshape(batch, 1, self.period_len, -1)
+
+        # `.real` thay cho `.float()` của mã gốc — cùng giá trị, không cảnh báo.
+        wave = torch.fft.ifft(spectrum, dim=3).real           # (4, 1, 10, 3)
+        wave = wave.permute(0, 1, 3, 2)                       # (4, 1, 3, 10)
+        wave = wave.reshape(batch, 1, -1)                     # (4, 1, 30)
+        return wave.permute(0, 2, 1)                          # (4, 30, 1)
+
+
 def build_model(name, revin=False, **kwargs):
     """Dựng model theo tên, để notebook chỉ cần truyền chuỗi.
 
         build_model("lstm")
         build_model("bilstm", hidden=41)
-        build_model("tcn")
+        build_model("gru", hidden=77)
+        build_model("mix_linear", period_len=10, lpf=5)
         build_model("ds_tcn", revin=True, channels=96)
     """
     if name == "lstm":
@@ -586,6 +804,16 @@ def build_model(name, revin=False, **kwargs):
         # Cùng số tầng và độ dài dự báo với LSTM, chỉ đổi chiều đọc.
         hidden = kwargs.get("hidden") or mv.LSTM_HIDDEN_SIZE
         return BiLSTM(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
+
+    if name == "gru":
+        # Cùng số tầng và độ dài dự báo với LSTM, chỉ đổi loại tế bào hồi quy.
+        hidden = kwargs.get("hidden") or mv.LSTM_HIDDEN_SIZE
+        return GRU(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
+
+    if name == "mix_linear":
+        return MixLinear(period_len=kwargs.get("period_len", 10),
+                         lpf=kwargs.get("lpf", 5),
+                         mix_alpha=kwargs.get("mix_alpha", 0.5))
 
     if name == "modern_tcn":
         return ModernTCN(channels=kwargs.get("channels", 32),
@@ -609,6 +837,9 @@ def build_model(name, revin=False, **kwargs):
     kwargs.pop("conv_kernel", None)
     kwargs.pop("kernel_large", None)
     kwargs.pop("kernel_small", None)
+    kwargs.pop("period_len", None)
+    kwargs.pop("lpf", None)
+    kwargs.pop("mix_alpha", None)
 
     if name == "tcn":
         return TCN(separable=False, revin=revin, **kwargs)
@@ -620,9 +851,19 @@ def build_model(name, revin=False, **kwargs):
 
 
 def count_params(model):
-    """Số tham số học được. Để trả lời câu "tốt hơn vì kiến trúc hay vì to hơn"."""
+    """Số CON SỐ THẬT phải học. Trả lời câu "tốt hơn vì kiến trúc hay vì to hơn".
+
+    MỘT SỐ PHỨC ĐẾM LÀ HAI
+
+    `numel()` của PyTorch đếm một số phức là một, nhưng số phức gồm phần thực và
+    phần ảo, và khi train thì CẢ HAI đều được cập nhật. Đếm là một thì báo thiếu.
+
+    Chỉ MixLinear có tham số phức. Mọi model khác không đổi số so với trước.
+
+        MixLinear   numel() báo 47, số thật là 63
+    """
     total = 0
     for p in model.parameters():
         if p.requires_grad:
-            total = total + p.numel()
+            total = total + p.numel() * (2 if p.is_complex() else 1)
     return total

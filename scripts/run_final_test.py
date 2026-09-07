@@ -70,7 +70,7 @@ SUMMARY_FILE = "runs/summary.csv"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="ds_tcn",
-                    help="lstm | bilstm | cnn_lstm | tcn | ds_tcn")
+                    help="lstm | bilstm | gru | cnn_lstm | tcn | ds_tcn | modern_tcn | mix_linear")
 parser.add_argument("--revin", default="false", help="true | false")
 parser.add_argument("--loss", default="mse", help="mse | mse_pearson")
 parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE khi loss=mse_pearson")
@@ -100,6 +100,13 @@ parser.add_argument("--kernel_large", type=int, default=31,
                     help="ModernTCN: kernel nhánh rộng")
 parser.add_argument("--kernel_small", type=int, default=5,
                     help="ModernTCN: kernel nhánh hẹp")
+parser.add_argument("--period_len", type=int, default=10,
+                    help="MixLinear: cỡ chia đoạn bên trong mạng")
+parser.add_argument("--lpf", type=int, default=5,
+                    help="MixLinear: số hệ số FFT tần thấp được giữ")
+parser.add_argument("--mix_alpha", type=float, default=0.5,
+                    help="MixLinear: trọng số nhánh thời gian khi trộn hai nhánh. "
+                         "KHÁC --alpha của loss mse_pearson")
 parser.add_argument("--norm", default="batch", choices=["batch", "weight"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
                          "weight là bản đúng chuẩn Bai et al. mục 3.4")
@@ -131,6 +138,15 @@ elif args.model == "modern_tcn":
     arch_tag = "_c%d_n%d" % (args.channels, args.n_blocks)
     if args.kernel_large != 31 or args.kernel_small != 5:
         arch_tag += "_kl%d_ks%d" % (args.kernel_large, args.kernel_small)
+elif args.model == "gru":
+    # Luôn ghi hidden. Khác lstm/bilstm ở chỗ GRU không có cấu hình gốc nào của
+    # MobiVital để lấy làm mặc định, nên "khác mặc định mới ghi" là vô nghĩa.
+    arch_tag = "_h%d" % args.hidden
+elif args.model == "mix_linear":
+    # Hai con số này quyết định cả kiến trúc lẫn số tham số, luôn ghi.
+    arch_tag = "_p%d_lpf%d" % (args.period_len, args.lpf)
+    if args.mix_alpha != 0.5:
+        arch_tag += "_a%g" % args.mix_alpha
 else:
     # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
     arch_tag = "_c%d" % args.channels
@@ -180,7 +196,10 @@ model = models.build_model(args.model, revin=revin,
                                    conv_channels=args.conv_channels,
                                    conv_kernel=args.conv_kernel,
                                    kernel_large=args.kernel_large,
-                                   kernel_small=args.kernel_small)
+                                   kernel_small=args.kernel_small,
+                                   period_len=args.period_len,
+                                   lpf=args.lpf,
+                                   mix_alpha=args.mix_alpha)
 n_params = models.count_params(model)
 print(n_params, "tham số")
 print()
