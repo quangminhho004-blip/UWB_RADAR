@@ -118,7 +118,7 @@ parser.add_argument("--correction_hidden", type=int, default=4,
 parser.add_argument("--dropout_kind", default="channel",
                     choices=["channel", "element"],
                     help="channel = nn.Dropout1d, xoá cả một kênh, mặc định của "
-                         "đồ án. element = nn.Dropout, đúng loại thí nghiệm cũ")
+                         "đồ án. element = nn.Dropout, xoá từng phần tử")
 parser.add_argument("--norm", default="batch",
                     choices=["batch", "weight", "none"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "

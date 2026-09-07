@@ -213,7 +213,7 @@ def check_tcn(model, norm, dropout_kind="channel"):
         check(n_batchnorm == 0, "BatchNorm bị gỡ hẳn khi bật WeightNorm")
         check(has_weightnorm, "WeightNorm thật sự được áp lên trọng số")
     elif norm == "none":
-        check(n_batchnorm == 0, "KHÔNG có lớp chuẩn hoá nào, đúng thí nghiệm cũ")
+        check(n_batchnorm == 0, "KHÔNG có lớp chuẩn hoá nào, đúng cấu hình đã chọn")
         check(not has_weightnorm, "cũng không có WeightNorm")
     else:
         check(n_batchnorm > 0, "có BatchNorm như mong đợi")
@@ -226,7 +226,7 @@ def check_tcn(model, norm, dropout_kind="channel"):
           % (n_chan, n_elem))
     if dropout_kind == "element":
         check(n_elem > 0 and n_chan == 0,
-              "dùng nn.Dropout, đúng loại của thí nghiệm cũ")
+              "dùng nn.Dropout, xoá từng phần tử")
     else:
         check(n_chan > 0 and n_elem == 0,
               "dùng nn.Dropout1d, spatial dropout theo Bai mục 3.4")

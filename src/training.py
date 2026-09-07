@@ -192,8 +192,15 @@ def train(model, train_loader, val_loader, run_dir,
         saved = torch.load(last_path, map_location=device, weights_only=False)
         model.load_state_dict(saved["model"])
         optimizer.load_state_dict(saved["optimizer"])
-        torch.set_rng_state(saved["rng_torch"])
+        # map_location=device đưa trạng thái RNG lên đúng thiết bị, nhưng
+        # set_rng_state đòi tensor nằm trên CPU.
+        torch.set_rng_state(saved["rng_torch"].cpu())
         np.random.set_state(saved["rng_numpy"])
+        # RNG của CUDA quyết định mặt nạ dropout khi train trên GPU. Không
+        # khôi phục thì chạy đứt quãng ra khác chạy liền mạch. Chỉ có tác
+        # dụng khi dropout > 0; các tệp lưu cũ không có khoá này.
+        if saved.get("rng_cuda") is not None and torch.cuda.is_available():
+            torch.cuda.set_rng_state_all([t.cpu() for t in saved["rng_cuda"]])
         start_epoch = saved["epoch"] + 1
         curve = saved["curve"]
         was_interrupted = True
@@ -234,6 +241,8 @@ def train(model, train_loader, val_loader, run_dir,
                     "optimizer": optimizer.state_dict(),
                     "rng_torch": torch.get_rng_state(),
                     "rng_numpy": np.random.get_state(),
+                    "rng_cuda": (torch.cuda.get_rng_state_all()
+                                 if torch.cuda.is_available() else None),
                     "curve": curve}, last_path)
 
     # --- Xong: giữ trọng số, xoá file đang dở ---

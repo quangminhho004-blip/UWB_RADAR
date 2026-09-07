@@ -203,8 +203,8 @@ class TCNBlock(nn.Module):
         elif norm == "batch":
             norm_layer = nn.BatchNorm1d(channels)
         elif norm == "none":
-            # Không chuẩn hoá gì. Dùng để dựng lại đúng kiến trúc của thí
-            # nghiệm cũ tháng 8, vốn không có lớp chuẩn hoá nào.
+            # Không đặt lớp chuẩn hoá nào. Dùng cho cấu hình DS-TCN mà
+            # nhóm tối ưu riêng, vốn không có chuẩn hoá.
             norm_layer = nn.Identity()
         else:
             raise ValueError("norm phải là 'batch', 'weight' hoặc 'none', "
