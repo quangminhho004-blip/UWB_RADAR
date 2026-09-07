@@ -172,18 +172,18 @@ class TCNBlock(nn.Module):
     """
 
     def __init__(self, channels, kernel_size, dilation, dropout, separable,
-                 norm="batch"):
+                 norm="batch", dropout_kind="channel"):
         super().__init__()
         self.left_pad = (kernel_size - 1) * dilation
 
         # Hai tầng giống hệt nhau, cùng độ giãn — Bai et al. Hình 1(b).
         self.layer_one = self._one_layer(channels, kernel_size, dilation,
-                                         dropout, separable, norm)
+                                         dropout, separable, norm, dropout_kind)
         self.layer_two = self._one_layer(channels, kernel_size, dilation,
-                                         dropout, separable, norm)
+                                         dropout, separable, norm, dropout_kind)
 
     def _one_layer(self, channels, kernel_size, dilation, dropout, separable,
-                   norm):
+                   norm, dropout_kind="channel"):
         """Một tầng: tích chập giãn -> chuẩn hoá -> ReLU -> dropout."""
         if separable:
             # Depthwise: mỗi kênh một bộ lọc riêng, không trộn kênh.
@@ -202,14 +202,20 @@ class TCNBlock(nn.Module):
             norm_layer = nn.Identity()      # WeightNorm nằm trong chính conv
         elif norm == "batch":
             norm_layer = nn.BatchNorm1d(channels)
+        elif norm == "none":
+            # Không chuẩn hoá gì. Dùng để dựng lại đúng kiến trúc của thí
+            # nghiệm cũ tháng 8, vốn không có lớp chuẩn hoá nào.
+            norm_layer = nn.Identity()
         else:
-            raise ValueError("norm phải là 'batch' hoặc 'weight', nhận " + str(norm))
+            raise ValueError("norm phải là 'batch', 'weight' hoặc 'none', "
+                             "nhận " + str(norm))
 
         return nn.ModuleDict({
             "conv": conv,
             "norm": norm_layer,
             "act": nn.ReLU(),
-            "drop": nn.Dropout1d(dropout),
+            "drop": (nn.Dropout1d(dropout) if dropout_kind == "channel"
+                     else nn.Dropout(dropout)),
         })
 
     def _run_layer(self, layer, x):
@@ -268,14 +274,15 @@ class TCN(nn.Module):
     """
 
     def __init__(self, channels=64, kernel_size=3, n_blocks=6,
-                 dropout=0.0, separable=False, revin=False, norm="batch"):
+                 dropout=0.0, separable=False, revin=False, norm="batch",
+                 dropout_kind="channel"):
         super().__init__()
         self.input_conv = nn.Conv1d(1, channels, 1)
 
         blocks = []
         for i in range(n_blocks):
             blocks.append(TCNBlock(channels, kernel_size, 2 ** i,
-                                   dropout, separable, norm))
+                                   dropout, separable, norm, dropout_kind))
         self.blocks = nn.Sequential(*blocks)
 
         self.output_linear = nn.Linear(channels, mv.FUTURE_LENGTH)

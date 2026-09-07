@@ -22,7 +22,9 @@ KIỂM GÌ
                  h[-2],h[-1] KHÁC output[:,-1,:]
     cnn_lstm     một chiều, chuỗi rút từ 200 xuống 50, hai tầng conv
                  stride 2, không có pooling thêm
-    tcn/ds_tcn   norm=weight thì BatchNorm bị gỡ hẳn và WeightNorm được áp
+    tcn/ds_tcn   norm=weight thì BatchNorm bị gỡ hẳn và WeightNorm được áp;
+                 norm=none thì không có lớp chuẩn hoá nào; đúng loại
+                 dropout; và tầm nhìn so với cửa sổ 200 mẫu
     revin        không thêm tham số học được, đảo ngược được, và có
                  đổi đầu ra thật
     modern_tcn   chia đúng 50 đoạn, đệm bằng cách lặp mẫu cuối, hai
@@ -199,7 +201,7 @@ def check_revin(model, build_without_revin):
               "cùng trọng số nhưng đầu ra khác — RevIN có tác dụng thật")
 
 
-def check_tcn(model, norm):
+def check_tcn(model, norm, dropout_kind="channel"):
     print("\n5. Riêng TCN")
     n_batchnorm = sum(1 for m in model.modules() if isinstance(m, nn.BatchNorm1d))
     param_names = [t for t, _ in model.named_parameters()]
@@ -210,9 +212,38 @@ def check_tcn(model, norm):
     if norm == "weight":
         check(n_batchnorm == 0, "BatchNorm bị gỡ hẳn khi bật WeightNorm")
         check(has_weightnorm, "WeightNorm thật sự được áp lên trọng số")
+    elif norm == "none":
+        check(n_batchnorm == 0, "KHÔNG có lớp chuẩn hoá nào, đúng thí nghiệm cũ")
+        check(not has_weightnorm, "cũng không có WeightNorm")
     else:
         check(n_batchnorm > 0, "có BatchNorm như mong đợi")
         check(not has_weightnorm, "không có WeightNorm")
+
+    print("\n6. Loại dropout")
+    n_chan = sum(1 for m in model.modules() if isinstance(m, nn.Dropout1d))
+    n_elem = sum(1 for m in model.modules() if type(m) is nn.Dropout)
+    print("   %d lớp Dropout1d (xoá cả kênh), %d lớp Dropout (xoá từng phần tử)"
+          % (n_chan, n_elem))
+    if dropout_kind == "element":
+        check(n_elem > 0 and n_chan == 0,
+              "dùng nn.Dropout, đúng loại của thí nghiệm cũ")
+    else:
+        check(n_chan > 0 and n_elem == 0,
+              "dùng nn.Dropout1d, spatial dropout theo Bai mục 3.4")
+
+    print("\n7. Tầm nhìn so với cửa sổ vào")
+    k = model.blocks[0].layer_one["conv"]
+    k = k[0].kernel_size[0] if isinstance(k, nn.Sequential) else k.kernel_size[0]
+    n = len(model.blocks)
+    rf = (k - 1) * 2 * sum(2 ** i for i in range(n)) + 1
+    print("   kernel %d, %d khối -> tầm nhìn %d, cửa sổ vào %d"
+          % (k, n, rf, mv.HISTORY_LENGTH))
+    if rf >= mv.HISTORY_LENGTH:
+        check(True, "phủ trọn cửa sổ")
+    else:
+        print("   CHÚ Ý: chỉ thấy %d/%d mẫu gần nhất, mất %.0f%% đầu cửa sổ"
+              % (rf, mv.HISTORY_LENGTH, 100 * (1 - rf / mv.HISTORY_LENGTH)))
+        check(True, "tầm nhìn ngắn hơn cửa sổ — có chủ ý, không phải lỗi")
 
 
 def check_moderntcn(model, channels):
@@ -449,7 +480,10 @@ parser.add_argument("--channels", type=int, default=64)
 parser.add_argument("--kernel_size", type=int, default=3)
 parser.add_argument("--n_blocks", type=int, default=6)
 parser.add_argument("--dropout", type=float, default=0.0)
-parser.add_argument("--norm", default="batch", choices=["batch", "weight"])
+parser.add_argument("--norm", default="batch",
+                    choices=["batch", "weight", "none"])
+parser.add_argument("--dropout_kind", default="channel",
+                    choices=["channel", "element"])
 parser.add_argument("--conv_channels", type=int, default=32)
 parser.add_argument("--conv_kernel", type=int, default=5)
 parser.add_argument("--kernel_large", type=int, default=31)
@@ -476,6 +510,7 @@ def build(name, hidden):
                               n_blocks=args.n_blocks,
                               dropout=args.dropout,
                               norm=args.norm,
+                              dropout_kind=args.dropout_kind,
                               conv_channels=args.conv_channels,
                               conv_kernel=args.conv_kernel,
                               kernel_large=args.kernel_large,
@@ -509,7 +544,7 @@ elif args.model == "cnn_lstm":
 elif args.model == "modern_tcn":
     check_moderntcn(model, args.channels)
 elif args.model in ("tcn", "ds_tcn"):
-    check_tcn(model, args.norm)
+    check_tcn(model, args.norm, args.dropout_kind)
     if args.revin.lower() == "true":
         check_revin(model, lambda: models.build_model(
             args.model, revin=False, channels=args.channels,

@@ -115,7 +115,12 @@ parser.add_argument("--mix_hidden", type=int, default=2,
 parser.add_argument("--correction_hidden", type=int, default=4,
                     help="chiều giữa của nhánh phụ trong mix_linear_linear, "
                          "mix_linear_mlp và low_rank_linear. KHÁC --mix_hidden")
-parser.add_argument("--norm", default="batch", choices=["batch", "weight"],
+parser.add_argument("--dropout_kind", default="channel",
+                    choices=["channel", "element"],
+                    help="channel = nn.Dropout1d, xoá cả một kênh, mặc định của "
+                         "đồ án. element = nn.Dropout, đúng loại thí nghiệm cũ")
+parser.add_argument("--norm", default="batch",
+                    choices=["batch", "weight", "none"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
                          "weight là bản đúng chuẩn Bai et al. mục 3.4")
 parser.add_argument("--experiment", required=True,
@@ -173,6 +178,10 @@ else:
 
 if args.dropout != 0.0:
     arch_tag += "_do%g" % args.dropout
+if args.dropout_kind != "channel":
+    # Chỉ có tác dụng khi dropout > 0, nhưng vẫn ghi để hai lần chạy
+    # khác loại dropout không đè tên nhau.
+    arch_tag += "_dp" + args.dropout_kind[:2]
 
 run_id = "%s%s%s_%s_corr%s_seed%d" % (
     args.model, arch_tag, "_revin" if revin else "",
@@ -209,6 +218,7 @@ model = models.build_model(args.model, revin=revin,
                                    n_blocks=args.n_blocks,
                                    dropout=args.dropout,
                                    norm=args.norm,
+                                   dropout_kind=args.dropout_kind,
                                    conv_channels=args.conv_channels,
                                    conv_kernel=args.conv_kernel,
                                    kernel_large=args.kernel_large,
