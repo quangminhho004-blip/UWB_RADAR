@@ -685,16 +685,40 @@ class MixLinear(nn.Module):
     3. Bỏ đối tượng `configs`, nhận tham số rời, và thêm phần đổi hình dạng
        (batch, 200) sang (batch, 200, 1) rồi ngược lại ở đầu ra.
 
-    GIỮ NGUYÊN PHẦN TRỪ TRUNG BÌNH, VÀ ĐÓ LÀ ĐIỀU MAY
+    GIỮ NGUYÊN PHẦN TRỪ TRUNG BÌNH
 
     Mã gốc trừ trung bình của cửa sổ rồi cộng trả lại ở cuối. Nó KHÔNG chia cho
-    độ lệch chuẩn, nên BIÊN ĐỘ được giữ nguyên. Ở TN2, RevIN chia độ lệch chuẩn
-    đã kéo DS-TCN xuống 0,0124 vì xoá mất biên độ — thứ mà đo đạc cho thấy có
-    tương quan 0,53 với chất lượng kênh. MixLinear không dính bẫy đó.
+    độ lệch chuẩn, nên BIÊN ĐỘ được giữ nguyên.
+
+    Ba dữ kiện rời, chưa nối thành nhân quả:
+      - TN2: bật RevIN, thứ CÓ chia độ lệch chuẩn, làm DS-TCN giảm 0,0124.
+      - Đo trên 173 buổi ghi dev: biên độ cửa sổ có tương quan 0,53 với chất
+        lượng ứng viên, dương ở 96,5% buổi ghi.
+      - Chọn kênh chỉ bằng biên độ, không dùng model, đạt 0,6243 so với 0,2251
+        khi chọn ngẫu nhiên.
+
+    Ba thứ đó HỢP với giả thuyết "RevIN làm hại vì xoá biên độ", nhưng chưa
+    chứng minh. Chưa đo được model không-RevIN có thật sự dùng manh mối biên độ
+    hay không; muốn biết thì phải so kênh mà hai model chọn, cần scores CSV.
+
+    CHIỀU TRUNG GIAN NHÁNH TẦN SỐ: TĂNG QUÁ 3 LÀ VÔ ÍCH
+
+    FLinear1 và FLinear2 nối nhau KHÔNG có hàm kích hoạt, nên hợp lại chỉ là
+    một ma trận: W2 @ W1, cỡ (seg_num_y, lpf). Hạng của nó bị chặn bởi
+    min(lpf, mix_hidden, seg_num_y) = min(5, mix_hidden, 3).
+
+        mix_hidden 2   63 tham số   hạng 2
+        mix_hidden 3   79 tham số   hạng 3   <- đã kịch trần
+        mix_hidden 8  159 tham số   hạng 3
+        mix_hidden 64 1055 tham số  hạng 3
+
+    Từ 3 trở lên, thêm tham số KHÔNG thể thêm khả năng biểu diễn. Muốn có sức
+    chứa thật thì phải thêm phi tuyến giữa hai lớp — nhưng đó là BIẾN THỂ CẢI
+    TIẾN từ MixLinear, không còn là MixLinear, và phải ghi rõ khi báo cáo.
     """
 
     def __init__(self, seq_len=None, pred_len=None, period_len=10, lpf=5,
-                 mix_alpha=0.5):
+                 mix_alpha=0.5, mix_hidden=2):
         super().__init__()
         self.seq_len = seq_len or mv.HISTORY_LENGTH
         self.pred_len = pred_len or mv.FUTURE_LENGTH
@@ -715,6 +739,21 @@ class MixLinear(nn.Module):
             raise ValueError(
                 "period_len phải chia hết %d, nhận %d." % (self.seq_len, period_len))
 
+        # lpf lớn hơn số đoạn thì phép cắt phổ lấy thiếu, và FLinear1 nhận sai
+        # số chiều. Torch chỉ báo "mat1 and mat2 shapes cannot be multiplied",
+        # không nói được nguyên nhân.
+        n_seg = self.seq_len // period_len
+        if not 1 <= lpf <= n_seg:
+            raise ValueError(
+                "lpf phải nằm trong 1..%d (số đoạn khi period_len=%d), nhận %d."
+                % (n_seg, period_len, lpf))
+
+        # mix_alpha ngoài [0, 1] KHÔNG gây lỗi — model vẫn chạy và vẫn ra số,
+        # chỉ là phép trộn hai nhánh thành vô nghĩa. Chặn ở đây.
+        if not 0.0 <= mix_alpha <= 1.0:
+            raise ValueError(
+                "mix_alpha phải trong [0, 1], nhận %g." % mix_alpha)
+
         self.seg_num_y = math.ceil(self.pred_len / period_len)
         self.sqrt_seg_num_x = math.ceil(math.sqrt(self.seq_len / period_len))
 
@@ -727,8 +766,12 @@ class MixLinear(nn.Module):
         self.conv1d = nn.Conv1d(1, 1, period_len + 1, stride=1,
                                 padding=period_len // 2, padding_mode="zeros",
                                 bias=False)
-        self.FLinear1 = nn.Linear(lpf, 2, bias=False).to(torch.cfloat)
-        self.FLinear2 = nn.Linear(2, self.seg_num_y, bias=False).to(torch.cfloat)
+        # mix_hidden 2 là con số tác giả để cứng. Xem docstring: quá 3 là vô
+        # ích, vì hai lớp không có phi tuyến ở giữa nên hợp lại vẫn là một
+        # ma trận hạng tối đa min(lpf, mix_hidden, seg_num_y).
+        self.FLinear1 = nn.Linear(lpf, mix_hidden, bias=False).to(torch.cfloat)
+        self.FLinear2 = nn.Linear(mix_hidden, self.seg_num_y,
+                                  bias=False).to(torch.cfloat)
 
     def forward(self, x):
         if x.dim() == 2:
@@ -799,6 +842,9 @@ class MixLinear(nn.Module):
         return wave.permute(0, 2, 1)                          # (4, 30, 1)
 
 
+KHONG_HO_TRO_REVIN = ("lstm", "gru", "bilstm", "cnn_lstm", "mix_linear")
+
+
 def build_model(name, revin=False, **kwargs):
     """Dựng model theo tên, để notebook chỉ cần truyền chuỗi.
 
@@ -808,6 +854,15 @@ def build_model(name, revin=False, **kwargs):
         build_model("mix_linear", period_len=10, lpf=5)
         build_model("ds_tcn", revin=True, channels=96)
     """
+    # Năm model dưới đây KHÔNG có đường nối RevIN. Trước đây chúng lặng lẽ bỏ
+    # qua cờ này, trong khi config_id vẫn ghi hậu tố _revin — tức là đẻ ra một
+    # tệp kết quả nói rằng đã thử RevIN, mà thật ra chưa. Báo lỗi thay vì im.
+    if revin and name in KHONG_HO_TRO_REVIN:
+        raise ValueError(
+            "model %s chưa nối RevIN, nhưng tên cấu hình sẽ ghi _revin và gây "
+            "hiểu nhầm là đã thử. Bỏ --revin, hoặc dùng tcn / ds_tcn / "
+            "modern_tcn." % name)
+
     if name == "lstm":
         # RevIN không áp cho baseline. hidden mặc định là 352 của MobiVital;
         # các tham số riêng của TCN (kernel_size, n_blocks...) không dùng ở đây.
@@ -826,7 +881,8 @@ def build_model(name, revin=False, **kwargs):
     if name == "mix_linear":
         return MixLinear(period_len=kwargs.get("period_len", 10),
                          lpf=kwargs.get("lpf", 5),
-                         mix_alpha=kwargs.get("mix_alpha", 0.5))
+                         mix_alpha=kwargs.get("mix_alpha", 0.5),
+                         mix_hidden=kwargs.get("mix_hidden", 2))
 
     if name == "modern_tcn":
         return ModernTCN(channels=kwargs.get("channels", 32),
@@ -853,6 +909,7 @@ def build_model(name, revin=False, **kwargs):
     kwargs.pop("period_len", None)
     kwargs.pop("lpf", None)
     kwargs.pop("mix_alpha", None)
+    kwargs.pop("mix_hidden", None)
 
     if name == "tcn":
         return TCN(separable=False, revin=revin, **kwargs)

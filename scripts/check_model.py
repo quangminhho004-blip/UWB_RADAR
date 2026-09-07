@@ -373,6 +373,7 @@ parser.add_argument("--kernel_small", type=int, default=5)
 parser.add_argument("--period_len", type=int, default=10)
 parser.add_argument("--lpf", type=int, default=5)
 parser.add_argument("--mix_alpha", type=float, default=0.5)
+parser.add_argument("--mix_hidden", type=int, default=2)
 parser.add_argument("--revin", default="false")
 parser.add_argument("--compare-with", dest="compare_with", default=None,
                     help="tên model đem so số tham số, ví dụ lstm")
@@ -396,7 +397,8 @@ def build(name, hidden):
                               kernel_small=args.kernel_small,
                               period_len=args.period_len,
                               lpf=args.lpf,
-                              mix_alpha=args.mix_alpha)
+                              mix_alpha=args.mix_alpha,
+                              mix_hidden=args.mix_hidden)
 
 
 print("Kiểm model:", args.model)

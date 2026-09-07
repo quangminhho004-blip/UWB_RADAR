@@ -107,6 +107,9 @@ parser.add_argument("--lpf", type=int, default=5,
 parser.add_argument("--mix_alpha", type=float, default=0.5,
                     help="MixLinear: trọng số nhánh thời gian khi trộn hai nhánh. "
                          "KHÁC --alpha của loss mse_pearson")
+parser.add_argument("--mix_hidden", type=int, default=2,
+                    help="MixLinear: chiều trung gian nhánh tần số. "
+                         "Quá 3 là vô ích, xem docstring lớp MixLinear")
 parser.add_argument("--norm", default="batch", choices=["batch", "weight"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
                          "weight là bản đúng chuẩn Bai et al. mục 3.4")
@@ -147,6 +150,8 @@ elif args.model == "mix_linear":
     arch_tag = "_p%d_lpf%d" % (args.period_len, args.lpf)
     if args.mix_alpha != 0.5:
         arch_tag += "_a%g" % args.mix_alpha
+    if args.mix_hidden != 2:
+        arch_tag += "_r%d" % args.mix_hidden
 else:
     # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
     arch_tag = "_c%d" % args.channels
@@ -199,6 +204,7 @@ model = models.build_model(args.model, revin=revin,
                                    kernel_small=args.kernel_small,
                                    period_len=args.period_len,
                                    lpf=args.lpf,
+                                   mix_hidden=args.mix_hidden,
                                    mix_alpha=args.mix_alpha)
 n_params = models.count_params(model)
 print(n_params, "tham số")
