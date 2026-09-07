@@ -702,6 +702,19 @@ class MixLinear(nn.Module):
         self.lpf = lpf
         self.alpha = mix_alpha
 
+        # period_len LẺ thì kernel của conv1d thành CHẴN, và lớp đó trả về
+        # 199 mẫu thay vì 200, vỡ ở bước cộng nối tắt ngay sau. Đây là giới hạn
+        # có sẵn trong mã tác giả (kernel = period_len + 1, padding =
+        # period_len // 2), không phải lỗi chép lại. Báo sớm cho dễ hiểu, thay
+        # vì để torch ném "shape [-1, 1, 200] is invalid for input of size 796".
+        if period_len % 2 != 0:
+            raise ValueError(
+                "period_len phải CHẴN, nhận %d. Số lẻ làm kernel tích chập "
+                "thành chẵn nên chuỗi ra ngắn hơn một mẫu." % period_len)
+        if self.seq_len % period_len != 0:
+            raise ValueError(
+                "period_len phải chia hết %d, nhận %d." % (self.seq_len, period_len))
+
         self.seg_num_y = math.ceil(self.pred_len / period_len)
         self.sqrt_seg_num_x = math.ceil(math.sqrt(self.seq_len / period_len))
 
