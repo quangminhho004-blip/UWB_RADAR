@@ -477,7 +477,20 @@ BẢNG TÓM TẮT
 
   cấu hình              tham số       cv_score        ghij
   --------------------------------------------------------------------
-  mix_linear_p10_lpf5        63   chưa chạy          chưa chạy
+  mix_linear_p10_lpf5        63   0,6724 +- 0,0066   chưa chạy
+
+  Khảo sát ghép nhánh, nhóm tn_mixlinear_ablation, MỘT seed, CHƯA CHẠY.
+  Nhánh phụ là đề xuất của đồ án, KHÔNG thuộc MixLinear nguyên bản.
+
+  cấu hình                      tham số   ghi chú
+  --------------------------------------------------------------------
+  low_rank_linear_h4                929   chỉ nhánh phụ, không MixLinear
+  mix_linear_linear_p10_lpf5_h4     992   MixLinear + nhánh, không phi tuyến
+  mix_linear_mlp_p10_lpf5_h4        992   MixLinear + nhánh, có GELU
+
+  C3 trừ C2 là phép so sạch nhất: cùng 992 tham số, cùng trọng số khởi tạo,
+  khác đúng một hàm kích hoạt. Nhưng ở C2 bias lớp đầu bị hấp thụ vào bias lớp
+  sau nên chỉ 988 tham số tác dụng độc lập.
 
   MobiVital công bố trong bài báo: 0.819
   Oracle, trần trên khi chọn được kênh tốt nhất: 0.943

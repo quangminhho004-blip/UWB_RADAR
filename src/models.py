@@ -842,7 +842,126 @@ class MixLinear(nn.Module):
         return wave.permute(0, 2, 1)                          # (4, 30, 1)
 
 
-KHONG_HO_TRO_REVIN = ("lstm", "gru", "bilstm", "cnn_lstm", "mix_linear")
+class LowRankLinear(nn.Module):
+    """Dự báo bằng hai lớp tuyến tính nối nhau, không phi tuyến.
+
+    ĐÂY LÀ ĐỀ XUẤT CỦA ĐỒ ÁN, KHÔNG THUỘC MIXLINEAR
+
+    Không lấy từ bài báo nào. Nó tồn tại để làm ĐỐI CHỨNG cho MixLinearPlus:
+    nếu nhánh phụ đứng một mình cũng đạt điểm ngang khi ghép vào MixLinear, thì
+    chưa thấy phần MixLinear đóng góp gì trong điều kiện đã thử.
+
+    LUỒNG
+
+        (batch, 200) -> trừ trung bình -> Linear(200, 4) -> Linear(4, 25)
+                     -> cộng lại trung bình -> (batch, 25)
+
+    Xử lý trung bình y hệt MixLinear: trừ trước, cộng lại sau. Nếu bỏ bước này
+    thì đối chứng khác cả cách tiền xử lý, không so được nữa.
+
+    KHÔNG PHẢI Linear(200, 25) ĐẦY ĐỦ
+
+        Linear(200, 25) đầy đủ    200 x 25 + 25 = 5.025 tham số
+        tách làm hai lớp          200 x 4 + 4 + 4 x 25 + 25 = 929 tham số
+
+    Hai lớp không có phi tuyến ở giữa nên hợp lại vẫn là MỘT phép affine, chỉ
+    khác là ma trận bị ép hạng tối đa 4. Đây là cách tiết kiệm tham số, không
+    phải cách tăng khả năng biểu diễn.
+
+    BỐN THAM SỐ KHÔNG TÁC DỤNG ĐỘC LẬP
+
+    bias của lớp đầu bị hấp thụ vào bias lớp sau:
+
+        W2 (W1 x + b1) + b2  =  (W2 W1) x + (W2 b1 + b2)
+
+    Nên trong 929 tham số chỉ có 925 tác dụng riêng rẽ. Giữ bias lớp đầu để
+    C2 và C3 dựng module giống hệt nhau, khác đúng hàm kích hoạt.
+    """
+
+    def __init__(self, hidden=4, seq_len=None, pred_len=None):
+        super().__init__()
+        self.branch = nn.Sequential(
+            nn.Linear(seq_len or mv.HISTORY_LENGTH, hidden, bias=True),
+            nn.Linear(hidden, pred_len or mv.FUTURE_LENGTH, bias=True))
+
+    def forward(self, x):
+        mean = x.mean(dim=1, keepdim=True)
+        return self.branch(x - mean) + mean
+
+
+class MixLinearPlus(nn.Module):
+    """MixLinear cộng thêm một nhánh dự báo trực tiếp.
+
+    ĐÂY LÀ BIẾN THỂ ĐỀ XUẤT CỦA ĐỒ ÁN, KHÔNG PHẢI MIXLINEAR NGUYÊN BẢN
+
+    Không được gán thiết kế này cho tác giả MixLinear khi báo cáo.
+
+    VÌ SAO THÊM NHÁNH
+
+    MixLinear gần như kịch trần thiết kế của nó: hai lớp FLinear nối nhau không
+    có phi tuyến nên hợp lại là một ma trận hạng tối đa 3, đạt được từ 79 tham
+    số. Thêm tham số vào nhánh cũ không thể thêm khả năng biểu diễn, nên muốn
+    có sức chứa thật thì phải thêm đường đi mới.
+
+    LUỒNG
+
+        (batch, 200) ─┬─ MixLinear (63 tham số)      ─┐
+                      │                               ├─ cộng ─ (batch, 25)
+                      └─ Linear(200,4) -> act -> Linear(4,25) ─┘
+
+    Nhánh phụ nhận x đã TRỪ TRUNG BÌNH, còn MixLinear tự trừ rồi cộng lại bên
+    trong. Nhờ vậy trung bình được cộng đúng MỘT lần.
+
+    Nhánh phụ nhìn dữ liệu ở thang biên độ gốc, không chia độ lệch chuẩn — cùng
+    lối với MixLinear, và tránh xoá biên độ.
+
+    HAI BIẾN THỂ, KHÁC ĐÚNG MỘT THỨ
+
+        activation = Identity   C2, gọi là mix_linear_linear
+        activation = GELU       C3, gọi là mix_linear_mlp
+
+    Cả hai đều 992 tham số. Đây là phép so sạch nhất trong nhóm: cùng kích
+    thước, cùng thứ tự dựng module, cùng seed thì cùng trọng số khởi tạo, khác
+    đúng hàm kích hoạt. Identity và GELU đều không có tham số học được và không
+    tiêu thụ số ngẫu nhiên.
+
+    Ở C2, bias lớp đầu bị hấp thụ vào bias lớp sau nên chỉ 988 tham số tác dụng
+    độc lập. Ở C3 thì GELU nằm giữa nên bias đó có tác dụng. Chênh 0,4%, phải
+    chú thích khi báo cáo chứ đừng viết "cùng hệt số tham số".
+
+    GHÉP LÀ PHÉP CỘNG THUẦN
+
+    Không có hệ số trộn học được, không gate, không norm, không dropout sau
+    phép cộng. Ép trọng số nhánh phụ về 0 thì đầu ra khớp đúng MixLinear nền —
+    check_model.py kiểm điều đó.
+
+    HUẤN LUYỆN CẢ HAI PHẦN CÙNG LÚC
+
+    Không đóng băng nền, không nạp checkpoint MixLinear rồi tinh chỉnh. Vì vậy
+    KHÔNG được nói nhánh phụ "học phần sai của MixLinear" — nó chỉ là một đường
+    đi song song, hai bên học cùng nhau.
+    """
+
+    def __init__(self, hidden=4, activation=None, period_len=10, lpf=5,
+                 mix_alpha=0.5, mix_hidden=2):
+        super().__init__()
+        # Thứ tự dựng module quyết định trọng số khởi tạo. Giữ nguyên thứ tự
+        # này cho cả hai biến thể thì cùng seed cho cùng trọng số ban đầu.
+        self.base = MixLinear(period_len=period_len, lpf=lpf,
+                              mix_alpha=mix_alpha, mix_hidden=mix_hidden)
+        self.correction = nn.Sequential(
+            nn.Linear(mv.HISTORY_LENGTH, hidden, bias=True),
+            activation if activation is not None else nn.Identity(),
+            nn.Linear(hidden, mv.FUTURE_LENGTH, bias=True))
+
+    def forward(self, x):
+        # base tự trừ rồi cộng lại trung bình, nên chỉ trừ cho nhánh phụ.
+        mean = x.mean(dim=1, keepdim=True)
+        return self.base(x) + self.correction(x - mean)
+
+
+KHONG_HO_TRO_REVIN = ("lstm", "gru", "bilstm", "cnn_lstm", "mix_linear",
+                      "low_rank_linear", "mix_linear_linear", "mix_linear_mlp")
 
 
 def build_model(name, revin=False, **kwargs):
@@ -878,6 +997,19 @@ def build_model(name, revin=False, **kwargs):
         hidden = kwargs.get("hidden") or mv.LSTM_HIDDEN_SIZE
         return GRU(hidden, mv.LSTM_NUM_LAYERS, mv.FUTURE_LENGTH)
 
+    if name == "low_rank_linear":
+        return LowRankLinear(hidden=kwargs.get("correction_hidden", 4))
+
+    if name in ("mix_linear_linear", "mix_linear_mlp"):
+        # Khác đúng một thứ: hàm kích hoạt giữa hai lớp của nhánh phụ.
+        act = nn.GELU(approximate="none") if name == "mix_linear_mlp" else nn.Identity()
+        return MixLinearPlus(hidden=kwargs.get("correction_hidden", 4),
+                             activation=act,
+                             period_len=kwargs.get("period_len", 10),
+                             lpf=kwargs.get("lpf", 5),
+                             mix_alpha=kwargs.get("mix_alpha", 0.5),
+                             mix_hidden=kwargs.get("mix_hidden", 2))
+
     if name == "mix_linear":
         return MixLinear(period_len=kwargs.get("period_len", 10),
                          lpf=kwargs.get("lpf", 5),
@@ -910,6 +1042,7 @@ def build_model(name, revin=False, **kwargs):
     kwargs.pop("lpf", None)
     kwargs.pop("mix_alpha", None)
     kwargs.pop("mix_hidden", None)
+    kwargs.pop("correction_hidden", None)
 
     if name == "tcn":
         return TCN(separable=False, revin=revin, **kwargs)

@@ -68,7 +68,9 @@ SUMMARY_FILE = "runs/summary.csv"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="ds_tcn",
-                    help="lstm | bilstm | gru | cnn_lstm | tcn | ds_tcn | modern_tcn | mix_linear")
+                    help="lstm | bilstm | gru | cnn_lstm | tcn | ds_tcn | modern_tcn | "
+                         "mix_linear | mix_linear_linear | mix_linear_mlp | "
+                         "low_rank_linear")
 parser.add_argument("--revin", default="false", help="true | false")
 parser.add_argument("--loss", default="mse", help="mse | mse_pearson")
 parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE khi loss=mse_pearson")
@@ -108,6 +110,9 @@ parser.add_argument("--mix_alpha", type=float, default=0.5,
 parser.add_argument("--mix_hidden", type=int, default=2,
                     help="MixLinear: chiều trung gian nhánh tần số. "
                          "Quá 3 là vô ích, xem docstring lớp MixLinear")
+parser.add_argument("--correction_hidden", type=int, default=4,
+                    help="chiều giữa của nhánh phụ trong mix_linear_linear, "
+                         "mix_linear_mlp và low_rank_linear. KHÁC --mix_hidden")
 parser.add_argument("--norm", default="batch", choices=["batch", "weight"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
                          "weight là bản đúng chuẩn Bai et al. mục 3.4")
@@ -144,6 +149,12 @@ elif args.model == "gru":
     # Luôn ghi hidden. Khác lstm/bilstm ở chỗ GRU không có cấu hình gốc nào của
     # MobiVital để lấy làm mặc định, nên "khác mặc định mới ghi" là vô nghĩa.
     arch_tag = "_h%d" % args.hidden
+elif args.model == "low_rank_linear":
+    arch_tag = "_h%d" % args.correction_hidden
+elif args.model in ("mix_linear_linear", "mix_linear_mlp"):
+    # Ghi cả tham số của nền lẫn chiều nhánh phụ, vì cả hai đổi kiến trúc.
+    arch_tag = "_p%d_lpf%d_h%d" % (args.period_len, args.lpf,
+                                   args.correction_hidden)
 elif args.model == "mix_linear":
     # Hai con số này quyết định cả kiến trúc lẫn số tham số, luôn ghi.
     arch_tag = "_p%d_lpf%d" % (args.period_len, args.lpf)
@@ -210,6 +221,7 @@ def run_one_fold(fold_name, val_users):
                                    period_len=args.period_len,
                                    lpf=args.lpf,
                                    mix_hidden=args.mix_hidden,
+                                   correction_hidden=args.correction_hidden,
                                    mix_alpha=args.mix_alpha,
                                    conv_kernel=args.conv_kernel)
 
@@ -309,6 +321,7 @@ if results.find_run(SUMMARY_FILE, args.experiment, config_id + "_tong") is None:
                                    period_len=args.period_len,
                                    lpf=args.lpf,
                                    mix_hidden=args.mix_hidden,
+                                   correction_hidden=args.correction_hidden,
                                    mix_alpha=args.mix_alpha,
                                    conv_kernel=args.conv_kernel)),
                          "epochs": args.epochs,

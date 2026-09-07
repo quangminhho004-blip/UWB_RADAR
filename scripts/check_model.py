@@ -30,6 +30,12 @@ KIỂM GÌ
                  không sót phần khai báo mà không gọi
     gru          một chiều nên output[:, -1, :] là đúng, Linear KHÔNG
                  gấp đôi hidden như BiLSTM
+    low_rank_linear   hai lớp không phi tuyến hợp lại thành một phép affine
+                 hạng tối đa bằng chiều giữa
+    mix_linear_linear / mix_linear_mlp
+                 gradient tới cả nền lẫn nhánh phụ, xoá nhánh phụ thì
+                 khớp đúng MixLinear nền, trung bình chỉ cộng một lần,
+                 và hàm kích hoạt đúng loại mong đợi
     mix_linear   hai cách đếm tham số (47 numel / 63 số thật), tham số
                  phức nhận gradient và Adam đổi được, forward không còn
                  lệnh print của mã gốc, hai nhánh đều tác động tới đầu
@@ -356,6 +362,84 @@ def check_mix_linear(model):
     check(model.sqrt_seg_num_x == 5, "lưới 5x5, đủ chứa 20 đoạn")
 
 
+def check_low_rank_linear(model, hidden):
+    print("\n5. Riêng LowRankLinear")
+    layers = [m for m in model.branch if isinstance(m, nn.Linear)]
+    check(len(layers) == 2, "đúng hai lớp Linear")
+    check(layers[0].out_features == hidden,
+          "lớp đầu ép %d chiều xuống %d" % (mv.HISTORY_LENGTH, hidden))
+    check(all(l.bias is not None for l in layers), "cả hai lớp đều có bias")
+
+    print("\n6. Hai lớp không phi tuyến = MỘT phép affine hạng <= %d" % hidden)
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.eval()
+    with torch.no_grad():
+        W = layers[1].weight @ layers[0].weight
+        rank = torch.linalg.matrix_rank(W).item()
+    print("   tích hai ma trận %s, hạng %d" % (tuple(W.shape), rank))
+    check(rank <= hidden, "hạng không vượt %d" % hidden)
+    print("   Linear(%d, %d) đầy đủ sẽ tốn %d tham số, ở đây %d"
+          % (mv.HISTORY_LENGTH, mv.FUTURE_LENGTH,
+             mv.HISTORY_LENGTH * mv.FUTURE_LENGTH + mv.FUTURE_LENGTH,
+             models.count_params(model)))
+
+
+def check_mix_linear_plus(model, hidden, has_gelu):
+    print("\n5. Riêng MixLinearPlus")
+    check(isinstance(model.base, models.MixLinear), "nền đúng là MixLinear")
+    layers = [m for m in model.correction if isinstance(m, nn.Linear)]
+    check(len(layers) == 2, "nhánh phụ có đúng hai lớp Linear")
+    check(layers[0].out_features == hidden, "chiều giữa đúng %d" % hidden)
+    act = [m for m in model.correction if not isinstance(m, nn.Linear)][0]
+    print("   hàm kích hoạt giữa hai lớp: %s" % type(act).__name__)
+    check(isinstance(act, nn.GELU) == has_gelu,
+          "đúng %s như mong đợi" % ("GELU" if has_gelu else "Identity"))
+
+    print("\n6. Gradient tới CẢ nền lẫn nhánh phụ")
+    x = torch.randn(4, mv.HISTORY_LENGTH)
+    model.train()
+    model(x).sum().backward()
+    n_base = sum(1 for p in model.base.parameters() if p.grad is not None
+                 and p.grad.abs().sum() > 0)
+    n_corr = sum(1 for p in model.correction.parameters() if p.grad is not None
+                 and p.grad.abs().sum() > 0)
+    print("   nền %d/%d tham số có gradient khác 0, nhánh phụ %d/%d"
+          % (n_base, len(list(model.base.parameters())),
+             n_corr, len(list(model.correction.parameters()))))
+    check(n_base > 0, "nền thật sự được học, không nằm chết")
+    check(n_corr > 0, "nhánh phụ thật sự được học")
+
+    print("\n7. Ghép là phép CỘNG THUẦN, không gate hay hệ số ẩn")
+    model.eval()
+    with torch.no_grad():
+        saved = [p.detach().clone() for p in model.correction.parameters()]
+        for p in model.correction.parameters():
+            p.zero_()
+        same_as_base = torch.equal(model(x), model.base(x))
+        for p, v in zip(model.correction.parameters(), saved):
+            p.copy_(v)
+    check(same_as_base, "xoá nhánh phụ thì đầu ra khớp ĐÚNG MixLinear nền")
+
+    print("\n8. Trung bình chỉ được cộng MỘT lần")
+    z = torch.randn(4, mv.HISTORY_LENGTH) + 50.0
+    with torch.no_grad():
+        out_mean = model(z).mean().item()
+    print("   vào trung bình %.2f  ->  ra trung bình %.2f"
+          % (z.mean().item(), out_mean))
+    check(abs(out_mean - z.mean().item()) < 5.0,
+          "ra bám mức nền đầu vào, không lệch gấp đôi")
+
+    print("\n9. GELU có tạo khác biệt thật không")
+    with torch.no_grad():
+        u = torch.randn(64, hidden) * 3
+        activated = act(u)
+        changed = not torch.allclose(activated, u)
+    if has_gelu:
+        check(changed, "GELU đổi giá trị — phi tuyến thật sự hoạt động")
+    else:
+        check(not changed, "Identity giữ nguyên giá trị, đúng vai trò đối chứng")
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", required=True,
                     help="lstm | bilstm | gru | cnn_lstm | tcn | ds_tcn | "
@@ -374,6 +458,7 @@ parser.add_argument("--period_len", type=int, default=10)
 parser.add_argument("--lpf", type=int, default=5)
 parser.add_argument("--mix_alpha", type=float, default=0.5)
 parser.add_argument("--mix_hidden", type=int, default=2)
+parser.add_argument("--correction_hidden", type=int, default=4)
 parser.add_argument("--revin", default="false")
 parser.add_argument("--compare-with", dest="compare_with", default=None,
                     help="tên model đem so số tham số, ví dụ lstm")
@@ -398,7 +483,8 @@ def build(name, hidden):
                               period_len=args.period_len,
                               lpf=args.lpf,
                               mix_alpha=args.mix_alpha,
-                              mix_hidden=args.mix_hidden)
+                              mix_hidden=args.mix_hidden,
+                              correction_hidden=args.correction_hidden)
 
 
 print("Kiểm model:", args.model)
@@ -413,6 +499,11 @@ elif args.model == "gru":
     check_gru(model, args.hidden)
 elif args.model == "mix_linear":
     check_mix_linear(model)
+elif args.model == "low_rank_linear":
+    check_low_rank_linear(model, args.correction_hidden)
+elif args.model in ("mix_linear_linear", "mix_linear_mlp"):
+    check_mix_linear_plus(model, args.correction_hidden,
+                          args.model == "mix_linear_mlp")
 elif args.model == "cnn_lstm":
     check_cnn_lstm(model, args.hidden, args.conv_channels)
 elif args.model == "modern_tcn":
