@@ -132,17 +132,121 @@ Khảo sát loss trên cùng bộ mã đó, `val_KL`:
 giữa chín kiến trúc TN1 (0,0172).
 
 
+## TN2 — tầm nhìn DS-TCN, 4 fold, 1 seed
+
+Giữ nguyên 4 khối, chỉ đổi kernel, nên tham số gần như đứng yên (c192 chênh 5,0%
+trên toàn thang, c64 chênh 13,8%) trong khi tầm nhìn gấp gần 6 lần. Điểm đổi thì
+gần như chắc do tầm nhìn.
+
+| kernel | tầm nhìn | c64 *(37k)* | c192 *(308k)* |
+|---:|---:|---:|---:|
+| 3 | 61 | **0,760878** *(3 seed)* | 0,762714 |
+| 5 | 121 | 0,757855 | **0,764428** |
+| 7 | 181 | 0,743657 | 0,732562 |
+| 9 | 241 | 0,736970 | 0,736623 |
+
+Tương quan tầm nhìn với điểm: **−0,973** (c64), **−0,845** (c192). Xu hướng lặp
+lại ở hai bề rộng kênh khác nhau 8 lần.
+
+Hai chỗ không đơn điệu: c192 k5 hơn k3 (0,7644 so với 0,7627), và k9 hơn k7
+(0,7366 so với 0,7326). Cả hai chênh dưới 0,005, nằm trong nhiễu một seed. Đọc
+đúng là **tầm nhìn 61–121 là vùng tốt, từ 181 trở lên tệ rõ** — không phải càng
+ngắn càng tốt.
+
+Vòng sàng lọc trước đó, c64, 1 fold `val_KL`, cho thấy chỗ đáng chú ý nhất:
+
+| kernel | tầm nhìn | điểm `val_KL` | train_mse | train_pearson |
+|---:|---:|---:|---:|---:|
+| 5 | 121 | **0,8458** | 0,02127 | 0,5851 |
+| 7 | 181 | 0,8176 | 0,02059 | 0,5921 |
+| 9 | 241 | 0,8041 | 0,01939 | 0,6041 |
+| 11 | 301 | 0,7940 | 0,01861 | 0,6130 |
+| 13 | 361 | 0,7759 | 0,01840 | 0,6128 |
+
+Điểm tụt 0,070 trong khi `train_mse` **giảm 13%** và `train_pearson` **tăng** —
+model dự báo giỏi hơn nhưng chọn kênh dở hơn. Cơ chế có thể giải thích: tiêu chí
+chọn kênh là "ứng viên nào tự dự báo được chính nó tốt nhất", nên model tầm nhìn
+ngắn chỉ đoán giỏi sóng thật sự tuần hoàn, còn model tầm nhìn dài đoán giỏi mọi
+sóng trơn, kể cả kênh nhiễu có cấu trúc. Đây là **cách đọc đề xuất, chưa chứng
+minh**.
+
+
+## TN3 — hàm loss lai, 4 fold, 1 seed
+
+`alpha` là trọng số của MSE: `loss = alpha·MSE + (1 − alpha)·(1 − Pearson)`. Nên
+`alpha = 1` là MSE thuần, `alpha = 0` là Pearson thuần.
+
+| alpha | c64 k3 RF61 *(37.081)* | c192 k5 RF121 *(310.873)* |
+|---:|---:|---:|
+| 0,0 | 0,776667 | 0,772640 |
+| 0,1 | 0,769390 | 0,771848 |
+| 0,2 | 0,775264 | **0,776011** |
+| 0,3 | 0,771931 | 0,774584 |
+| 0,4 | 0,779266 | đang chạy |
+| 0,5 | 0,779419 | đang chạy |
+| 0,6 | **0,780028** | đang chạy |
+| 0,7 | 0,771665 | đang chạy |
+| 0,8 | 0,776611 | đang chạy |
+| 0,9 | đang chạy | đang chạy |
+| **1,0 — MSE thuần** | **0,760878** *(3 seed)* | **0,764428** |
+
+**Mọi mức alpha đã đo đều hơn MSE thuần** — 9/9 ở c64 (+0,0085 tới +0,0192),
+4/4 ở c192 (+0,0074 tới +0,0116). Đó là tín hiệu nhất quán ở cả hai cấu hình.
+
+Nhưng **thứ hạng giữa các alpha thì chưa đọc được**: đây là 1 seed, mà `seed_std`
+của các cấu hình TN1 trải 0,0007–0,0108. Chênh lệch giữa hai alpha liền kề đều
+nhỏ hơn khoảng đó. Nói được là "có lai thì hơn MSE thuần", **chưa** nói được
+alpha nào tốt nhất.
+
+Đối chiếu với mục "Cấu hình DS-TCN do nhóm tối ưu" ở trên: khảo sát loss ở đó
+chọn alpha 0,7 trên 1 fold `val_KL`, TN3 trên 4 fold cho alpha 0,6 cao nhất. Hai
+con số **không so thẳng được** (khác mã, khác giao thức, khác số fold), nhưng cả
+hai đều rơi vào nửa trên của thang alpha và cả hai đều hơn MSE thuần.
+
+`c64 alpha 0,6 = 0,780028` là `cv_score` cao nhất cả đồ án — hơn MSE thuần cùng
+kiến trúc +0,0192 và hơn LSTM-352 +0,0230 với ít hơn 40 lần tham số.
+
+
+## Khảo sát ghép nhánh MixLinear — 4 fold, 1 seed
+
+Nhánh phụ là **đề xuất của đồ án**, không thuộc MixLinear nguyên bản.
+
+| | không nhánh phụ | có nhánh phụ |
+|---|---|---|
+| **không MixLinear** | — | **C0** 0,654737 *(929)* |
+| **có MixLinear** | **B0** 0,676037 *(63)* | **C2** 0,661746 *(992)* |
+
+**C3** = **0,709744** *(992 tham số, thêm GELU giữa hai lớp nhánh phụ)*
+
+| phép so | chênh | sạch không |
+|---|---:|---|
+| **C3 − C2** — phi tuyến giúp gì | **+0,0480** | **sạch**: cùng 992 tham số, cùng trọng số khởi tạo, khác đúng một `GELU` |
+| C2 − B0 — thêm nhánh tuyến tính | −0,0143 | lệch 929 tham số |
+| C2 − C0 — thêm MixLinear | +0,0070 | lệch 63 tham số |
+
+Hai điều đọc được. **Thêm nhánh tuyến tính làm tệ đi**: 992 tham số thua 63 tham
+số, nên không phải cứ thêm tham số là tốt. Và **toàn bộ lợi ích đến từ hàm phi
+tuyến**, không từ số tham số — C2 và C3 cùng kích thước, cùng khởi tạo.
+
+Chú thích khi báo cáo: ở C2 bias lớp đầu (4 tham số) bị hấp thụ vào bias lớp sau
+vì hai `Linear` không phi tuyến hợp lại thành một phép affine, nên C2 chỉ có
+**988** tham số tác dụng độc lập. Chênh 0,4%, không hỏng phép so.
+
+Cả nhóm này ở thang điểm thấp hơn hẳn TN1 (0,65–0,71 so với 0,74–0,76) vì model
+quá nhỏ. Không so trực tiếp với bảng TN1.
+
+
 ## Đang chờ chạy
 
 | việc | thời gian | ghi chú |
 |---|---|---|
+| TN3 c64 alpha 0,9 | ~15 phút | còn 2 fold |
+| TN3 c192 alpha 0,4 – 0,9 | ~3 giờ | alpha 0,4 còn 2 fold |
 | DS-TCN-192 seed 1, 2 | ~4 giờ | seed 0 đã có |
 | GRU-77, 3 seed | ~2 giờ | notebook đã có |
-| MixLinear C0 / C2 / C3 | ~45 phút mỗi cái | chạy song song được |
-| TN2 tầm nhìn, 5 cấu hình | ~2,5 giờ | 1 fold mỗi cấu hình |
-| GHIJ cho 5 cấu hình còn thiếu | ~25 phút mỗi cấu hình mỗi seed | |
-| TN3 đổi loss | — | còn lỗi `config_id` không ghi `alpha` |
-
+| MixLinear C0 / C2 / C3 seed 1, 2 | ~45 phút mỗi cái | seed 0 đã có |
+| TN2 tầm nhìn, seed 1, 2 | ~1,8 giờ mỗi seed mỗi bề rộng | seed 0 đã có |
+| GHIJ cho các cấu hình còn thiếu | ~25 phút mỗi cấu hình mỗi seed | |
 
 ## Nguồn số
 
