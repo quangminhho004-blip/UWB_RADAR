@@ -273,7 +273,8 @@ quá nhỏ. Không so trực tiếp với bảng TN1.
 
 | việc | thời gian | ghi chú |
 |---|---|---|
-| TN3 alpha 0,2 thêm seed 1, 2 | ~1 giờ mỗi cấu hình | chốt mức alpha nên dùng |
+| **TN4 test cuối GHIJ, c64 alpha 0,6** | **~1,3 giờ** | **3 seed — số công bố** |
+| **TN4 test cuối GHIJ, c192 alpha 0,2** | **~2 giờ** | **3 seed — số công bố** |
 | DS-TCN-192 seed 1, 2 | ~4 giờ | seed 0 đã có |
 | GRU-77, 3 seed | ~2 giờ | notebook đã có |
 | MixLinear C0 / C2 / C3 seed 1, 2 | ~45 phút mỗi cái | seed 0 đã có |
