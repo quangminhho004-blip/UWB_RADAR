@@ -321,7 +321,8 @@ hai người đó**, không phải điểm yếu riêng của cấu hình nào.
 
 | việc | thời gian | ghi chú |
 |---|---|---|
-| **GHIJ cho DS-TCN-64 RF61 MSE thuần** | **~1,3 giờ** | **3 seed — tách đóng góp của hàm loss trên tập test** |
+| **TN3 quét alpha cho DS-TCN-64 RF121** | **~10 giờ** | **10 mức, 1 giờ mỗi mức, chạy rời được** |
+| GHIJ cho DS-TCN-64 RF61 MSE thuần | ~1 giờ | 3 seed — tách đóng góp của hàm loss trên tập test |
 | DS-TCN-192 seed 1, 2 | ~4 giờ | seed 0 đã có |
 | GRU-77, 3 seed | ~2 giờ | notebook đã có |
 | MixLinear C0 / C2 / C3 seed 1, 2 | ~45 phút mỗi cái | seed 0 đã có |
