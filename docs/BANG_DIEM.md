@@ -187,24 +187,39 @@ minh**.
 | 0,6 | **0,780028** | đang chạy |
 | 0,7 | 0,771665 | đang chạy |
 | 0,8 | 0,776611 | đang chạy |
-| 0,9 | đang chạy | đang chạy |
+| 0,9 | 0,764941 | đang chạy |
 | **1,0 — MSE thuần** | **0,760878** *(3 seed)* | **0,764428** |
 
-**Mọi mức alpha đã đo đều hơn MSE thuần** — 9/9 ở c64 (+0,0085 tới +0,0192),
-4/4 ở c192 (+0,0074 tới +0,0116). Đó là tín hiệu nhất quán ở cả hai cấu hình.
+Cột c64 **đã đủ mười một điểm**. Cột c192 mới có bốn.
 
-Nhưng **thứ hạng giữa các alpha thì chưa đọc được**: đây là 1 seed, mà `seed_std`
-của các cấu hình TN1 trải 0,0007–0,0108. Chênh lệch giữa hai alpha liền kề đều
-nhỏ hơn khoảng đó. Nói được là "có lai thì hơn MSE thuần", **chưa** nói được
-alpha nào tốt nhất.
+**Mọi mức alpha đều hơn MSE thuần** — 10/10 ở c64 (+0,0041 tới +0,0192), 4/4 ở
+c192 (+0,0074 tới +0,0116).
 
-Đối chiếu với mục "Cấu hình DS-TCN do nhóm tối ưu" ở trên: khảo sát loss ở đó
-chọn alpha 0,7 trên 1 fold `val_KL`, TN3 trên 4 fold cho alpha 0,6 cao nhất. Hai
-con số **không so thẳng được** (khác mã, khác giao thức, khác số fold), nhưng cả
-hai đều rơi vào nửa trên của thang alpha và cả hai đều hơn MSE thuần.
+Ba dấu hiệu cho thấy đây không phải nhiễu:
+
+**1. Đường cong liên tục ở đầu mút.** `alpha = 0,9` cho 0,764941, gần MSE thuần
+(0,760878) hơn mọi mức khác — đúng như phải thế, vì 0,9 gần 1,0 nhất. Nếu là
+nhiễu thì không có lý do gì mức sát biên lại rơi đúng sát giá trị biên.
+
+**2. Bốn fold độc lập cùng chỉ về một vùng.** Đỉnh của từng fold nằm ở alpha
+0,6 *(val_AB)*, 0,4 *(val_CE)*, 0,2 *(val_DF)*, 0,5 *(val_KL)* — **cả bốn đều
+rơi vào 0,2–0,6**, không fold nào đỉnh ở 0,0–0,1 hay 0,7–0,9.
+
+**3. Xếp hạng trung bình qua bốn fold** cho cùng kết luận: ba mức tốt nhất là
+alpha **0,4** *(hạng TB 3,25)*, **0,6** *(3,50)*, **0,5** *(4,00)*; ba mức tệ
+nhất là 0,9 *(8,50)*, 0,1 *(7,25)*, 0,7 *(6,75)*.
+
+Vẫn **chưa xếp được thứ hạng giữa hai alpha liền kề** — đây là 1 seed, mà
+`seed_std` của các cấu hình TN1 trải 0,0007–0,0108. Nói được là **"vùng
+0,4–0,6 tốt, và có lai thì hơn MSE thuần"**; chưa nói được 0,6 hơn 0,5.
 
 `c64 alpha 0,6 = 0,780028` là `cv_score` cao nhất cả đồ án — hơn MSE thuần cùng
 kiến trúc +0,0192 và hơn LSTM-352 +0,0230 với ít hơn 40 lần tham số.
+
+Một lưu ý khi đọc `cv_std` của TN3 (~0,07): đó là **độ lệch giữa bốn fold**,
+không phải giữa các seed. `val_DF` thấp hơn ba fold kia khoảng 0,14 ở **mọi**
+mức alpha (trung bình 0,659 so với 0,804 / 0,800 / 0,835), nên nó không làm
+hỏng phép so giữa các alpha — nó dịch cả mười cột xuống như nhau.
 
 
 ## Khảo sát ghép nhánh MixLinear — 4 fold, 1 seed
@@ -240,8 +255,7 @@ quá nhỏ. Không so trực tiếp với bảng TN1.
 
 | việc | thời gian | ghi chú |
 |---|---|---|
-| TN3 c64 alpha 0,9 | ~15 phút | còn 2 fold |
-| TN3 c192 alpha 0,4 – 0,9 | ~3 giờ | alpha 0,4 còn 2 fold |
+| TN3 c192 alpha 0,4 – 0,9 | ~11 giờ | 22 fold, lưu Drive sau mỗi alpha |
 | DS-TCN-192 seed 1, 2 | ~4 giờ | seed 0 đã có |
 | GRU-77, 3 seed | ~2 giờ | notebook đã có |
 | MixLinear C0 / C2 / C3 seed 1, 2 | ~45 phút mỗi cái | seed 0 đã có |
