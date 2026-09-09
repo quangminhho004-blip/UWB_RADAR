@@ -1,13 +1,15 @@
 # Contactless and Robust Respiration Monitoring based on UWB Radar
 
-Bản nộp trên nhánh **submission** tập trung vào **TCN/DS-TCN**, theo thứ tự **TN0 → TN1 → TN2 → TN3 → TN4**. Cấu hình cuối sử dụng: **DS-TCN 64/RF121 với Pearson loss thuần**.
+Bản nộp trên nhánh **submission** tập trung vào **TCN/DS-TCN**, theo thứ tự **TN0 → TN1 → TN2 → TN3 → TN4**. Hai mô hình cuối: ưu tiên **DS-TCN 64/RF121 với Pearson loss thuần**, sau đó **DS-TCN 64/RF61 với hybrid α = 0,6**.
 
 **Bắt đầu đọc:** [Tóm tắt thesis và danh mục thực nghiệm](docs/THESIS.md).
+
+Danh mục tài liệu và vai trò từng file: [docs/README.md](docs/README.md).
 
 - [Báo cáo chi tiết: vì sao chọn từng tham số](docs/BAO_CAO_QUA_TRINH_THUC_NGHIEM.md).
 - [Sơ đồ các nhánh](docs/SO_DO_NHANH.md).
 - [Pipeline train và inference](docs/PIPELINE_2.md).
-- [Danh mục 19 notebook của bản nộp](docs/SUBMISSION_NOTEBOOKS.json).
+- [Danh mục 17 notebook của bản nộp](docs/SUBMISSION_NOTEBOOKS.json).
 
 Các notebook mô hình ngoài phạm vi không có trong cây tệp hiện tại của bản nộp. TN0 giữ mô hình tham chiếu MobiVital để kiểm tra pipeline; mã dùng chung trong src/ và scripts/ được giữ để các notebook chạy được. Các commit lịch sử không bị viết lại.
 
@@ -74,6 +76,12 @@ external/    Mã MobiVital tải riêng
 `scripts/run_cv.py` đánh giá trên bốn fold thuộc ABCDEFKL. `scripts/run_final_test.py` train đủ ABCDEFKL rồi đánh giá GHIJ. Số chính của đồ án là Pearson macro theo người. Thư mục kết quả được đặt bằng `--experiment`; cấu hình và seed tạo tên run riêng.
 
 Output cũ trong notebook là bằng chứng lần chạy đã lưu, không phải kết quả chạy lại sau khi chỉnh bản nộp. Các tài liệu cũ được giữ để tra cứu; **THESIS.md là điểm vào của bản nộp hiện tại**.
+
+### `data/checksums.txt` dùng để làm gì?
+
+Tệp này lưu mã băm MD5 làm mốc đối chiếu nội dung dữ liệu đã xử lý trong `data/processed/by_user/*.npz`. Script `scripts/checksums.py` băm tên, shape, dtype và giá trị các mảng theo thứ tự cố định; không băm trực tiếp vỏ ZIP của NPZ. Nhờ đó có thể kiểm tra dữ liệu dựng lại trên máy khác có khớp mốc đã lưu không. Đây là kiểm tra tính nhất quán dữ liệu, không phải điểm model hay bằng chứng pipeline đúng về mặt khoa học.
+
+Script hiện **ghi đè** `data/checksums.txt`, không tự báo pass/fail. Muốn đối chiếu, giữ bản mốc trước khi chạy, rồi so hai tệp hoặc xem `git diff -- data/checksums.txt`. Script chỉ băm `by_user`, không băm checkpoint hoặc tập windows; không dùng nó để kết luận mọi artifact đều giống nhau.
 
 ## Nguồn dữ liệu và phương pháp nền
 

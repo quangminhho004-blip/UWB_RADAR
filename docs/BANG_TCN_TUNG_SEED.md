@@ -10,7 +10,7 @@ Số tham số và tầm nhìn dựng lại bằng `models.build_model` rồi đ
 
 | | nghĩa là gì | dùng ở đâu |
 |---|---|---|
-| **macro** | tính điểm từng người trước, rồi trung bình các người | **số chính thức của đồ án**, `docs/PROTOCOL.md` mục 4 |
+| **macro** | tính điểm từng người trước, rồi trung bình các người | **số chính thức của đồ án**, `docs/THESIS.md` mục 2 |
 | **micro** | trung bình toàn bộ phiên đo, gộp chung | thước bài báo gốc công bố |
 
 Macro cao hơn micro khoảng 0,005 ở mọi cấu hình đo được, và **thứ hạng không

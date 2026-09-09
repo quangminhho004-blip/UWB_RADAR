@@ -2,6 +2,8 @@
 
 Đọc **từ trái sang phải**. Một cấu hình có thể tách thành nhiều RF; một cấu hình/RF có thể giữ nhiều loss để đi tiếp.
 
+**Hai mô hình cuối:** ưu tiên **64/RF121 + Pearson**, sau đó **64/RF61 + hybrid α = 0,6**. Vị trí các hàng trong sơ đồ thể hiện đường đi thực nghiệm, không phải thứ tự ưu tiên.
+
 ```text
 TN1                          TN2                          TN3                          TN4
 Chọn cấu hình                Khảo sát RF                  Khảo sát loss                Đánh giá cuối
@@ -69,4 +71,4 @@ TN1–TN3 sử dụng validation để khảo sát và chọn cấu hình. TN4 �
 | **64/RF121** | Chung nền 64/RF61 | [RF nhóm 64](../notebooks/TN2_ReceptiveField_DS_TCN_c64_4fold.ipynb) | [Loss 64/RF121](../notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb) | [Pearson và MSE](../notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb) |
 | **192/RF121** | [192/RF61](../notebooks/TN1_DS_TCN_RF61_no_norm_do02_c192.ipynb) | [RF nhóm 192](../notebooks/TN2_ReceptiveField_DS_TCN_c192_4fold.ipynb) | [Loss 192/RF121](../notebooks/TN3_HybridLoss_DS_TCN_c192.ipynb) | [Hybrid α = 0,2](../notebooks/TN4_final_test_ds_tcn_c192.ipynb) |
 
-Các cấu hình khảo sát khác và điểm số xem [BANG_NHANH_TCN.md](BANG_NHANH_TCN.md).
+Các cấu hình khảo sát khác và điểm số xem [BANG_TCN.md](BANG_TCN.md).

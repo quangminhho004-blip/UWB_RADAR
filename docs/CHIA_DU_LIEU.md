@@ -54,7 +54,7 @@ chỗ cho nghi vấn đó.
 Kết quả: 1289 buổi ghi để phát triển, 537 buổi ghi để test.
 
 **`G H I J` không được nhìn khi chọn cấu hình.** Mọi quyết định — kiến trúc nào,
-tham số nào — chỉ dựa trên tám người phát triển. Xem [PROTOCOL.md](PROTOCOL.md).
+tham số nào — chỉ dựa trên tám người phát triển. Xem [THESIS.md](THESIS.md).
 
 
 ## 3. Vì sao bốn fold, không phải một lần chia
@@ -362,6 +362,6 @@ print(min(ket))
 
 ## Đọc thêm
 
-- [PROTOCOL.md](PROTOCOL.md) — giao thức thí nghiệm, quy tắc không nhìn `G H I J`
+- [THESIS.md](THESIS.md) — giao thức hiện tại, cách tính điểm và phạm vi sử dụng GHIJ
 - `scripts/run_cv.py` — định nghĩa bốn fold, phần `FOLDS` đầu tệp
 - `runs/README.md` — ý nghĩa từng cột trong bảng kết quả

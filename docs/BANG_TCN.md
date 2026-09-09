@@ -1,6 +1,6 @@
 # Họ TCN — mọi cấu hình đã chạy
 
-Chỉ `tcn` và `ds_tcn`. Các kiến trúc khác xem `docs/BANG_DIEM.md`.
+Chỉ `tcn` và `ds_tcn`. Phạm vi bản nộp và thứ tự hai mô hình cuối xem [THESIS.md](THESIS.md).
 
 Số tham số và tầm nhìn dựng lại bằng `models.build_model` rồi đếm, không chép tay.
 
@@ -8,7 +8,7 @@ Số tham số và tầm nhìn dựng lại bằng `models.build_model` rồi đ
 ## Đọc bảng này thế nào
 
 **macro** — trung bình điểm từng người, rồi trung bình các người. Số chính thức
-của đồ án, theo `docs/PROTOCOL.md` mục 4.
+của đồ án, theo `docs/THESIS.md` mục 2.
 
 **micro** — trung bình toàn bộ phiên đo. Bài báo gốc công bố theo thước này.
 

@@ -1,4 +1,8 @@
-# TN0 — dựng lại kết quả MobiVital
+# TN0 — ghi chú lịch sử về tái lập MobiVital (outdated)
+
+> **Tài liệu lưu để truy vết, không phải hướng dẫn hiện hành.** Mô tả TN0a/b/c, định nghĩa micro/macro, bảng kết quả và trạng thái tệp của bản nộp nằm trong [docs/THESIS.md — mục 2 và mục 4](../docs/THESIS.md). Lệnh/output hiện tại nằm trong [TN0.ipynb](TN0.ipynb).
+>
+> Các phần dưới được viết qua nhiều giai đoạn: có cách dựng `work` cũ, kết quả TN0c MacBook **0,798748**, mô tả chưa cập nhật việc thêm `model.eval()` và kế hoạch thực nghiệm cũ. Không dùng chúng để thay cho kết quả Colab hiện lưu trong notebook: TN0c phía MobiVital **0,812839**, phía project **0,822642**. Các điểm TN0 này là **micro theo phiên**, không phải macro theo người. Dòng “Mục 8 là bản mới nhất” dưới đây chỉ phản ánh thời điểm viết ghi chú lịch sử.
 
 Giải thích cho [TN0.ipynb](TN0.ipynb).
 

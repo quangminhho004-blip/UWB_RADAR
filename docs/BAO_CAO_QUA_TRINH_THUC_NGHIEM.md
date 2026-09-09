@@ -4,7 +4,7 @@
 
 **Phạm vi:** TCN và DS-TCN; tập trung giải thích lựa chọn cấu hình và quá trình khảo sát.
 
-**Cấu hình cuối được sử dụng:** **DS-TCN-64/RF121, Pearson loss thuần**.
+**Hai mô hình cuối, theo thứ tự ưu tiên:** **DS-TCN-64/RF121, Pearson loss thuần** là phương án chính; **DS-TCN-64/RF61, hybrid α = 0,6** là phương án thứ hai. Nhánh C192 là đối chứng dung lượng.
 
 **Đối chiếu:** mã, notebook và bảng kết quả trong repo ngày 09/09/2026.
 
@@ -252,9 +252,9 @@ Train đủ ABCDEFKL, test GHIJ, mỗi tổ hợp 3 seed:
 
 | Vai trò | Cấu hình | Loss | Tham số | Test macro ± seed_std |
 |---|---|---|---:|---:|
-| **Cấu hình cuối được sử dụng** | **64/RF121** | **Pearson thuần** | **38.105** | **0,8017 ± 0,0100** |
+| **Ưu tiên 1 — phương án chính** | **64/RF121** | **Pearson thuần** | **38.105** | **0,8017 ± 0,0100** |
+| **Ưu tiên 2 — phương án thứ hai** | **64/RF61** | **Hybrid α = 0,6** | **37.081** | **0,8036 ± 0,0154** |
 | Đối chứng loss | 64/RF121 | MSE | 38.105 | 0,7622 ± 0,0214 |
-| Đối chứng tổ hợp RF/loss khác | 64/RF61 | Hybrid α = 0,6 | 37.081 | 0,8036 ± 0,0154 |
 | Đối chứng dung lượng lớn | 192/RF121 | Hybrid α = 0,2 | 310.873 | 0,8007 ± 0,0107 |
 | Mốc DS-TCN ban đầu | C64/RF253 | MSE | 56.281 | 0,7958 ± 0,0154 |
 
@@ -311,9 +311,9 @@ Không viện dẫn “nhỏ hơn std nên bằng nhau” để biến quan sát
 - Không suy ra ưu thế thống kê từ việc so khoảng cách trung bình với seed_std.
 - Những lý do kỹ thuật trong tài liệu giải thích tính hợp lý của thiết kế; không chứng minh mọi lý do đều đã được ghi trước lần khảo sát lịch sử.
 - Tài liệu lịch sử ghi nhận GHIJ từng được xem trong project. Khi viết protocol, mô tả đúng lịch sử sử dụng test; không tuyên bố chưa từng nhìn nếu không đúng.
-- PROTOCOL.md và NHANH_DS_TCN.md còn một số kế hoạch/trạng thái cũ. Các đường đi ở đây đối chiếu notebook hiện có; không suy từ tên notebook rằng một lượt đã chạy.
+- Giao thức hiện tại nằm trong [THESIS.md](THESIS.md). Các đường đi ở đây đối chiếu notebook hiện có; không suy từ tên notebook rằng một lượt đã chạy.
 - Các số được làm tròn ở bảng tổng hợp. Khi xuất bảng chính thức, dùng một bộ summary/scores nhất quán; một vài bảng trong repo khác nhau ở chữ số thập phân thứ sáu.
 
-**Nguồn nội bộ:** [models.py](../src/models.py), [training.py](../src/training.py), [losses.py](../src/losses.py), [BANG_NHANH_TCN.md](BANG_NHANH_TCN.md), [BANG_TCN_TUNG_SEED.md](BANG_TCN_TUNG_SEED.md), [SO_DO_NHANH.md](SO_DO_NHANH.md).
+**Nguồn nội bộ:** [models.py](../src/models.py), [training.py](../src/training.py), [losses.py](../src/losses.py), [BANG_TCN.md](BANG_TCN.md), [BANG_TCN_TUNG_SEED.md](BANG_TCN_TUNG_SEED.md), [SO_DO_NHANH.md](SO_DO_NHANH.md).
 
 **Nguồn học thuật:** [Bai et al., 2018](https://arxiv.org/abs/1803.01271); [Howard et al., 2017](https://arxiv.org/abs/1704.04861); [Srivastava et al., 2014](https://jmlr.org/papers/v15/srivastava14a.html).

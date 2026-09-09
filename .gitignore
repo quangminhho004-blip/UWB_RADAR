@@ -59,9 +59,7 @@ notebooks/tn0_reproduce.ipynb
 !/notebooks/TN2_ReceptiveField_DS_TCN_c64_4fold.ipynb
 !/notebooks/TN2_ReceptiveField_DS_TCN_c192_4fold.ipynb
 !/notebooks/TN2_ReceptiveField_DS_TCN_c64.ipynb
-!/notebooks/TN2_ReceptiveField_DS_TCN_c192.ipynb
 !/notebooks/TN2_DS_TCN_RevIN.ipynb
-!/notebooks/TN2_TCN_RevIN.ipynb
 !/notebooks/TN_test_ds_tcn_192.ipynb
 !/notebooks/TN3_HybridLoss_DS_TCN_c64.ipynb
 !/notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb
@@ -69,3 +67,5 @@ notebooks/tn0_reproduce.ipynb
 !/notebooks/TN4_final_test_ds_tcn_c64.ipynb
 !/notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb
 !/notebooks/TN4_final_test_ds_tcn_c192.ipynb
+# Tài liệu cũ giữ local để truy vết, không đưa vào bản nộp.
+/.submission_archive/

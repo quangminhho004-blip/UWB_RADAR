@@ -1,5 +1,7 @@
 # Tốc độ và bộ nhớ — đo trên Colab L4, 2026-09-04
 
+> Ghi chú lịch sử của lần tái lập TN0, giữ để truy vết điều kiện chạy. Không dùng các số này làm benchmark tốc độ cho hai mô hình cuối hoặc Raspberry Pi. Giao thức và kết quả hiện tại xem [THESIS.md](THESIS.md).
+
 Đo trong lúc chạy TN0. Dùng để biết chỗ nào đáng tối ưu trước khi làm TN1–TN6.
 
 
