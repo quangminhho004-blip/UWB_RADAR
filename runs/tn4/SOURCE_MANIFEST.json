@@ -3,7 +3,7 @@
   "scope": "TN4 only; four combinations, three seeds each",
   "source_format": "already extracted directories; ZIP bytes not inspected",
   "deduplication": "Duplicate summary rows and copied files must match exactly; conflicts abort import.",
-  "checkpoint_status": "No checkpoint copied; supplied TN4 directories contain no final.pth.",
+  "checkpoint_status": "12 final.pth đã kèm (4 cấu hình × 3 seed), lấy từ tệp nén TN4 trên Drive, đã hash bên dưới.",
   "preserved_source_details": "Blank timestamp and scores run_id fields preserved. Session names preserved; no renaming.",
   "runs": [
     {
@@ -282,319 +282,256 @@
   ],
   "files": [
     {
-      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt",
-      "sha256": "a9bfa687404434cb9f2710ba6cffed1eac9530e365d168b096192a015ec74ed9",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv",
+      "path": "192-121__hybrid-a0.2/seed0/curve.csv",
       "sha256": "928a6504c037ecad95636fb17e5c15e2cbf55e9d5152ce8d3cc1027d0b67b9f6",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv"
-      ]
+      "size_bytes": 1446
     },
     {
-      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.txt",
-      "sha256": "ec2352372cb322e3e39341e81ae685724b505b38843a0bbf4f05db361f8cd07f",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.txt",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.txt"
-      ]
+      "path": "192-121__hybrid-a0.2/seed0/final.pth",
+      "sha256": "7a641b9c30600a8b2560d93d232b34737e794b07b102aaeb22699638bc587814",
+      "size_bytes": 1256035
     },
     {
-      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/curve.csv",
-      "sha256": "8ca546a48f916ac5e6d81e9ecb8acfe346ae775cd68b3289b1165c044d8e2735",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/curve.csv",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.txt",
-      "sha256": "f386c0794cf0c1ae41595bf628628e89c9e16ea5fc03d44fb96285e71f6b0ea9",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/curve.csv",
-      "sha256": "89136dad406e161a9b987ac0649d1b011318c1488183ec6ecc59d39cb7881fd2",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt",
-      "sha256": "0df7851532f815d1944c0fa33530fbe84c7f8995b1a468b3d6cef5c0e21662ec",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv",
-      "sha256": "95048af146956619be8931d3444b2a773674a8f314cdf6d0e98cdb49860adc0d",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.txt",
-      "sha256": "ef32db6b737a02e84dba44cdfd960a3ff193de5e24eb1e4ca45c9051abdda17a",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.txt",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/curve.csv",
-      "sha256": "9b60f3651840e427d753366a0ec01dc6b18f23ac972993f0194836b308e1a920",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/curve.csv",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.txt",
-      "sha256": "4eb070cb67cbfed96e0daaa9494babe4160ca4ba982f4360e017abc703096550",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/curve.csv",
-      "sha256": "31465a6d7b3309d4d99f19e5056c48bcf8bcdfe2c4f7b2981cd7a0feb32b7108",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt",
-      "sha256": "d0fa985e3563c264cfc8d59e5996b7aae92b3b6f2f8afbf8f159906c50fcc9ac",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv",
-      "sha256": "a92103d7fccd918a1b41a8d8320ff8ca323d3541f06c5b2fa127a30300d48fc6",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.txt",
-      "sha256": "57a97ad834e2a51a6163e9e22910befb2cb836dda80e212865394308d26d5849",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/curve.csv",
-      "sha256": "57bf50736e9ba29a71b6fecccab278fc220ae439341325b8711c3226971b1d00",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.txt",
-      "sha256": "f97ad2d9c8435ea904691e7ff772e45dceaea3e905f1a54d12bd191e0a302ae6",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/curve.csv",
-      "sha256": "8af24a4fcd55a5d979ad17589af7fe2b4da89d7fb91aaf5c33f75b7016ad0317",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
-      "sha256": "36f184c83697a67f1d856a00a5ef9b2b5dcaf7b1c88d38b602aa2bd558b1038c",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
-      "sha256": "3319ab775a68ffd88c22dea5d572c8eb1a27bb7dc28a268bcfe5959d0023fbe2",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
-      "sha256": "7ecf7658fad1e535a4762f2f35de59a87adf4a4c0175de133ed25499612b6534",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
-      "sha256": "c15aaa3a3603321efea531b0d719bda8ceb1598d5daf0cb08b9fd9ffdc9391f0",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
-      "sha256": "ceb340b4063d1fa4cab6dcc9df8644b03b65baebbedb630a83dee847fe10c579",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt"
-      ]
-    },
-    {
-      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
-      "sha256": "efd313210011fa790cd0c5f6dc675849832a3c12b4a289d796fccc42d1420fe6",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv"
-      ]
-    },
-    {
-      "path": "scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv",
+      "path": "192-121__hybrid-a0.2/seed0/scores.csv",
       "sha256": "b9ccee467b15ae84d68275fb3f0511d07c98268b2a4c54a2b8e4832f3f20cf70",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv"
-      ]
+      "size_bytes": 34570
     },
     {
-      "path": "scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.csv",
+      "path": "192-121__hybrid-a0.2/seed0/selection.txt",
+      "sha256": "a9bfa687404434cb9f2710ba6cffed1eac9530e365d168b096192a015ec74ed9",
+      "size_bytes": 21072
+    },
+    {
+      "path": "192-121__hybrid-a0.2/seed1/curve.csv",
+      "sha256": "8ca546a48f916ac5e6d81e9ecb8acfe346ae775cd68b3289b1165c044d8e2735",
+      "size_bytes": 1447
+    },
+    {
+      "path": "192-121__hybrid-a0.2/seed1/final.pth",
+      "sha256": "4ef7e6491b5eaa28ba5f017cd376b66d0bf0d2396ab5c89460011a90bbaa0893",
+      "size_bytes": 1256035
+    },
+    {
+      "path": "192-121__hybrid-a0.2/seed1/scores.csv",
       "sha256": "e8c8858f8c65601ad985ecd8066cf34030c44b2337d3e8f405a10cab71228aa5",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.csv",
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.csv"
-      ]
+      "size_bytes": 34533
     },
     {
-      "path": "scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.csv",
+      "path": "192-121__hybrid-a0.2/seed1/selection.txt",
+      "sha256": "ec2352372cb322e3e39341e81ae685724b505b38843a0bbf4f05db361f8cd07f",
+      "size_bytes": 21055
+    },
+    {
+      "path": "192-121__hybrid-a0.2/seed2/curve.csv",
+      "sha256": "89136dad406e161a9b987ac0649d1b011318c1488183ec6ecc59d39cb7881fd2",
+      "size_bytes": 1444
+    },
+    {
+      "path": "192-121__hybrid-a0.2/seed2/final.pth",
+      "sha256": "8eda95dee79b63a048ff74469e32220deef7c9e68f0b72c6c2d2414a041be407",
+      "size_bytes": 1256035
+    },
+    {
+      "path": "192-121__hybrid-a0.2/seed2/scores.csv",
       "sha256": "f037bafd869e2eff12e4a8d41b4d5a6eaf99dd218702b4b5b4ec052906321eaf",
-      "sources": [
-        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.csv"
-      ]
+      "size_bytes": 34525
     },
     {
-      "path": "scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv",
-      "sha256": "62f599ed992502dbae7e422587130821f526b053d8f00f86cc3a68bdc7a2fa0c",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv"
-      ]
+      "path": "192-121__hybrid-a0.2/seed2/selection.txt",
+      "sha256": "f386c0794cf0c1ae41595bf628628e89c9e16ea5fc03d44fb96285e71f6b0ea9",
+      "size_bytes": 21069
     },
     {
-      "path": "scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.csv",
-      "sha256": "82f0c2b2fe89065baab234bd7d10d17b9559e17420d22f41d59590cb64d85276",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.csv",
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.csv"
-      ]
+      "path": "64-121__mse/seed0/curve.csv",
+      "sha256": "a92103d7fccd918a1b41a8d8320ff8ca323d3541f06c5b2fa127a30300d48fc6",
+      "size_bytes": 1482
     },
     {
-      "path": "scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.csv",
-      "sha256": "9796ee12693ec0fbb3452cc63e156327199200832c57b0bf921345b717357c17",
-      "sources": [
-        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.csv"
-      ]
+      "path": "64-121__mse/seed0/final.pth",
+      "sha256": "ab20b9040aba946a28a6d4f63c83720b7f7a6ca3a3faa46b969845043128f1c1",
+      "size_bytes": 164963
     },
     {
-      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv",
+      "path": "64-121__mse/seed0/scores.csv",
       "sha256": "b3c11b5364df900addb02a5e6019df749aa6c77d0575ae9d269d92ed2a792d04",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv"
-      ]
+      "size_bytes": 34553
     },
     {
-      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.csv",
+      "path": "64-121__mse/seed0/selection.txt",
+      "sha256": "d0fa985e3563c264cfc8d59e5996b7aae92b3b6f2f8afbf8f159906c50fcc9ac",
+      "size_bytes": 21070
+    },
+    {
+      "path": "64-121__mse/seed1/curve.csv",
+      "sha256": "57bf50736e9ba29a71b6fecccab278fc220ae439341325b8711c3226971b1d00",
+      "size_bytes": 1476
+    },
+    {
+      "path": "64-121__mse/seed1/final.pth",
+      "sha256": "a11b5a7d938069bbd97212763da31d88a3dfb5ccd611bc4c68d1d88d7515b167",
+      "size_bytes": 164963
+    },
+    {
+      "path": "64-121__mse/seed1/scores.csv",
       "sha256": "e3e065a2d7c5178199615293509e4e75b842df3720c33d5e2f1505127ad465d6",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.csv"
-      ]
+      "size_bytes": 34484
     },
     {
-      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.csv",
+      "path": "64-121__mse/seed1/selection.txt",
+      "sha256": "57a97ad834e2a51a6163e9e22910befb2cb836dda80e212865394308d26d5849",
+      "size_bytes": 21003
+    },
+    {
+      "path": "64-121__mse/seed2/curve.csv",
+      "sha256": "8af24a4fcd55a5d979ad17589af7fe2b4da89d7fb91aaf5c33f75b7016ad0317",
+      "size_bytes": 1488
+    },
+    {
+      "path": "64-121__mse/seed2/final.pth",
+      "sha256": "6459b302729d305a06d5734c3821ba4f7c18966b4cbd2ee54d8748720c2c8836",
+      "size_bytes": 164963
+    },
+    {
+      "path": "64-121__mse/seed2/scores.csv",
       "sha256": "1d31c1a92064186e37d976b2caee5903f1b406d55c8930736a1cd2b3f93a3e4f",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.csv"
-      ]
+      "size_bytes": 34521
     },
     {
-      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
+      "path": "64-121__mse/seed2/selection.txt",
+      "sha256": "f97ad2d9c8435ea904691e7ff772e45dceaea3e905f1a54d12bd191e0a302ae6",
+      "size_bytes": 21026
+    },
+    {
+      "path": "64-121__pearson/seed0/curve.csv",
+      "sha256": "3319ab775a68ffd88c22dea5d572c8eb1a27bb7dc28a268bcfe5959d0023fbe2",
+      "size_bytes": 1438
+    },
+    {
+      "path": "64-121__pearson/seed0/final.pth",
+      "sha256": "1b6c5b31298c52f27953e09984f1e35556502b1028127a940fc63f11962209f4",
+      "size_bytes": 164963
+    },
+    {
+      "path": "64-121__pearson/seed0/scores.csv",
       "sha256": "308a382b768ebbb0335c8b049325a16efb235b8bbfcbe13e1f4569c6354ea6a1",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv"
-      ]
+      "size_bytes": 34557
     },
     {
-      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
+      "path": "64-121__pearson/seed0/selection.txt",
+      "sha256": "36f184c83697a67f1d856a00a5ef9b2b5dcaf7b1c88d38b602aa2bd558b1038c",
+      "size_bytes": 21083
+    },
+    {
+      "path": "64-121__pearson/seed1/curve.csv",
+      "sha256": "c15aaa3a3603321efea531b0d719bda8ceb1598d5daf0cb08b9fd9ffdc9391f0",
+      "size_bytes": 1422
+    },
+    {
+      "path": "64-121__pearson/seed1/final.pth",
+      "sha256": "15a4c29913d82e0707481e612be65318729b6a68de094b11729036e7738f85a4",
+      "size_bytes": 164963
+    },
+    {
+      "path": "64-121__pearson/seed1/scores.csv",
       "sha256": "dec9c65df26364e278a59d0bc5b8661bc3c0a79ab006466ac69aa9c9b8686cba",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv"
-      ]
+      "size_bytes": 34524
     },
     {
-      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
+      "path": "64-121__pearson/seed1/selection.txt",
+      "sha256": "7ecf7658fad1e535a4762f2f35de59a87adf4a4c0175de133ed25499612b6534",
+      "size_bytes": 21042
+    },
+    {
+      "path": "64-121__pearson/seed2/curve.csv",
+      "sha256": "efd313210011fa790cd0c5f6dc675849832a3c12b4a289d796fccc42d1420fe6",
+      "size_bytes": 1423
+    },
+    {
+      "path": "64-121__pearson/seed2/final.pth",
+      "sha256": "d309f50ccffc68784a1b2233a5188c1fcbb39506243efcb6e63dac9683a74ef1",
+      "size_bytes": 164963
+    },
+    {
+      "path": "64-121__pearson/seed2/scores.csv",
       "sha256": "38a1707fa3da42a282c571306bd7241feb1b45ac042c876a52e9d2392530764d",
-      "sources": [
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
-        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv"
-      ]
+      "size_bytes": 34536
+    },
+    {
+      "path": "64-121__pearson/seed2/selection.txt",
+      "sha256": "ceb340b4063d1fa4cab6dcc9df8644b03b65baebbedb630a83dee847fe10c579",
+      "size_bytes": 21061
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed0/curve.csv",
+      "sha256": "95048af146956619be8931d3444b2a773674a8f314cdf6d0e98cdb49860adc0d",
+      "size_bytes": 1467
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed0/final.pth",
+      "sha256": "4072d523d92751606369005b7b0096f8d6407f3e86544e8c59e1922a925efedb",
+      "size_bytes": 160867
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed0/scores.csv",
+      "sha256": "62f599ed992502dbae7e422587130821f526b053d8f00f86cc3a68bdc7a2fa0c",
+      "size_bytes": 34534
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed0/selection.txt",
+      "sha256": "0df7851532f815d1944c0fa33530fbe84c7f8995b1a468b3d6cef5c0e21662ec",
+      "size_bytes": 21061
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed1/curve.csv",
+      "sha256": "9b60f3651840e427d753366a0ec01dc6b18f23ac972993f0194836b308e1a920",
+      "size_bytes": 1458
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed1/final.pth",
+      "sha256": "126dc8a3b609a085ec31a935c8c889608e375535189e6cf18abb9fc9a9500c45",
+      "size_bytes": 160867
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed1/scores.csv",
+      "sha256": "82f0c2b2fe89065baab234bd7d10d17b9559e17420d22f41d59590cb64d85276",
+      "size_bytes": 34552
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed1/selection.txt",
+      "sha256": "ef32db6b737a02e84dba44cdfd960a3ff193de5e24eb1e4ca45c9051abdda17a",
+      "size_bytes": 21090
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed2/curve.csv",
+      "sha256": "31465a6d7b3309d4d99f19e5056c48bcf8bcdfe2c4f7b2981cd7a0feb32b7108",
+      "size_bytes": 1466
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed2/final.pth",
+      "sha256": "aab3bedcb5640cead6896d72542141c0d91660e43cb0f11a8790886ed638dc1d",
+      "size_bytes": 160867
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed2/scores.csv",
+      "sha256": "9796ee12693ec0fbb3452cc63e156327199200832c57b0bf921345b717357c17",
+      "size_bytes": 34549
+    },
+    {
+      "path": "64-61__hybrid-a0.6/seed2/selection.txt",
+      "sha256": "4eb070cb67cbfed96e0daaa9494babe4160ca4ba982f4360e017abc703096550",
+      "size_bytes": 21080
+    },
+    {
+      "path": "summary.csv",
+      "sha256": "a668f15aa627d8accb4ad8d2bdad42f652c9d99e611c541e9c021a3f40e92f2a",
+      "size_bytes": 3493
     }
-  ]
+  ],
+  "layout": "Đã gom theo cấu hình: runs/tn4/<tên ngắn>/seed<N>/{final.pth, curve.csv, scores.csv, selection.txt}. summary.csv giữ cột run_id đầy đủ để truy nguồn.",
+  "config_names": {
+    "64-61__hybrid-a0.6": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9  (Ours-64/61, hàm loss lai alpha 0,6)",
+    "64-121__pearson": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9  (Ours-64/121, Pearson thuần) — ĐỀ XUẤT",
+    "64-121__mse": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9  (Ours-64/121, MSE thuần — nền để trừ)",
+    "192-121__hybrid-a0.2": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9  (Ours-192/121, alpha 0,2)"
+  }
 }
