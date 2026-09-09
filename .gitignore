@@ -71,3 +71,6 @@ notebooks/tn0_reproduce.ipynb
 /.submission_archive/
 !/notebooks/GOM_ZIP_KET_QUA.ipynb
 !/notebooks/TAI_ZIP_TN4.ipynb
+
+# TN4 nhỏ (12 file, 5 MB) — cho phép commit để chạy lại inference
+!runs/tn4/**/*.pth
