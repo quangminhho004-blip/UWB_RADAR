@@ -72,47 +72,120 @@ giống của chính LSTM-352 (0.0041 và 0.0154).
 triển (0.0111, hai dải seed tách rời) nhưng trên tập test khoảng cách thu hẹp
 còn 0.0059 và hai dải chồng nhau, chưa phân định được.
 
-## Chuẩn bị dữ liệu
+## Cài đặt
 
-Chạy lần lượt, một lần duy nhất:
+Repo này **không chứa mã MobiVital và không chứa dữ liệu**. Cả hai phải lấy về,
+đúng chỗ mà mã MobiVital đòi. Ba bước dưới làm đúng việc đó.
 
-Giải nén `tripod.zip` (Zenodo) thẳng vào thư mục MobiVital. **Chỉ giữ một bản CSV**:
+### Bước 1 — lấy repo đồ án
+
+```bash
+git clone https://github.com/quangminhho004-blip/UWB_RADAR.git
+cd UWB_RADAR
+```
+
+### Bước 2 — lấy mã MobiVital vào `external/mobivital`
+
+Repo MobiVital **không có LICENSE** nên không được chép vào repo này. Phải clone
+riêng, và **ghim đúng commit** đã dùng cho mọi số liệu trong luận văn:
+
+```bash
+git clone https://github.com/nesl/mobivital-public.git external/mobivital
+git -C external/mobivital checkout 4319731d2769d4134c92088dd846666e262f18e9
+```
+
+Trên Colab thì một lệnh làm cả hai việc, kèm cài `einops`:
+
+```bash
+python scripts/setup_colab.py
+```
+
+Đường dẫn `external/mobivital` là **bắt buộc**, không đổi tên được — mã
+MobiVital dùng đường dẫn tương đối, và `src/mobivital_reference.py` trỏ vào đó.
+
+### Bước 3 — lấy dữ liệu vào thư mục `tripod`
+
+Dữ liệu thô 13 GB trên Zenodo, giải nén thẳng vào **bên trong** thư mục
+MobiVital vừa clone:
+
+```bash
+python scripts/download_dataset.py
+```
+
+Ra đúng chỗ này:
+
+```
+external/mobivital/
+    dataset/
+        mobivital/
+            tripod/        <- 1874 tệp CSV, 13 GB
+```
+
+Vì sao đúng chỗ đó: `prep_breath_final.py` dòng 18 đọc theo đường dẫn tương đối
+`./dataset/mobivital/tripod/`. Đặt sai chỗ là mã của tác giả không chạy được.
+
+Script tải bằng `aria2c` 16 luồng — đo thật trên Colab: `wget` một luồng mất
+**2,3 giờ**, `aria2c -x16` mất **2–4 phút**, vì Zenodo bóp băng thông mỗi kết
+nối. Chạy lại được: đủ 1874 tệp thì bỏ qua, không tải lại.
+
+Muốn tải tay thì lấy `tripod.zip` từ
+[Zenodo](https://doi.org/10.5281/zenodo.15022885) rồi:
+
+```bash
+unzip tripod.zip -d external/mobivital/dataset/mobivital/
+```
+
+Giải nén vào `.../mobivital/`, **không** vào `.../mobivital/tripod/` — trong tệp
+nén đã có sẵn thư mục `tripod/`, vào sâu một tầng nữa là lồng hai lớp.
+
+**Chỉ giữ một bản CSV duy nhất.** Hai pipeline đọc chung bản đó, nên khi
+`check_data.py` báo sai lệch bằng 0 thì không ai cãi được là do hai bản dữ liệu
+khác nhau. `data/` chỉ chứa thứ pipeline của đồ án sinh ra.
+
+
+## Dựng dữ liệu đã xử lý
+
+Chạy lần lượt, một lần duy nhất. Cả hai pipeline đọc chung bộ CSV ở bước 3:
 
 ```
 external/mobivital/dataset/mobivital/tripod/   1874 CSV, 13 GB
         |
-        +--> prep_breath_final.py cua HO   -> data_final/*.npy
+        +--> prep_breath_final.py CỦA TÁC GIẢ  -> data_final/*.npy
         |
-        +--> scripts/make_npz.py cua MINH  -> data/processed/by_user/*.npz
+        +--> scripts/make_npz.py CỦA ĐỒ ÁN     -> data/processed/by_user/*.npz
 ```
 
 | # | lệnh | ra cái gì |
 |---|---|---|
-| 1 | `unzip tripod.zip -d external/mobivital/dataset/mobivital/` | 1874 CSV |
-| 2 | `python scripts/mobivital/setup_dataset.py` | vá 52 tên file lỗi thời, giấu dữ liệu khỏi git của MobiVital |
-| 3 | `cd external/mobivital && python dataset_preparation/prep_breath_final.py` | `data_final/*.npy` — **pipeline gốc**, script của tác giả |
-| 4 | `python scripts/make_npz.py` | `by_user/*.npz` — **pipeline của đồ án** |
-| 5 | `python scripts/check_data.py` | đối chiếu hai bên, phải khớp từng byte |
-| 6 | `python scripts/make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
+| 1 | `python scripts/mobivital/setup_dataset.py` | vá 52 tên tệp lỗi thời, giấu dữ liệu khỏi git của MobiVital |
+| 2 | `cd external/mobivital && python dataset_preparation/prep_breath_final.py` | `data_final/*.npy` — **pipeline gốc**, script của tác giả, 0 dòng sửa |
+| 3 | `python scripts/make_npz.py` | `by_user/*.npz` — **pipeline của đồ án** |
+| 4 | `python scripts/check_data.py` | đối chiếu hai bên, phải khớp từng byte |
+| 5 | `python scripts/make_windows.py` | `data/processed/windows/` — cửa sổ cắt sẵn |
 
-Chạy `notebooks/DATA_PREPARE.ipynb` một lần là hai tệp `by_user.tar` và
-`windows.tar.gz` nằm sẵn trên Drive. Từ đó mọi notebook sau gọi
-`python scripts/restore_processed_data_on_drive.py` để lấy về (2 phút) thay vì chạy lại
-bước 4 và 6 (~16 phút). CSV thô 13 GB không cất lên Drive vì pipeline MobiVital
-đọc thẳng CSV, mà tải lại từ Zenodo chỉ mất 4 phút.
-
-`data/` chỉ chứa thứ pipeline của đồ án sinh ra. `scripts/mobivital/` chỉ **dọn
-chỗ** — việc đọc CSV do chính `prep_breath_final.py` của MobiVital làm, nguyên
-bản, 0 dòng sửa.
-
-Bước 5 in ra:
+Bước 4 phải in ra:
 
 ```
 ABCDEFKL  1289/1289 buổi ghi khớp TỪNG BYTE   = training_breath_tripod_data.npy
 GHIJ       537/537  buổi ghi khớp TỪNG BYTE   = testing_breath_tripod_data.npy
 ```
 
-Từ đó mọi thí nghiệm sau chỉ đọc `by_user/*.npz`, bỏ được CSV thô 13 GB.
+Không ra thế thì dừng, mọi so sánh về sau vô nghĩa.
+
+Từ đây mọi thí nghiệm chỉ đọc `by_user/*.npz` và `windows/`, bỏ được CSV thô
+13 GB.
+
+Chạy `notebooks/DATA_PREPARE.ipynb` một lần là hai tệp `by_user.tar` và
+`windows.tar.gz` nằm sẵn trên Drive. Từ đó mọi notebook sau gọi
+`python scripts/restore_processed_data_on_drive.py` để lấy về (2 phút) thay vì
+chạy lại bước 3 và 5 (~16 phút). CSV thô không cất lên Drive vì pipeline
+MobiVital đọc thẳng CSV, mà tải lại từ Zenodo chỉ mất vài phút.
+
+Muốn kiểm dữ liệu của mình có trùng với bản dùng trong luận văn không:
+
+```bash
+python scripts/checksums.py        # so với data/checksums.txt
+```
 
 ## Cấu trúc
 
@@ -150,13 +223,7 @@ runs/        KHÔNG commit, checkpoint và kết quả
 external/mobivital/   KHÔNG commit, clone riêng
 ```
 
-Repo MobiVital **không có LICENSE** nên tuyệt đối không chép vào đây. Clone riêng:
-
-```bash
-git clone https://github.com/nesl/mobivital-public.git external/mobivital
-```
-
-Bản đang dùng: commit `4319731d2769d4134c92088dd846666e262f18e9`.
+Mã MobiVital và dữ liệu lấy riêng — xem mục **Cài đặt** ở trên.
 
 ## Chạy thí nghiệm
 
