@@ -69,3 +69,4 @@ notebooks/tn0_reproduce.ipynb
 !/notebooks/TN4_final_test_ds_tcn_c192.ipynb
 # Tài liệu cũ giữ local để truy vết, không đưa vào bản nộp.
 /.submission_archive/
+!/notebooks/GOM_ZIP_KET_QUA.ipynb
