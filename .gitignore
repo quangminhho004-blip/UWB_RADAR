@@ -70,3 +70,4 @@ notebooks/tn0_reproduce.ipynb
 # Tài liệu cũ giữ local để truy vết, không đưa vào bản nộp.
 /.submission_archive/
 !/notebooks/GOM_ZIP_KET_QUA.ipynb
+!/notebooks/TAI_ZIP_TN4.ipynb
