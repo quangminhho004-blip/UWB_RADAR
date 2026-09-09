@@ -1,7 +1,10 @@
 # MobiVital — đồ án tốt nghiệp
 
-Cải tiến mô hình dự báo sóng nhịp thở cho MobiVital (radar UWB không tiếp xúc):
-thay LSTM baseline bằng TCN nhân quả có RevIN.
+Khảo sát mô hình dự báo dùng trong bộ chọn kênh của MobiVital (radar UWB không
+tiếp xúc): kiến trúc, tầm nhìn, và hàm mục tiêu.
+
+**Mọi số liệu nằm ở [`docs/BANG_DIEM.md`](docs/BANG_DIEM.md)**, không ghi trong
+tệp này — để chỉ có một chỗ duy nhất phải cập nhật khi có kết quả mới.
 
 Bài báo gốc: [arXiv 2503.11064](https://arxiv.org/abs/2503.11064) ·
 Code: [nesl/mobivital-public](https://github.com/nesl/mobivital-public) ·
@@ -21,56 +24,6 @@ nào model đoán chuẩn nhất thì chọn. Sóng thở đều đặn nên d�
 nên đoán trật.
 
 Đồ án này thay model dự báo đó từ LSTM sang TCN.
-
-## Kết quả đã có
-
-Bảng 4 bài báo gốc:
-
-| Method | điểm |
-|---|---|
-| **MobiVital** | **0.819** |
-| SNR | 0.745 |
-| CFAR | 0.516 |
-| Variance | 0.514 |
-| **Oracle** (được nhìn nhịp thở thật) | **0.943** |
-
-Dựng lại bằng chính code của tác giả, không sửa dòng nào — xem
-[notebooks/TN0.md](notebooks/TN0.md):
-
-```
-TN0a  chấm file kết quả tác giả commit sẵn   0.819481   khớp bài báo, lệch 0.00048
-TN0b  checkpoint tác giả, đồ án tự chạy      0.822175   537/537 kênh trùng
-TN0c  tự train lại từ đầu                    0.812839   chỉ tham khảo
-```
-
-Ba số trên lấy từ lần chạy Colab ghi trong [notebooks/TN0.ipynb](notebooks/TN0.ipynb).
-TN0a và TN0b tất định nên chạy ở đâu cũng ra đúng số đó; TN0c train lại từ đầu nên
-đổi theo phiên bản thư viện và phần cứng, không phải tiêu chí đạt/trượt.
-
-`Oracle 0.943` là trần trên. MobiVital đạt `0.819`. **Dư địa là 0.124** — mọi cải tiến
-chỉ có thể ăn trong khoảng này.
-
-### TN1 — kiến trúc
-
-Bốn cấu hình, mỗi cấu hình 3 seed. `cv_score` chọn cấu hình, `GHIJ` chỉ để báo cáo:
-
-| cấu hình | tham số | CV (3 seed) | GHIJ (3 seed) |
-|---|---|---|---|
-| LSTM hidden 352 | 1.502.713 | 0.7570 ± 0.0041 | **0.8103 ± 0.0154** |
-| LSTM hidden 67 | 56.908 | 0.7532 ± 0.0020 | 0.8017 ± 0.0025 |
-| DS-TCN 64 kênh | 56.281 | 0.7421 ± 0.0007 | 0.7958 ± 0.0154 |
-| TCN 64 kênh | 151.513 | 0.7423 ± 0.0044 | chưa chạy |
-
-**Thay LSTM bằng TCN không cải thiện.** Cả hai biến thể TCN đều thấp hơn LSTM ở
-cả hai tập, và ba dải seed không chồng nhau ở CV.
-
-**Thu nhỏ LSTM 96% gần như không mất gì.** Từ 1,5 triệu xuống 57 nghìn tham số,
-điểm giảm 0.0038 ở CV và 0.0086 ở GHIJ — cả hai đều nhỏ hơn dao động do đổi hạt
-giống của chính LSTM-352 (0.0041 và 0.0154).
-
-Ở cùng ngân sách khoảng 56 nghìn tham số, LSTM hơn DS-TCN rõ ràng trên tập phát
-triển (0.0111, hai dải seed tách rời) nhưng trên tập test khoảng cách thu hẹp
-còn 0.0059 và hai dải chồng nhau, chưa phân định được.
 
 ## Cài đặt
 
@@ -319,24 +272,24 @@ MobiVital — chỉ `import` sáu hàm thuần tính toán, không nạp file sc
 
 ```
 [Colab] DATA_PREPARE   dữ liệu từ Zenodo -> by_user, windows
-                       -> sai lệch hai pipeline = 0.0
+                       -> đối chiếu hai pipeline, phải khớp từng byte
                        -> data/checksums.txt
 
-[Colab] TN0    a  chấm bảng MobiVital commit sẵn   -> khớp Table 4 bài báo (0.819)
-               b  checkpoint có sẵn, tự chọn kênh
+[Colab] TN0    a  chấm bảng lựa chọn kênh tác giả commit sẵn
+               b  checkpoint tác giả, đồ án tự chạy inference
                c  train lại từ đầu
-               chạy hai lần: code MobiVital bản gốc (0 dòng sửa), rồi code đồ án
-               -> a và b khớp tới chữ số cuối, lựa chọn kênh trùng 537/537
+               chạy hai lần: mã MobiVital bản gốc (0 dòng sửa), rồi mã đồ án
+               -> đối chiếu từng dòng, và đối chiếu với bài báo
 
-[Colab] TN1..TN6       TCN, 4 fold                       <- từ đây trở đi
+[Colab] TN1..TN4       so kiến trúc, tầm nhìn, hàm loss, rồi test cuối
 ```
 
-Cả hai pipeline chạy **trong cùng một phiên Colab, cùng một GPU**. Bước chọn kênh
-là `argmax`, GPU và CPU cộng số theo thứ tự khác nên hai ứng viên gần bằng điểm
-có thể đảo thứ hạng — đã đo: cùng checkpoint, GPU và CPU chọn khác kênh ở 251/537
-buổi ghi. Đối chiếu từng dòng chỉ có nghĩa khi cùng thiết bị.
+Cả hai pipeline chạy **trong cùng một phiên Colab, cùng một thiết bị**. Bước
+chọn kênh là `argmax`, thiết bị khác nhau cộng số theo thứ tự khác nên hai ứng
+viên gần bằng điểm có thể đảo thứ hạng. Đối chiếu từng dòng chỉ có nghĩa khi
+cùng thiết bị.
 
-Chi tiết: [`notebooks/TN0.md`](notebooks/TN0.md) mục "TN0 nối với TN0.1".
+Chi tiết và số liệu: [`notebooks/TN0.md`](notebooks/TN0.md).
 
 ## Dữ liệu
 
@@ -348,22 +301,19 @@ Dữ liệu thô 13 GB nằm trên Zenodo, **không đưa lên GitHub** (GitHub 
 - [`data/checksums.txt`](data/checksums.txt) — mã băm **nội dung mảng** của 12
   file, để ai chạy lại cũng đối chiếu được
 
-Đo được khi chạy ở hai máy khác nhau:
-
-```
-by_user/*.npz     12/12 giong TUNG SO
-windows/*.npz     so cua so giong het, gia tri lech ~2e-8
-```
-
-`by_user` chỉ dùng `+ - x :` nên chính xác tuyệt đối. `windows` lệch vì phép
-`phase` dùng `np.unwrap`: cộng `2pi` 22 lần trong `float32` làm `max-min` lệch
-`1e-6`, rồi `self_normalize` **chia** cho số đó nên khuếch đại ra toàn mảng.
-Ba phép `abs`, `real`, `imag` khớp tới chữ số 13.
+Chạy lại ở máy khác thì `by_user` khớp từng số, còn `windows` lệch rất nhỏ ở
+phép `phase`: `np.unwrap` cộng `2pi` nhiều lần trong `float32` làm `max − min`
+lệch, rồi `self_normalize` **chia** cho số đó nên khuếch đại ra toàn mảng. Ba
+phép `abs`, `real`, `imag` thì khớp gần như tuyệt đối.
 
 ## Đọc tiếp
 
+- [`docs/BANG_DIEM.md`](docs/BANG_DIEM.md) — **mọi số liệu của đồ án**, một chỗ duy nhất.
 - [`docs/PROTOCOL.md`](docs/PROTOCOL.md) — luật thí nghiệm. Đọc trước khi chạy bất cứ gì.
-- [`docs/WHY_SPLIT_BY_USER.md`](docs/WHY_SPLIT_BY_USER.md) — vì sao chia dữ liệu theo người.
+- [`docs/PIPELINE.md`](docs/PIPELINE.md) — sơ đồ khối hai giai đoạn, dùng cho slide.
+- [`docs/CAU_TRUC_MA_NGUON.md`](docs/CAU_TRUC_MA_NGUON.md) — mỗi tệp trong `src/` và `scripts/` làm gì.
+- [`docs/RESEARCH_GAP.md`](docs/RESEARCH_GAP.md) — khoảng trống nghiên cứu và cách phát biểu kết quả.
+- [`docs/CHIA_DU_LIEU.md`](docs/CHIA_DU_LIEU.md) — vì sao chia dữ liệu theo người, vì sao bốn fold.
 - [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — chạy toàn bộ trên Colab.
 - [`notebooks/TN0.md`](notebooks/TN0.md) — dựng lại kết quả MobiVital.
 
