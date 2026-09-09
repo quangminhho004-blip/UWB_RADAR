@@ -16,34 +16,59 @@ Mọi điểm trong tài liệu này là **macro trên tập phát triển**, tr
 ```
 TN1 — chọn kiến trúc nền
 │    notebook: TN1_TCN_DSTCN_model_selection
+│    Ba cấu hình cùng lượt, cùng 3 seed, khác ĐÚNG phép tích chập và chuẩn hoá.
 │
-├─ TCN-64 BatchNorm      151.513 ts   tầm nhìn 253   0,742337 ± 0,004369   3 seed
-│     └─ CỤT: gấp 2,7 lần tham số của DS-TCN mà điểm ngang
+├─ TCN-64 BatchNorm      151.513 ts   RF253   0,742337 ± 0,004369
+│     └─ CỤT: gấp 2,7 lần tham số DS-TCN mà điểm ngang
 │
-├─ TCN-64 WeightNorm     150.745 ts   tầm nhìn 253   0,746250 ± 0,002997   3 seed
-│     └─ CỤT: hơn DS-TCN 0,0041, nhỏ hơn dao động seed, không đủ để trả 2,7 lần tham số
+├─ TCN-64 WeightNorm     150.745 ts   RF253   0,746250 ± 0,002997
+│     └─ CỤT: hơn DS-TCN 0,0041, nhỏ hơn dao động seed
 │
-└─ DS-TCN-64             56.281 ts    tầm nhìn 253   0,742109 ± 0,000673   3 seed   ★ CHỌN
-   │  GHIJ 0,795782 ± 0,015413 (TN1_final_evaluation)
-   │
-   ├─ + RevIN            56.281 ts    tầm nhìn 253   0,729715 ± 0,007271   3 seed
-   │     notebook: TN2_DS_TCN_RevIN
-   │     └─ CỤT: tệ hơn 0,0124, gấp 18 lần dao động seed.
-   │        RevIN chia cho độ lệch chuẩn, tức xoá biên độ — mà biên độ là
-   │        manh mối thật, tương quan 0,53 với chất lượng ứng viên.
-   │
-   └─ bỏ chuẩn hoá · dropout 0,2 theo phần tử · 4 khối
-      │  tầm nhìn 253 -> 61, tham số 56.281 -> 37.081
-      │
-      ├─ c64  k3    37.081 ts   tầm nhìn 61   0,760877 ± 0,003095   3 seed   ★ CHỌN
-      │     notebook: TN1_DS_TCN_RF61_no_norm_do02_c64
-      │
-      └─ c192 k3   307.801 ts   tầm nhìn 61   0,747955 ± 0,012189   3 seed
-            notebook: TN1_DS_TCN_RF61_no_norm_do02_c192
-            └─ CỤT ở nhánh này: 8 lần tham số, điểm thấp hơn 0,0129,
-               dao động seed lớn gấp bốn lần. Nhưng số kênh 192 vẫn được
-               mang xuống TN2 để kiểm xem quy luật tầm nhìn có lặp lại không.
+└─ DS-TCN-64             56.281 ts    RF253   0,742109 ± 0,000673   ★ CHỌN
+      k3 · 6 khối · BatchNorm · dropout 0
+      GHIJ 0,795782 ± 0,015413   (TN1_final_evaluation)
 ```
+
+### DS-TCN có SÁU biến thể, không phải một
+
+Cây trên chỉ là bậc chọn phép tích chập. Bản DS-TCN mang xuống TN2 **không phải**
+bản thắng ở bậc đó — nó là một biến thể khác, đổi thêm ba thứ nữa.
+
+| biến thể | tham số | kênh | khối | chuẩn hoá | dropout | tầm nhìn | cv_score | seed | notebook |
+|---|---:|---:|---|---|---|---:|---:|:---:|---|
+| **gốc** | 56.281 | 64 | k3 n6 | BatchNorm | 0 | 253 | 0,742109 ± 0,000673 | 3 | `TN1_TCN_DSTCN_model_selection` |
+| **+ RevIN** | 56.281 | 64 | k3 n6 | BatchNorm | 0 | 253 | 0,729715 ± 0,007271 | 3 | `TN2_DS_TCN_RevIN` |
+| **c64 k3n4** | **37.081** | 64 | k3 n4 | không | 0,2 phần tử | 61 | **0,760877** ± 0,003095 | 3 | `TN1_DS_TCN_RF61_no_norm_do02_c64` |
+| **c192 k3n4** | 307.801 | 192 | k3 n4 | không | 0,2 phần tử | 61 | 0,747955 ± 0,012189 | 3 | `TN1_DS_TCN_RF61_no_norm_do02_c192` |
+| c192 k5n4 BatchNorm | 313.945 | 192 | k5 n4 | BatchNorm | 0,2 kênh | 121 | 0,756618 | 1 | `TN_test_ds_tcn_192` |
+| c64 k5n4 · c192 k5n4 | 38.105 · 310.873 | | k5 n4 | không | 0,2 phần tử | 121 | 0,757855 · 0,764428 | 1 | TN2, xem bậc dưới |
+
+### Chỗ phải ghi rõ khi báo cáo
+
+Bước từ **gốc** sang **c64 k3n4** được +0,0188, nhưng nó đổi **bốn thứ cùng lúc**:
+
+```
+chuẩn hoá     BatchNorm  ->  không có
+dropout       0          ->  0,2 theo phần tử
+số khối       6          ->  4
+tầm nhìn      253        ->  61     (hệ quả của số khối)
+```
+
+**Không tách được +0,0188 đó ra cho từng thứ.** Đây không phải ablation một
+biến — nó là một cấu hình khác được đem so, và chỉ nói được là *cấu hình đó hơn
+cấu hình gốc 0,0188, gấp sáu lần dao động seed của bản mới*.
+
+Một mảnh tách được: **c192 k5n4 BatchNorm** so với **c192 k5n4 không chuẩn hoá**
+— cùng kênh, cùng kernel, cùng số khối, chỉ khác chuẩn hoá và loại dropout:
+
+```
+0,756618  BatchNorm + dropout theo kênh     313.945 ts
+0,764428  không norm + dropout phần tử      310.873 ts
+          chênh +0,0078, nhưng CẢ HAI mới 1 seed nên chưa đọc được
+```
+
+Muốn tách hẳn thì phải chạy ablation từng biến trên cùng một lượt, mỗi biến
+3 seed. Chưa có.
 
 ```
 TN2 — chọn tầm nhìn        kế thừa: bỏ chuẩn hoá · dropout 0,2 · 4 khối · loss MSE
