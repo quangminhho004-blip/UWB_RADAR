@@ -6,6 +6,8 @@ Bản nộp trên nhánh **submission** tập trung vào **TCN/DS-TCN**, theo th
 
 Danh mục tài liệu và vai trò từng file: [docs/README.md](docs/README.md).
 
+**Bàn giao cho thành viên đóng gói bản nộp:** [ARTIFACTS.md](ARTIFACTS.md) — gói dữ liệu/kết quả cần lấy, checkpoint, kiểm TN0 và các link Drive cần điền.
+
 - [Báo cáo chi tiết: vì sao chọn từng tham số](docs/BAO_CAO_QUA_TRINH_THUC_NGHIEM.md).
 - [Sơ đồ các nhánh](docs/SO_DO_NHANH.md).
 - [Pipeline train và inference](docs/PIPELINE_2.md).

@@ -2,6 +2,8 @@
 
 Đọc từ `THESIS.md`; các file còn lại cung cấp bằng chứng và giải thích chi tiết. Hai mô hình cuối được trình bày theo thứ tự **64/RF121 + Pearson**, rồi **64/RF61 + hybrid α = 0,6**.
 
+Đóng gói để nộp hội đồng: [ARTIFACTS.md](../ARTIFACTS.md) liệt kê dữ liệu, ZIP kết quả, checkpoint, trạng thái thiếu và cách kiểm trước khi bàn giao.
+
 | File | Giữ để làm gì? |
 |---|---|
 | [THESIS.md](THESIS.md) | Tổng quan TN0–TN4, macro/micro, cấu hình, kết quả và lựa chọn cuối. |

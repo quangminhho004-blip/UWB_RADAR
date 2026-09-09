@@ -621,6 +621,7 @@ Các notebook ngoài phạm vi không nằm trong danh mục bản nộp. Danh m
 
 ## 7. Tài liệu đọc tiếp
 
+- [Danh mục artifact và hướng dẫn bàn giao](../ARTIFACTS.md).
 - [Sơ đồ nhánh TN1–TN4](SO_DO_NHANH.md).
 - [Báo cáo chi tiết và lý do từng tham số](BAO_CAO_QUA_TRINH_THUC_NGHIEM.md).
 - [Bảng TCN từng seed](BANG_TCN_TUNG_SEED.md).
