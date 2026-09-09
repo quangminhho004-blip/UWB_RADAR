@@ -215,68 +215,61 @@ hạng, nên bảng này chỉ dùng để **loại**, không dùng để **ch�
 `alpha` là trọng số của MSE: `loss = alpha·MSE + (1 − alpha)·(1 − Pearson)`. Nên
 `alpha = 1` là MSE thuần, `alpha = 0` là Pearson thuần.
 
-Cả hai cột **đã đủ mười một điểm**.
+Ba cấu hình, mỗi cấu hình đủ mười một điểm.
 
-| alpha | c64 k3 RF61 *(37.081)* | c192 k5 RF121 *(310.873)* |
-|---:|---:|---:|
-| 0,0 | 0,776667 *(+0,0158)* | 0,772640 *(+0,0082)* |
-| 0,1 | 0,769390 *(+0,0085)* | 0,771848 *(+0,0074)* |
-| 0,2 | 0,775264 *(+0,0144)* | **0,776011** *(+0,0116)* |
-| 0,3 | 0,771931 *(+0,0111)* | 0,774584 *(+0,0102)* |
-| 0,4 | 0,779266 *(+0,0184)* | 0,768337 *(+0,0039)* |
-| 0,5 | 0,779419 *(+0,0185)* | 0,769950 *(+0,0055)* |
-| 0,6 | **0,780028** *(+0,0192)* | 0,765333 *(+0,0009)* |
-| 0,7 | 0,771665 *(+0,0108)* | 0,769263 *(+0,0048)* |
-| 0,8 | 0,776611 *(+0,0157)* | 0,770282 *(+0,0059)* |
-| 0,9 | 0,764941 *(+0,0041)* | 0,771893 *(+0,0075)* |
-| **1,0 — MSE thuần** | **0,760878** *(3 seed)* | **0,764428** |
-
-Số trong ngoặc là chênh so với **MSE thuần của chính cấu hình đó**.
+| alpha | c64 k3 RF61 | c64 k5 RF121 | c192 k5 RF121 |
+|---:|---:|---:|---:|
+| 0,0 | 0,776667 | **0,780306** | 0,772640 |
+| 0,1 | 0,769390 | 0,763183 | 0,771848 |
+| 0,2 | 0,775264 | 0,771996 | **0,776011** |
+| 0,3 | 0,771931 | 0,776213 | 0,774584 |
+| 0,4 | 0,779266 | 0,771848 | 0,768337 |
+| 0,5 | 0,779419 | 0,763457 | 0,769950 |
+| 0,6 | **0,780028** | *0,752386* | 0,765333 |
+| 0,7 | 0,771665 | 0,761892 | 0,769263 |
+| 0,8 | 0,776611 | 0,760013 | 0,770282 |
+| 0,9 | 0,764941 | 0,758236 | 0,771893 |
+| **1,0 — MSE thuần** | **0,760878** *(3 seed)* | **0,757855** | **0,764428** |
 
 ### Điều lặp lại được
 
-**20/20 mức alpha hơn MSE thuần.** Mười trên mười ở c64 (+0,0041 tới +0,0192),
-mười trên mười ở c192 (+0,0009 tới +0,0116). Hai cấu hình cách nhau 8,3 lần tham
-số và khác cả tầm nhìn, mà không mức nào rơi xuống dưới mốc MSE thuần.
-
-Ở c64 còn so được với **seed tốt nhất** của MSE thuần (ba seed: 0,7582 / 0,7601
-/ 0,7643): cả mười mức alpha vẫn hơn 0,7643, mức đỉnh hơn 0,0157 tức 5,1 lần
-`seed_std`.
+**29/30 mức alpha hơn MSE thuần của chính cấu hình đó.** Ba cấu hình khác nhau
+cả số kênh lẫn tầm nhìn. Mức duy nhất thua là `c64 k5 RF121 alpha 0,6`, thấp hơn
+0,0055.
 
 ### Điều KHÔNG lặp lại được
 
-**Thứ hạng giữa các alpha không chuyển được từ cấu hình này sang cấu hình kia.**
+**Thứ hạng giữa các alpha không chuyển được giữa các cấu hình.**
 
-| | c64 | c192 |
+| | đỉnh | tốp 3 |
 |---|---|---|
-| đỉnh | alpha **0,6** | alpha **0,2** |
-| đáy | alpha 0,9 | alpha **0,6** |
-| tốp 3 | 0,6 · 0,5 · 0,4 | 0,2 · 0,3 · 0,0 |
+| c64 k3 RF61 | alpha **0,6** | 0,6 · 0,5 · 0,4 |
+| c64 k5 RF121 | alpha **0,0** | 0,0 · 0,3 · 0,2 |
+| c192 k5 RF121 | alpha **0,2** | 0,2 · 0,3 · 0,0 |
 
-**Tốp 3 của hai cột không giao nhau một mức nào.** Alpha 0,6 là đỉnh của c64
-nhưng là đáy của c192. Tương quan hình dạng hai đường cong: **−0,44**.
+Ba đỉnh nằm ở ba chỗ khác nhau. Alpha 0,6 là đỉnh của cấu hình thứ nhất nhưng là
+**mức duy nhất trong cả đồ án thua MSE thuần** ở cấu hình thứ hai — mà hai cấu
+hình đó chỉ khác nhau **tầm nhìn**.
 
-Lý do có thể thấy bằng số: biên độ dao động **bên trong** mỗi cột là 0,0151
-(c64) và 0,0107 (c192), tức cùng cỡ với cận trên của `seed_std` đo được ở TN1
-(0,0007–0,0108). Còn khoảng cách tới MSE thuần thì luôn dương ở cả hai mươi
-điểm. Nên **hiệu ứng "có lai thì hơn" nằm trên nhiễu, còn hiệu ứng "alpha nào
-tốt hơn alpha nào" thì chìm trong nhiễu.**
+Biên độ dao động bên trong mỗi cột là 0,0151 · 0,0279 · 0,0107, cùng cỡ hoặc lớn
+hơn cận trên của `seed_std` đo được ở TN1 (0,0007–0,0154).
+
+**Hiệu ứng "có lai thì hơn" nằm trên nhiễu. Hiệu ứng "alpha nào tốt hơn alpha
+nào" chìm trong nhiễu.**
 
 ### Phát biểu đúng
 
-Nói được: **thêm thành phần Pearson vào loss hơn MSE thuần, ở cả hai kích cỡ
-model.** Không nói được alpha nào tối ưu.
+Nói được: **thêm thành phần Pearson vào loss hơn MSE thuần, ở cả ba cấu hình,
+29 trên 30 mức.** Không nói được alpha nào tối ưu.
 
-Nếu phải chọn một giá trị, **alpha = 0,2** là lựa chọn có cơ sở nhất: nó cho lợi
-ích trung bình cao nhất trên cả hai cấu hình (+0,0130), và là mức duy nhất nằm
-trong nửa trên của **cả hai** cột.
+Nếu phải chọn một giá trị, **alpha = 0,2 hoặc 0,3** là lựa chọn có cơ sở nhất —
+hai mức duy nhất nằm trong nửa trên của **cả ba** cột.
 
 ### Chú thích về `cv_std` (~0,07)
 
 Đó là **độ lệch giữa bốn fold**, không phải giữa seed. `val_DF` thấp hơn ba fold
-kia ở **mọi** mức alpha và ở **cả hai** cấu hình — khoảng 0,14 với c64, khoảng
-0,17 với c192. Nó dịch cả cột xuống như nhau nên không làm hỏng phép so, nhưng
-bản thân việc `val_DF` khó hơn hẳn là một quan sát đáng ghi.
+kia ở **mọi** mức alpha và ở **cả ba** cấu hình. Nó dịch cả cột xuống như nhau
+nên không làm hỏng phép so.
 
 
 ## Khảo sát ghép nhánh MixLinear — 4 fold, 1 seed
