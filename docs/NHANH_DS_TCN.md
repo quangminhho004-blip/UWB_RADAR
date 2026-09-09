@@ -3,7 +3,7 @@
 Bốn bậc, mỗi bậc chốt một thứ rồi truyền xuống bậc sau:
 
 ```
-TN1 kiến trúc nền  ->  TN2 tầm nhìn  ->  TN3 hàm loss  ->  TN4 test cuối
+TN1 chọn kiến trúc  ->  TN2 chọn tầm nhìn  ->  TN3 chọn hàm loss  ->  TN4 test cuối
 ```
 
 Điểm trong tài liệu này là **macro trên tập phát triển**, trừ chỗ ghi GHIJ.
@@ -16,7 +16,7 @@ giữ nguyên**, không đổi.
 
 | tên đọc | `config_id` | tham số | notebook |
 |---|---|---:|---|
-| **DS-TCN-nền** | `ds_tcn_c64` | 56.281 | `TN1_TCN_DSTCN_model_selection` |
+| **DS-TCN-nền** *(ứng viên TN1)* | `ds_tcn_c64` | 56.281 | `TN1_TCN_DSTCN_model_selection` |
 | **DS-TCN-nền + RevIN** | `ds_tcn_c64_revin` | 56.281 | `TN2_DS_TCN_RevIN` |
 | **Ours-64/61** | `ds_tcn_c64_k3_n4_none_do0.2_dpel` | **37.081** | `TN1_DS_TCN_RF61_no_norm_do02_c64` |
 | **Ours-192/61** | `ds_tcn_c192_k3_n4_none_do0.2_dpel` | 307.801 | `TN1_DS_TCN_RF61_no_norm_do02_c192` |
@@ -34,7 +34,8 @@ Cùng nhóm còn hai kiến trúc đối chứng, **không phải DS-TCN**:
 
 ## DS-TCN-nền bám tài liệu nào
 
-Nền dựng theo hai bài, ghi rõ mục:
+**DS-TCN-nền** là ứng viên dựng bám khuyến nghị của hai bài, ghi rõ mục.
+Nó là một trong năm ứng viên TN1, không phải điểm xuất phát của các ứng viên kia:
 
 | thành phần | theo |
 |---|---|
@@ -56,6 +57,10 @@ Nền dựng theo hai bài, ghi rõ mục:
 BatchNorm thay WeightNorm, số kênh 64 không theo mục A.1, không có nhánh 1×1.
 Nên gọi là **DS-TCN-nền** chứ đừng gọi là "bản Bai".
 
+**Ours cũng là DS-TCN**, cùng phép tích chập depthwise theo Howard 2017 mục 3.1.
+Hai cái khác nhau ở chuẩn hoá, dropout, số khối và tầm nhìn — bốn lựa chọn cấu
+hình, không phải hai kiến trúc khác nhau.
+
 **Chỗ Ours đi ngược Bai — và là đóng góp chính.** Mục A.1 viết:
 
 > *"The most important factor for picking parameters is to make sure that the TCN
@@ -66,57 +71,73 @@ TN2 đo ngược lại: tầm nhìn **61 và 121 hơn hẳn 181 và 241**, dù c
 hơn hoặc bằng cửa sổ vào 200 mẫu. Đây là phát hiện, không phải "bỏ BatchNorm".
 
 
-## TN1 — chọn kiến trúc nền
+## TN1 — so các ứng viên NGANG HÀNG để chọn một
+
+TN1 không phải "dựng nền rồi sửa dần". Nó đặt **năm cấu hình ngang hàng** lên
+cùng một giao thức — cùng 4 fold, cùng 3 seed, cùng dữ liệu — rồi chọn cái tốt
+nhất mang xuống TN2.
 
 ```
-   ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
-   │  TCN-64 BatchNorm    │  │  TCN-64 WeightNorm   │  │  DS-TCN-nền          │
-   │  151.513 · RF253     │  │  150.745 · RF253     │  │   56.281 · RF253     │
-   │  0,742337 ± 0,004369 │  │  0,746250 ± 0,002997 │  │  0,742109 ± 0,000673 │
-   │  3 seed              │  │  3 seed              │  │  3 seed      ★ CHỌN  │
-   └──────────┬───────────┘  └──────────┬───────────┘  └──────────┬───────────┘
-              │ CỤT                     │ CỤT                     │
-      2,7 lần tham số            hơn 0,0041, nhỏ hơn             │
-      mà điểm ngang              dao động seed                    │
-                                                                  ▼
-                                                    GHIJ 0,795782 ± 0,015413
-                                                    TN1_final_evaluation
+                      ┌──────────────── THỰC NGHIỆM 1 ────────────────┐
+                      │      năm ứng viên, không cái nào là gốc       │
+                      └───────────────────────────────────────────────┘
+   ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+   │ TCN-64      │ │ TCN-64      │ │ DS-TCN-nền  │ │ Ours-64/61  │ │ Ours-192/61 │
+   │ BatchNorm   │ │ WeightNorm  │ │             │ │             │ │             │
+   ├─────────────┤ ├─────────────┤ ├─────────────┤ ├─────────────┤ ├─────────────┤
+   │ 151.513 ts  │ │ 150.745 ts  │ │  56.281 ts  │ │  37.081 ts  │ │ 307.801 ts  │
+   │ RF253       │ │ RF253       │ │ RF253       │ │ RF61        │ │ RF61        │
+   │ k3 · 6 khối │ │ k3 · 6 khối │ │ k3 · 6 khối │ │ k3 · 4 khối │ │ k3 · 4 khối │
+   │ BatchNorm   │ │ WeightNorm  │ │ BatchNorm   │ │ không norm  │ │ không norm  │
+   │ dropout 0   │ │ dropout 0   │ │ dropout 0   │ │ do 0,2 p.tử │ │ do 0,2 p.tử │
+   │ conv thường │ │ conv thường │ │ depthwise   │ │ depthwise   │ │ depthwise   │
+   ├─────────────┤ ├─────────────┤ ├─────────────┤ ├─────────────┤ ├─────────────┤
+   │  0,742337   │ │  0,746250   │ │  0,742109   │ │ **0,760877**│ │  0,747955   │
+   │  ± 0,004369 │ │  ± 0,002997 │ │  ± 0,000673 │ │  ± 0,003095 │ │  ± 0,012189 │
+   │  3 seed     │ │  3 seed     │ │  3 seed     │ │  3 seed     │ │  3 seed     │
+   └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ └──────┬──────┘
+                                                          │               │
+                                                       ★ CHỌN      mang xuống TN2
+                                                          │        làm đối chứng
+                                                          ▼        kích cỡ khác
+                                                        TN2
 ```
 
-Ba cấu hình **cùng lượt, cùng 3 seed**, khác đúng phép tích chập và chuẩn hoá.
+Xếp hạng: **Ours-64/61 hơn cả bốn ứng viên còn lại.**
 
-### Rồi TN1 chạy tiếp một biến thể khác — đây là chỗ dễ nhầm
+| | so với Ours-64/61 | có đọc được không |
+|---|---:|---|
+| Ours-192/61 | −0,012922 | được — lớn hơn dao động seed của Ours-64/61 |
+| TCN-64 WeightNorm | −0,014627 | được |
+| DS-TCN-nền | −0,018768 | được — gấp sáu lần dao động seed |
+| TCN-64 BatchNorm | −0,018540 | được |
 
-```
-   DS-TCN-nền                          Ours-64/61
-   56.281 · RF253                      37.081 · RF61
-   0,742109 ± 0,000673      ────────►  0,760877 ± 0,003095      ★ CHỌN
-                            +0,0188
-                            ĐỔI BỐN THỨ CÙNG LÚC:
-                              chuẩn hoá  BatchNorm -> không có
-                              dropout    0         -> 0,2 theo phần tử
-                              số khối    6         -> 4
-                              tầm nhìn   253       -> 61
-                                                          │
-                                                          ▼
-                                          Ours-192/61   307.801 · RF61
-                                          0,747955 ± 0,012189   3 seed
-                                          CỤT: 8 lần tham số, thấp hơn 0,0129
-```
+Bốn khoảng cách đều lớn hơn `seed_std` của Ours-64/61 (0,003095), nên **thứ hạng
+này đọc được**, không phải nhiễu.
 
-**Không tách được +0,0188 cho từng thứ.** Đây không phải khảo sát một biến — nó
-là một cấu hình khác đem so. Nói được: *cấu hình đề xuất hơn nền 0,0188, gấp sáu
-lần dao động seed*. **Không** nói được bỏ BatchNorm giúp bao nhiêu.
+### Chỗ phải ghi rõ khi báo cáo
 
-### Nhánh RevIN
+Ours-64/61 khác DS-TCN-nền **bốn thứ cùng lúc** — chuẩn hoá, dropout, số khối,
+tầm nhìn. Vì hai cái là **hai ứng viên ngang hàng**, không phải một cái sửa từ
+cái kia, nên chuyện đó **không sai giao thức**: TN1 làm nhiệm vụ *chọn*, không
+làm nhiệm vụ *tách đóng góp*.
+
+Nhưng hệ quả vẫn phải nêu: **không nói được bỏ BatchNorm giúp bao nhiêu, hay
+dropout giúp bao nhiêu.** Chỉ nói được *cấu hình này hơn cấu hình kia 0,0188*.
+Muốn tách thì cần một khảo sát riêng, đổi một biến mỗi lần.
+
+### Nhánh RevIN — thuộc TN2, không thuộc TN1
 
 ```
-   DS-TCN-nền  ──►  + RevIN   56.281 · RF253   0,729715 ± 0,007271   3 seed
-                              CỤT: tệ hơn 0,0124, gấp 18 lần dao động seed
+   DS-TCN-nền  ──►  + RevIN   56.281 ts · RF253   0,729715 ± 0,007271   3 seed
+                              notebook: TN2_DS_TCN_RevIN   thực nghiệm: tn2
+                              CỤT: tệ hơn nền 0,0124, gấp 18 lần dao động seed
                               RevIN chia cho độ lệch chuẩn, tức xoá biên độ,
                               mà biên độ có tương quan 0,53 với chất lượng ứng viên
 ```
 
+Nó gắn vào **DS-TCN-nền** chứ không gắn vào Ours, nên kết quả này không nói được
+RevIN ảnh hưởng thế nào tới cấu hình đã chọn.
 
 ## TN2 — chọn tầm nhìn
 
