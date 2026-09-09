@@ -298,48 +298,55 @@ quá nhỏ. Không so trực tiếp với bảng TN1.
 
 Train đủ ABCDEFKL, chấm một lần trên GHIJ. Đây là **số công bố**.
 
-| cấu hình | tham số | GHIJ | seed_std | seed 0 | seed 1 | seed 2 |
-|---|---:|---:|---:|---:|---:|---:|
-| **DS-TCN-64 RF61, alpha 0,6** | **37.081** | **0,803591** | 0,015350 | 0,786906 | 0,817115 | 0,806751 |
-| DS-TCN-192 RF121, alpha 0,2 | 310.873 | 0,800721 | 0,010705 | 0,796041 | 0,793154 | 0,812969 |
+| cấu hình | tham số | micro | macro | TN |
+|---|---:|---:|---:|:---:|
+| LSTM-352 *(kiến trúc MobiVital)* | 1.502.713 | 0,805308 ± 0,016308 | **0,810302** ± 0,015403 | TN1 |
+| **Ours-64/61 alpha 0,6** | **37.081** | 0,798314 ± 0,016034 | **0,803590** ± 0,015350 | TN4 |
+| **Ours-64/121 Pearson thuần** | 38.105 | 0,796844 ± 0,010557 | **0,801739** ± 0,009968 | TN4 |
+| LSTM-67 | 56.908 | 0,796530 ± 0,003113 | 0,801682 ± 0,002506 | TN1 |
+| Ours-192/121 alpha 0,2 | 310.873 | 0,795856 ± 0,011006 | 0,800721 ± 0,010705 | TN4 |
+| DS-TCN-nền MSE thuần | 56.281 | 0,791232 ± 0,015774 | 0,795782 ± 0,015413 | TN1 |
+| *Ours-64/121 MSE thuần* | 38.105 | 0,755965 ± 0,022176 | *0,762191* ± 0,021433 | TN4 |
 
-Đặt cạnh các mốc **cùng pipeline, cùng Colab, cùng 3 seed**:
+### Kết quả quan trọng nhất — hàm loss giúp trên chính tập kiểm tra
 
-| | tham số | GHIJ | so với DS-TCN-64 |
-|---|---:|---:|---:|
-| LSTM-352 *(kiến trúc MobiVital)* | 1.502.713 | 0,810302 ± 0,015399 | −0,0067 |
-| **DS-TCN-64 RF61 alpha 0,6** | **37.081** | **0,803591 ± 0,015350** | — |
-| LSTM-67 | 56.908 | 0,801683 ± 0,002507 | +0,0019 |
-| DS-TCN-64 bản đầu | 56.281 | 0,795783 ± 0,015413 | +0,0078 |
+Hai dòng `Ours-64/121` khác nhau **đúng một biến là hàm loss**, chạy cùng một
+notebook, cùng lượt, cùng ba seed:
 
-**Cả ba phép so đều nhỏ hơn `seed_std` của hai bên.** Không phân biệt được cấu
-hình nào hơn. Phát biểu đúng: DS-TCN-64 đạt điểm **ngang** kiến trúc MobiVital
-trên tập test, với **ít hơn 40,5 lần tham số**.
-
-### Mức tăng dev sang GHIJ không giữ nguyên như dự tính
-
-| | dev | GHIJ | mức tăng |
-|---|---:|---:|---:|
-| ba cấu hình train bằng MSE | — | — | **+0,0485 .. +0,0537** |
-| DS-TCN-64 alpha 0,6 | 0,780028 | 0,803591 | **+0,0236** |
-| DS-TCN-192 alpha 0,2 | 0,776011 | 0,800721 | **+0,0247** |
-
-Hai cấu hình loss lai chỉ tăng bằng **một nửa**. Lợi ích +0,019 mà TN3 đo được
-trên dev **không chuyển hết sang tập test**.
-
-**Chưa giải thích được nguyên nhân**, vì ba cấu hình MSE kia khác cả kiến trúc
-lẫn hàm loss — hai biến đổi cùng lúc. Muốn tách thì phải chạy **đúng kiến trúc
-DS-TCN-64 RF61 với MSE thuần trên GHIJ**, hiện còn thiếu (dev đã có: 0,760878).
-
-### Người H và I kéo điểm xuống ở mọi cấu hình
-
-| | G | H | I | J |
+| | macro | seed 0 | seed 1 | seed 2 |
 |---|---:|---:|---:|---:|
-| DS-TCN-64 alpha 0,6, ba seed | 0,910–0,918 | **0,635–0,686** | **0,696–0,760** | 0,902–0,912 |
-| DS-TCN-192 alpha 0,2, ba seed | 0,911–0,917 | **0,636–0,697** | **0,717–0,745** | 0,883–0,899 |
+| Pearson thuần | **0,801739** ± 0,009968 | 0,805832 | 0,790376 | 0,809009 |
+| MSE thuần | 0,762191 ± 0,021433 | 0,781448 | 0,766025 | 0,739099 |
+| **hiệu** | **+0,039548** | +0,024384 | +0,024351 | +0,069910 |
 
-MobiVital cũng vậy — TN0a cho H 0,6907 và I 0,7658. Nên đây là **đặc tính của
-hai người đó**, không phải điểm yếu riêng của cấu hình nào.
+**Thắng cả ba seed**, và hiệu +0,0395 lớn hơn độ lệch của cả hai bên. Đây là
+lần đầu đóng góp của hàm loss được đo **trên tập kiểm tra độc lập**, không phải
+trên tập phát triển.
+
+Con số này lớn hơn hẳn mức đo trên tập phát triển (+0,0225) — nhưng cả hai đều
+cùng chiều, và trên tập test thì có đủ ba seed để nói.
+
+### Đặt cạnh kiến trúc gốc
+
+`Ours-64/61` thấp hơn `LSTM-352` **0,0067**, `Ours-64/121` thấp hơn **0,0086**.
+Cả hai khoảng cách **nhỏ hơn độ lệch giữa các seed** của hai bên, nên không phân
+biệt được.
+
+Phát biểu đúng: **đạt điểm ngang kiến trúc MobiVital với ít hơn 40 lần tham số**
+— 37.081 và 38.105 so với 1.502.713.
+
+### Ba chỗ phải ghi khi báo cáo
+
+**`Ours-64/121` dùng alpha 0,0**, tức Pearson thuần, còn `Ours-64/61` dùng alpha
+0,6. Hai dòng khác nhau **hai biến** là tầm nhìn và alpha, nên không so trực tiếp
+hai con số GHIJ của chúng với nhau.
+
+**Mức alpha của mỗi cấu hình lấy theo đỉnh TN3 của chính nó**, chốt trên tập
+phát triển. Đó là mức tốt nhất đo được, không phải mức tối ưu đã chứng minh.
+
+**Người H và I kéo điểm xuống ở mọi cấu hình**, kể cả MobiVital. Đó là đặc tính
+của hai người đó, và cũng là lý do độ lệch giữa các seed trên GHIJ lớn: chỉ có
+bốn người, hai người khó.
 
 
 ## Đang chờ chạy
