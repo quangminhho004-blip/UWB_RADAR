@@ -22,7 +22,7 @@ một chuỗi tín hiệu rút ra từ một kênh cự ly bằng một phép bi
                    │                                │
         ┌──────────▼───────────┐         ┌──────────▼───────────┐
         │  Sàng lọc theo       │         │  Sàng lọc đảo pha    │
-        │  nhịp thở tham chiếu │         │  ~126 ứng viên       │
+        │  nhịp thở tham chiếu │         │                      │
         └──────────┬───────────┘         └──────────┬───────────┘
                    │                                │
         ┌──────────▼───────────┐         ┌──────────▼───────────┐
@@ -31,7 +31,7 @@ một chuỗi tín hiệu rút ra từ một kênh cự ly bằng một phép bi
         └──────────┬───────────┘         └──────────┬───────────┘
                    │                                │
         ┌──────────▼───────────┐         ┌──────────▼───────────┐
-        │  Huấn luyện mô hình  │────────▶│  Chọn kênh (argmax)  │
+        │  Huấn luyện mô hình  │────────▶│  Chọn kênh           │
         │  dự báo chuỗi        │  mô hình└──────────┬───────────┘
         └──────────────────────┘         ┌──────────▼───────────┐
                                          │  Đánh giá            │
@@ -73,8 +73,9 @@ một chuỗi tín hiệu rút ra từ một kênh cự ly bằng một phép bi
    └─────────────┬─────────────┘
                  │
    ┌─────────────▼─────────────┐
-   │  Huấn luyện               │   20 vòng · lô 64 · Adam
-   │  mô hình dự báo chuỗi     │   hàm mục tiêu: MSE, hoặc MSE + Pearson
+   │  Huấn luyện               │   20 vòng · lô 64 mẫu
+   │  mô hình dự báo chuỗi     │   hàm mục tiêu: sai số bình phương,
+   │                           │   hoặc sai số bình phương kết hợp Pearson
    └─────────────┬─────────────┘
                  │
                  ▼
@@ -137,7 +138,7 @@ một chuỗi tín hiệu rút ra từ một kênh cự ly bằng một phép bi
    ┌─────────────▼─────────────┐
    │  Sàng lọc đảo pha         │   loại chuỗi có dạng sóng bị lật ngược
    └─────────────┬─────────────┘
-                 │  ~126 ứng viên
+                 │  các ứng viên còn lại
    ┌─────────────▼─────────────┐
    │  Chấm khả năng            │   mô hình dự báo trên 52 mẫu
    │  tự dự báo                │   của từng ứng viên
@@ -164,7 +165,7 @@ một chuỗi tín hiệu rút ra từ một kênh cự ly bằng một phép bi
 ## Slide 5 — Khối then chốt: bộ chọn kênh
 
 ```
-   ~126 ứng viên
+   Các ứng viên còn lại
         │
         ▼
    ┌─────────────────────────────────────────────────┐
@@ -181,7 +182,8 @@ một chuỗi tín hiệu rút ra từ một kênh cự ly bằng một phép bi
                              │
                              ▼
                     ┌─────────────────┐
-                    │  argmax         │
+                    │  Lấy điểm cao   │
+                    │  nhất           │
                     └────────┬────────┘
                              ▼
                     một ứng viên được chọn
@@ -190,8 +192,8 @@ một chuỗi tín hiệu rút ra từ một kênh cự ly bằng một phép bi
 Minh hoạ trực giác:
 
 ```
-   ứng viên tuần hoàn   →  dự báo được   →  điểm cao   ██████████  ≈ 52
-   ứng viên nhiễu       →  không dự báo được →  điểm thấp  █        ≈  0
+   ứng viên tuần hoàn   →  dự báo được        →  ██████████  điểm cao
+   ứng viên nhiễu       →  không dự báo được  →  █           điểm thấp
 ```
 
 **Ý cần nói**
@@ -238,26 +240,34 @@ Minh hoạ trực giác:
 ## Slide 7 — Giao thức đánh giá
 
 ```
-   12 người tham gia
-        │
-        ├──────────────────────────┬──────────────────────┐
-        ▼                          ▼                      ▼
-   ┌──────────┐              ┌──────────┐          ┌──────────┐
-   │ Nhóm     │              │ Nhóm     │          │ Nhóm     │
-   │ phát     │              │ kiểm     │          │ kiểm tra │
-   │ triển    │              │ định     │          │ độc lập  │
-   │ 6 người  │              │ 2 người  │          │ 4 người  │
-   └────┬─────┘              └────┬─────┘          └────┬─────┘
-        │  huấn luyện             │  chọn cấu hình      │  chỉ dùng
-        │                         │                     │  MỘT lần
-        └────────── 4 lần hoán vị ┘                     │
-                                                        ▼
-                                              số liệu công bố
+                        12 người tham gia
+                                │
+            ┌───────────────────┴───────────────────┐
+            ▼                                       ▼
+   ┌────────────────────┐               ┌────────────────────┐
+   │   NHÓM PHÁT TRIỂN  │               │  NHÓM KIỂM TRA     │
+   │      8 người       │               │  ĐỘC LẬP  4 người  │
+   └─────────┬──────────┘               └─────────┬──────────┘
+             │                                    │
+   ┌─────────▼──────────┐                         │
+   │  6 người huấn luyện│                         │
+   │  2 người kiểm định │                         │
+   └─────────┬──────────┘                         │
+             │                                    │
+   lặp 4 lần, mỗi lần đổi                         │
+   hai người kiểm định                            │
+             │                                    │
+             ▼                                    ▼
+      chọn cấu hình  ──────────────────▶   chạy đúng MỘT lần
+                                                  │
+                                                  ▼
+                                          số liệu công bố
 ```
 
 **Ý cần nói**
 
-- Kiểm định chéo 4 lần hoán vị trên 8 người, để chọn cấu hình.
+- Chia 8 người thành 6 huấn luyện và 2 kiểm định, lặp 4 lần để mỗi người đều
+  có lượt làm kiểm định. Lấy trung bình 4 lần đó để chọn cấu hình.
 - Nhóm 4 người còn lại **không tham gia bất kỳ quyết định nào** — chỉ chạy đúng
   một lần ở cuối để lấy số công bố.
 - Mỗi cấu hình chạy 3 lần với khởi tạo khác nhau, báo cáo kèm độ lệch. Chênh
