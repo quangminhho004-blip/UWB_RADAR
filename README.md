@@ -309,6 +309,7 @@ phép `abs`, `real`, `imag` thì khớp gần như tuyệt đối.
 ## Đọc tiếp
 
 - [`docs/BANG_DIEM.md`](docs/BANG_DIEM.md) — **mọi số liệu của đồ án**, một chỗ duy nhất.
+- [`docs/BANG_TCN.md`](docs/BANG_TCN.md) — riêng họ TCN, kèm cả micro lẫn macro.
 - [`docs/PROTOCOL.md`](docs/PROTOCOL.md) — luật thí nghiệm. Đọc trước khi chạy bất cứ gì.
 - [`docs/PIPELINE.md`](docs/PIPELINE.md) — sơ đồ khối hai giai đoạn, dùng cho slide.
 - [`docs/CAU_TRUC_MA_NGUON.md`](docs/CAU_TRUC_MA_NGUON.md) — mỗi tệp trong `src/` và `scripts/` làm gì.

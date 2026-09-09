@@ -12,6 +12,10 @@ Ba cột phải đọc kèm nhau, đừng chỉ nhìn điểm:
             hai loại cho nhau.
 
 
+Riêng họ TCN — mọi cấu hình `tcn` và `ds_tcn` gom một chỗ, kèm cả micro lẫn
+macro: [`docs/BANG_TCN.md`](BANG_TCN.md).
+
+
 ## MỐC
 
 | | điểm |
