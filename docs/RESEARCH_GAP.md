@@ -68,12 +68,12 @@ Sách vở về TCN nói tầm nhìn phải phủ hết ngữ cảnh. Đo ra **n
 
 | tầm nhìn | 64 kênh | 192 kênh |
 |---:|---:|---:|
-| 61 | 0,760878 | 0,762714 |
 | 121 | 0,757855 | 0,764428 |
 | 181 | 0,743657 | 0,732562 |
 | 241 | 0,736970 | 0,736623 |
 
-Tầm nhìn dài ra thì điểm tụt, và tụt đều ở cả hai bề rộng kênh.
+Tầm nhìn dài ra thì điểm tụt, và tụt đều ở cả hai bề rộng kênh. Ba mức này chạy
+chung một lượt nên so được với nhau; mức 61 chạy ở lượt khác nên để riêng.
 
 Chỗ đáng nói nhất: cùng lúc đó, **model dự báo giỏi lên**.
 

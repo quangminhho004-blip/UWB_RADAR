@@ -132,28 +132,48 @@ Khảo sát loss trên cùng bộ mã đó, `val_KL`:
 giữa chín kiến trúc TN1 (0,0172).
 
 
-## TN2 — tầm nhìn DS-TCN, 4 fold, 1 seed
+## TN2 — tầm nhìn DS-TCN
 
-Giữ nguyên 4 khối, chỉ đổi kernel, nên tham số gần như đứng yên (c192 chênh 5,0%
-trên toàn thang, c64 chênh 13,8%) trong khi tầm nhìn gấp gần 6 lần. Điểm đổi thì
-gần như chắc do tầm nhìn.
+Chia hai bảng theo nguyên tắc **chỉ đặt cạnh nhau những cấu hình chạy chung một
+lượt**. Ghép hai lượt chạy khác nhau vào một bảng là đưa thêm một biến không
+kiểm soát được vào phép so.
 
-| kernel | tầm nhìn | c64 *(37k)* | c192 *(308k)* |
+### Chạy chung — thực nghiệm `tn2_rf`, 4 fold, 1 seed
+
+Giữ nguyên 4 khối, chỉ đổi kernel, nên tham số gần như đứng yên trong khi tầm
+nhìn gấp đôi. Điểm đổi thì gần như chắc do tầm nhìn.
+
+| tầm nhìn | kernel | c64 *(38–40k)* | c192 *(311–317k)* |
 |---:|---:|---:|---:|
-| 3 | 61 | **0,760878** *(3 seed)* | 0,762714 |
-| 5 | 121 | 0,757855 | **0,764428** |
-| 7 | 181 | 0,743657 | 0,732562 |
-| 9 | 241 | 0,736970 | 0,736623 |
+| 121 | 5 | 0,757855 | **0,764428** |
+| 181 | 7 | **0,743657** | 0,732562 |
+| 241 | 9 | **0,736970** | 0,736623 |
 
-Tương quan tầm nhìn với điểm: **−0,973** (c64), **−0,845** (c192). Xu hướng lặp
-lại ở hai bề rộng kênh khác nhau 8 lần.
+Tương quan tầm nhìn với điểm: **−0,979** (c64) và **−0,802** (c192). Tầm nhìn
+dài hơn cho điểm thấp hơn, ở cả hai bề rộng kênh cách nhau tám lần.
 
-Hai chỗ không đơn điệu: c192 k5 hơn k3 (0,7644 so với 0,7627), và k9 hơn k7
-(0,7366 so với 0,7326). Cả hai chênh dưới 0,005, nằm trong nhiễu một seed. Đọc
-đúng là **tầm nhìn 61–121 là vùng tốt, từ 181 trở lên tệ rõ** — không phải càng
-ngắn càng tốt.
+Ba điểm mỗi cột thì tương quan chưa nói được nhiều. Thứ đọc được chắc hơn là
+**mức 121 hơn hẳn hai mức kia**: hơn 181 là 0,0142 (c64) và 0,0319 (c192), đều
+lớn hơn dao động giữa các seed đo được trong đồ án (0,0007–0,0154).
 
-Vòng sàng lọc trước đó, c64, 1 fold `val_KL`, cho thấy chỗ đáng chú ý nhất:
+### Chạy riêng ở TN1 — chỉ để tham chiếu, không đặt chung bảng trên
+
+| tầm nhìn | kernel | tham số | cv_score | seed |
+|---:|---:|---:|---:|:---:|
+| 61 | 3 | 37.081 | **0,760878** ± 0,003095 | 3 |
+| 61 | 3 | 307.801 | **0,747955** ± 0,012189 | 3 |
+
+Hai dòng này chạy ở thực nghiệm `tn1`, khác lượt với ba mức trên. Đặt chung
+bảng thì không biết chênh lệch đến từ tầm nhìn hay từ lần chạy.
+
+**Một quan sát đáng ghi.** Cấu hình `c192` tầm nhìn 61 có seed 0 **chạy hai lần
+ra hai số khác nhau: 0,762714 và 0,757493**, lệch 0,0052. Lần chạy lại xảy ra
+do ô khôi phục kết quả im lặng không làm gì, `run_cv.py` không thấy kết quả cũ
+nên train lại và đè tệp nén trên Drive. Nghĩa là `seed_std` **chưa phải toàn bộ
+nguồn dao động** — cùng seed, khác phiên và khác thiết bị vẫn lệch. Con số ghi
+trong bảng lấy từ tệp nén mới nhất trên Drive.
+
+### Vòng sàng lọc trước đó, c64, 1 fold `val_KL`
 
 | kernel | tầm nhìn | điểm `val_KL` | train_mse | train_pearson |
 |---:|---:|---:|---:|---:|
@@ -169,6 +189,9 @@ chọn kênh là "ứng viên nào tự dự báo được chính nó tốt nh�
 ngắn chỉ đoán giỏi sóng thật sự tuần hoàn, còn model tầm nhìn dài đoán giỏi mọi
 sóng trơn, kể cả kênh nhiễu có cấu trúc. Đây là **cách đọc đề xuất, chưa chứng
 minh**.
+
+Điểm một fold cao hơn `cv_score` bốn fold trung bình +0,040 và có thể đảo thứ
+hạng, nên bảng này chỉ dùng để **loại**, không dùng để **chọn**.
 
 
 ## TN3 — hàm loss lai, 4 fold, 1 seed
