@@ -12,6 +12,9 @@ Ba cột phải đọc kèm nhau, đừng chỉ nhìn điểm:
             hai loại cho nhau.
 
 
+Cây nhánh DS-TCN, xem thực nghiệm nào kế thừa cấu hình nào và nhánh nào
+cụt: [`docs/NHANH_DS_TCN.md`](NHANH_DS_TCN.md).
+
 Riêng họ TCN — mọi cấu hình `tcn` và `ds_tcn` gom một chỗ, kèm cả micro lẫn
 macro: [`docs/BANG_TCN.md`](BANG_TCN.md).
 
