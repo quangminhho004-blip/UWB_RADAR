@@ -56,14 +56,19 @@ TN2 — chọn tầm nhìn        kế thừa: bỏ chuẩn hoá · dropout 0,2 
 │     └─ CỤT: tệ hơn hẳn ba mức còn lại, không đưa vào vòng 4 fold
 │
 ├─ 64 kênh
-│  ├─ k5  tầm nhìn 121   38.105 ts   0,757855   ★ mang xuống TN3
-│  ├─ k7  tầm nhìn 181   39.129 ts   0,743657   └─ CỤT: thua k5 0,0142
-│  └─ k9  tầm nhìn 241   40.153 ts   0,736970   └─ CỤT: thua k5 0,0209
+│  ├─ k3  tầm nhìn  61   37.081 ts   0,760877 ± 0,003095  3 seed   ← NỀN, kế thừa từ TN1
+│  ├─ k5  tầm nhìn 121   38.105 ts   0,757855             1 seed   ★ mang xuống TN3
+│  ├─ k7  tầm nhìn 181   39.129 ts   0,743657             1 seed   └─ CỤT: thua nền 0,0172
+│  └─ k9  tầm nhìn 241   40.153 ts   0,736970             1 seed   └─ CỤT: thua nền 0,0239
 │
 └─ 192 kênh
-   ├─ k5  tầm nhìn 121  310.873 ts   0,764428   ★ mang xuống TN3
-   ├─ k7  tầm nhìn 181  313.945 ts   0,732562   └─ CỤT: thua k5 0,0319
-   └─ k9  tầm nhìn 241  317.017 ts   0,736623   └─ CỤT: thua k5 0,0278
+   ├─ k3  tầm nhìn  61  307.801 ts   0,747955 ± 0,012189  3 seed   ← NỀN, kế thừa từ TN1
+   ├─ k5  tầm nhìn 121  310.873 ts   0,764428             1 seed   ★ mang xuống TN3
+   ├─ k7  tầm nhìn 181  313.945 ts   0,732562             1 seed   └─ CỤT: thua k5 0,0319
+   └─ k9  tầm nhìn 241  317.017 ts   0,736623             1 seed   └─ CỤT: thua k5 0,0278
+
+   Nền là cấu hình TN1 đã chốt. TN2 giữ nguyên mọi thứ, CHỈ đổi kernel — nên
+   không chạy lại nền, đó là điểm của giao thức bậc thang.
 ```
 
 ```
@@ -96,21 +101,9 @@ TN4 — test cuối trên GHIJ   kế thừa: cả ba lựa chọn trên
 ```
 
 
-## Ba chỗ nhánh bị đứt mạch
+## Hai chỗ nhánh bị đứt mạch
 
-### 1. TN2 không có điểm gốc của chính nó
-
-Vòng 4 fold của TN2 chỉ chạy kernel 5, 7, 9. **Kernel 3 tầm nhìn 61 chưa bao giờ
-chạy trong thực nghiệm `tn2_rf`** — nó nằm ở TN1, lượt chạy khác.
-
-Hệ quả: mọi câu so tầm nhìn 61 với 121 đều bắc cầu qua hai lượt chạy. Mà đo được
-là hai lượt chạy khác nhau lệch tới 0,0052 ở cùng cấu hình cùng seed, còn chênh
-61 với 121 ở c64 chỉ 0,0030. **Nên không phát biểu được gì về mức 61 so với 121.**
-
-Vá được: chạy kernel 3 với `--experiment tn2_rf` cho cả hai bề rộng kênh, 8 fold,
-khoảng 2 giờ.
-
-### 2. TN4 thiếu nền MSE thuần
+### 1. TN4 thiếu nền MSE thuần
 
 Ba dòng TN4 đều dùng hàm loss lai. Không có dòng nào cùng kiến trúc mà dùng MSE
 thuần, nên **không trừ ra được đóng góp của hàm loss trên tập test**. Hiện chỉ
@@ -119,7 +112,7 @@ chứng minh được nó giúp trên tập phát triển.
 Vá được: notebook `TN4_final_test_ds_tcn_c64_rf121` đã có sẵn mục 4 làm việc đó,
 ba seed, khoảng 1 giờ.
 
-### 3. Alpha mang xuống TN4 chọn theo đỉnh của từng cấu hình
+### 2. Alpha mang xuống TN4 chọn theo đỉnh của từng cấu hình
 
 `c64 k3` lấy alpha 0,6 và `c192 k5` lấy alpha 0,2 — mỗi cái theo đỉnh TN3 của
 chính nó. Nhưng TN3 vừa cho thấy thứ hạng alpha **không chuyển được**: alpha 0,6

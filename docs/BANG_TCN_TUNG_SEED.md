@@ -123,14 +123,17 @@ chất lượng ứng viên, và chọn kênh chỉ bằng biên độ không d�
 
 ### Tầm nhìn — cùng **TN2** vòng tầm nhìn, giữ nguyên 4 khối, chỉ đổi kernel
 
-| tầm nhìn | c64 | c192 |
-|---:|---:|---:|
-| 121 | 0,757855 | **0,764427** |
-| 181 | 0,743657 | 0,732561 |
-| 241 | 0,736969 | 0,736623 |
+| tầm nhìn | c64 | c192 | |
+|---:|---:|---:|---|
+| 61 | **0,760877** | 0,747955 | nền, kế thừa từ TN1, 3 seed |
+| 121 | 0,757855 | **0,764427** | 1 seed |
+| 181 | 0,743657 | 0,732561 | 1 seed |
+| 241 | 0,736969 | 0,736623 | 1 seed |
 
-Tầm nhìn 121 hơn 181 là **0,0142** (c64) và **0,0319** (c192), đều lớn hơn dao
-động seed. Mức 61 chạy ở **TN1** nên để riêng, không đặt chung bảng này.
+TN2 giữ nguyên cấu hình TN1 đã chốt, **chỉ đổi kernel**, nên nền không chạy lại.
+
+Mức 181 và 241 thua nền rõ, chênh lớn hơn dao động seed. Mức 61 và 121 không
+phân biệt được: ở c64 nền nhỉnh hơn 0,0030, ở c192 mức 121 nhỉnh hơn 0,0165.
 
 
 ## 4. Hai chỗ phải ghi khi báo cáo

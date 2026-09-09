@@ -157,40 +157,30 @@ giữa chín kiến trúc TN1 (0,0172).
 
 ## TN2 — tầm nhìn DS-TCN
 
-Chia hai bảng theo nguyên tắc **chỉ đặt cạnh nhau những cấu hình chạy chung một
-lượt**. Ghép hai lượt chạy khác nhau vào một bảng là đưa thêm một biến không
-kiểm soát được vào phép so.
+TN2 **kế thừa cấu hình TN1 đã chốt** — bỏ chuẩn hoá, dropout 0,2 theo phần tử,
+4 khối, loss MSE — và **chỉ đổi kernel**. Nền là chính điểm TN1, không chạy lại.
 
-### Chạy chung — thực nghiệm `tn2_rf`, 4 fold, 1 seed
+Giữ nguyên 4 khối nên tham số gần như đứng yên trong khi tầm nhìn gấp bốn lần.
+Điểm đổi thì gần như chắc do tầm nhìn.
 
-Giữ nguyên 4 khối, chỉ đổi kernel, nên tham số gần như đứng yên trong khi tầm
-nhìn gấp đôi. Điểm đổi thì gần như chắc do tầm nhìn.
+| tầm nhìn | kernel | c64 | c192 | |
+|---:|---:|---:|---:|---|
+| 61 | 3 | **0,760877** ± 0,003095 | 0,747955 ± 0,012189 | nền, 3 seed |
+| 121 | 5 | 0,757855 | **0,764428** | 1 seed |
+| 181 | 7 | 0,743657 | 0,732562 | 1 seed |
+| 241 | 9 | 0,736970 | 0,736623 | 1 seed |
 
-| tầm nhìn | kernel | c64 *(38–40k)* | c192 *(311–317k)* |
-|---:|---:|---:|---:|
-| 121 | 5 | 0,757855 | **0,764428** |
-| 181 | 7 | **0,743657** | 0,732562 |
-| 241 | 9 | **0,736970** | 0,736623 |
+**Tầm nhìn 181 và 241 thua nền rõ** — c64 thua 0,0172 và 0,0239, c192 thua
+0,0152 và 0,0113. Đều lớn hơn dao động giữa các seed đo được (0,0007–0,0154).
 
-Tương quan tầm nhìn với điểm: **−0,979** (c64) và **−0,802** (c192). Tầm nhìn
-dài hơn cho điểm thấp hơn, ở cả hai bề rộng kênh cách nhau tám lần.
+**Tầm nhìn 61 và 121 không phân biệt được với nhau.** Ở c64 nền nhỉnh hơn
+0,0030, ở c192 mức 121 nhỉnh hơn 0,0165. Hai chiều ngược nhau, và ở c64 thì
+chênh lệch nhỏ hơn `seed_std` của chính nền.
 
-Ba điểm mỗi cột thì tương quan chưa nói được nhiều. Thứ đọc được chắc hơn là
-**mức 121 hơn hẳn hai mức kia**: hơn 181 là 0,0142 (c64) và 0,0319 (c192), đều
-lớn hơn dao động giữa các seed đo được trong đồ án (0,0007–0,0154).
+Đọc đúng: **hai nhóm tách nhau — 61 và 121 tốt, 181 trở lên tệ rõ.** Trong nhóm
+tốt thì không xếp hạng được.
 
-### Chạy riêng ở TN1 — chỉ để tham chiếu, không đặt chung bảng trên
-
-| tầm nhìn | kernel | tham số | cv_score | seed |
-|---:|---:|---:|---:|:---:|
-| 61 | 3 | 37.081 | **0,760878** ± 0,003095 | 3 |
-| 61 | 3 | 307.801 | **0,747955** ± 0,012189 | 3 |
-
-Hai dòng này chạy ở thực nghiệm `tn1`, khác lượt với ba mức trên. Đặt chung
-bảng thì không biết chênh lệch đến từ tầm nhìn hay từ lần chạy.
-
-Riêng dòng `c192` còn có chuyện seed 0 chạy hai lần ra hai số khác nhau — xem
-mục **TN1 — DS-TCN 192 kênh, tầm nhìn 61** ở trên.
+Lưu ý khi đọc bảng: dòng nền có 3 seed, ba dòng còn lại mới 1 seed.
 
 ### Vòng sàng lọc trước đó, c64, 1 fold `val_KL`
 
