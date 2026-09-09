@@ -69,14 +69,30 @@ Adam lr 1e-4, batch 64, MSE, `corr` 0,9.
 
 Cùng kiến trúc với dòng đầu bảng trên, chỉ khác số kênh.
 
-| cấu hình | tham số | cv_score | seed | fold | máy |
-|---|---:|---:|:---:|:---:|---|
-| DS-TCN-192 k3n4 no_norm do0.2 | 307.801 | 0,762714 | **1** | 4 | Colab |
+| cấu hình | tham số | cv_score | seed_std | seed | fold |
+|---|---:|---:|---:|:---:|:---:|
+| DS-TCN-64 k3n4 no_norm do0.2 | **37.081** | **0,760877** | 0,003095 | 3 | 4 |
+| DS-TCN-192 k3n4 no_norm do0.2 | 307.801 | **0,747955** | 0,012189 | 3 | 4 |
 
-Điểm từng fold seed 0: `val_AB` 0,8013 · `val_CE` 0,7809 · `val_DF` 0,6267 ·
-`val_KL` 0,8419
+Điểm từng seed:
 
-**Seed 1 và 2 chưa chạy.** Seed 0 đã nén sang Drive, chạy tiếp thì được bỏ qua.
+| | seed 0 | seed 1 | seed 2 |
+|---|---:|---:|---:|
+| c64 | 0,758244 | 0,760101 | 0,764286 |
+| c192 | 0,757493 | 0,752150 | 0,734222 |
+
+**Tám lần tham số, điểm thấp hơn 0,0129.** Chênh lệch này lớn hơn `seed_std` của
+bản c64 (0,003095) nhưng xấp xỉ `seed_std` của bản c192 (0,012189), nên đọc là
+**c192 không hơn c64**, chưa đọc được là c192 kém hơn.
+
+`seed_std` của c192 lớn gấp bốn lần c64 — seed 2 tụt hẳn xuống 0,734222. Model
+to hơn không những không giúp mà còn kém ổn định hơn.
+
+**Một quan sát về nguồn dao động.** Seed 0 của c192 **chạy hai lần ra hai số:
+0,762714 và 0,757493**, lệch 0,0052. Lần chạy lại do ô khôi phục kết quả im lặng
+không làm gì, nên `run_cv.py` không thấy kết quả cũ và train lại. Nghĩa là
+`seed_std` **chưa phải toàn bộ nguồn dao động** — cùng seed, khác phiên và khác
+thiết bị vẫn lệch. Số trong bảng lấy từ tệp nén mới nhất trên Drive.
 
 
 ## TN2 — RevIN
@@ -170,12 +186,8 @@ lớn hơn dao động giữa các seed đo được trong đồ án (0,0007–0
 Hai dòng này chạy ở thực nghiệm `tn1`, khác lượt với ba mức trên. Đặt chung
 bảng thì không biết chênh lệch đến từ tầm nhìn hay từ lần chạy.
 
-**Một quan sát đáng ghi.** Cấu hình `c192` tầm nhìn 61 có seed 0 **chạy hai lần
-ra hai số khác nhau: 0,762714 và 0,757493**, lệch 0,0052. Lần chạy lại xảy ra
-do ô khôi phục kết quả im lặng không làm gì, `run_cv.py` không thấy kết quả cũ
-nên train lại và đè tệp nén trên Drive. Nghĩa là `seed_std` **chưa phải toàn bộ
-nguồn dao động** — cùng seed, khác phiên và khác thiết bị vẫn lệch. Con số ghi
-trong bảng lấy từ tệp nén mới nhất trên Drive.
+Riêng dòng `c192` còn có chuyện seed 0 chạy hai lần ra hai số khác nhau — xem
+mục **TN1 — DS-TCN 192 kênh, tầm nhìn 61** ở trên.
 
 ### Vòng sàng lọc trước đó, c64, 1 fold `val_KL`
 
