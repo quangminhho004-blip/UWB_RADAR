@@ -310,6 +310,7 @@ phép `abs`, `real`, `imag` thì khớp gần như tuyệt đối.
 
 - [`docs/BANG_DIEM.md`](docs/BANG_DIEM.md) — **mọi số liệu của đồ án**, một chỗ duy nhất.
 - [`docs/NHANH_DS_TCN.md`](docs/NHANH_DS_TCN.md) — cây nhánh DS-TCN: thực nghiệm nào kế thừa cấu hình nào, nhánh nào cụt.
+- [`docs/BANG_NHANH_TCN.md`](docs/BANG_NHANH_TCN.md) — bảng cột TN1–TN4, hàng kiến trúc: cái nào đi tiếp, cái nào dừng.
 - [`docs/BANG_TCN_TUNG_SEED.md`](docs/BANG_TCN_TUNG_SEED.md) — họ TCN, điểm từng seed, cả micro lẫn macro.
 - [`docs/PROTOCOL.md`](docs/PROTOCOL.md) — luật thí nghiệm. Đọc trước khi chạy bất cứ gì.
 - [`docs/PIPELINE.md`](docs/PIPELINE.md) — sơ đồ khối hai giai đoạn, dùng cho slide.
