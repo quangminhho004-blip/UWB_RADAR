@@ -13,6 +13,8 @@
 
 ## 1. Trạng thái bàn giao
 
+**TN4 đã có kết quả giải nén trong repo:** [runs/tn4/README.md](runs/tn4/README.md), gồm 12 lượt / bốn tổ hợp / ba seed; đã kiểm scores, TXT và curve. Nguồn là các thư mục TN4 trong `Downloads/ket_qua_thuc_nghiem`; [manifest](runs/tn4/SOURCE_MANIFEST.json) ghi nguồn và SHA-256. Bộ nhập không có checkpoint hoặc link ZIP Drive đã xác minh. TN1–TN3 chưa được nhập trong đợt này.
+
 Tài liệu được lập từ notebook và script trong repo. **Tên ZIP dưới đây là tên code tạo hoặc mẫu tên cần tìm; chưa xác nhận toàn bộ ZIP hiện có trên Google Drive.** Không đánh dấu hoàn tất chỉ vì notebook có output.
 
 | Mục người đóng gói cần điền | Trạng thái |

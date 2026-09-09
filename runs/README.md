@@ -1,5 +1,7 @@
 # runs/ — kết quả thực nghiệm
 
+**Kết quả đã giải nén cho bản nộp:** [TN4 — bảng tổng hợp và 12 lượt test](tn4/README.md). Có summary, scores từng phiên, TXT lựa chọn, curve và manifest nguồn; chưa có checkpoint trong bộ nhập này. TN1–TN3 chưa được nhập trong đợt này; TN0 đã có trước được giữ nguyên.
+
 Mỗi thực nghiệm một thư mục. Mọi thứ của nó nằm chung một chỗ: checkpoint, đường
 cong loss, bảng lựa chọn kênh, điểm từng buổi ghi, metric.
 

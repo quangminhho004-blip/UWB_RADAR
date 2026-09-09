@@ -1,0 +1,600 @@
+{
+  "source_directory_name": "ket_qua_thuc_nghiem",
+  "scope": "TN4 only; four combinations, three seeds each",
+  "source_format": "already extracted directories; ZIP bytes not inspected",
+  "deduplication": "Duplicate summary rows and copied files must match exactly; conflicts abort import.",
+  "checkpoint_status": "No checkpoint copied; supplied TN4 directories contain no final.pth.",
+  "preserved_source_details": "Blank timestamp and scores run_id fields preserved. Session names preserved; no renaming.",
+  "runs": [
+    {
+      "run_id": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0",
+      "git_commit": "b6829a5",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.8058321666927866,
+      "micro": 0.8012379874218406,
+      "per_user": {
+        "G": 0.9157442510725943,
+        "H": 0.6609810045861779,
+        "I": 0.7498912654169333,
+        "J": 0.8967121456954408
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1",
+      "git_commit": "b6829a5",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.7903766561668407,
+      "micro": 0.7848007831155248,
+      "per_user": {
+        "G": 0.9131157972018064,
+        "H": 0.6570863171693938,
+        "I": 0.6978420281231579,
+        "J": 0.8934624821730047
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2",
+      "git_commit": "b6829a5",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.8090095693935697,
+      "micro": 0.8044968742055226,
+      "per_user": {
+        "G": 0.9149301319652778,
+        "H": 0.6788749351851583,
+        "I": 0.7464582983442188,
+        "J": 0.895774912079624
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0",
+      "git_commit": "bf1ac10",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.7869056046079446,
+      "micro": 0.7809111894039147,
+      "per_user": {
+        "G": 0.9148950887114632,
+        "H": 0.6346868250327916,
+        "I": 0.6960689762215218,
+        "J": 0.9019715284660017
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1",
+      "git_commit": "bf1ac10",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.8171146548252212,
+      "micro": 0.8124867951696622,
+      "per_user": {
+        "G": 0.9099240664663121,
+        "H": 0.6861875904598342,
+        "I": 0.7600024452478817,
+        "J": 0.9123445171268567
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2",
+      "git_commit": "bf1ac10",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.8067505262783726,
+      "micro": 0.8015468083744389,
+      "per_user": {
+        "G": 0.9181099708369598,
+        "H": 0.6582092187058836,
+        "I": 0.7395631182012611,
+        "J": 0.911119797369386
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0",
+      "git_commit": "b6829a5",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.7814482638746398,
+      "micro": 0.7759019428211439,
+      "per_user": {
+        "G": 0.9121374734643263,
+        "H": 0.6297945239549639,
+        "I": 0.6983180230174886,
+        "J": 0.8855430350617807
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1",
+      "git_commit": "b6829a5",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.7660257553242346,
+      "micro": 0.7599137579488736,
+      "per_user": {
+        "G": 0.9154186694523284,
+        "H": 0.6078885991184685,
+        "I": 0.6649387722579009,
+        "J": 0.8758569804682406
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2",
+      "git_commit": "b6829a5",
+      "summary_sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.7390991216309242,
+      "micro": 0.7320807757999199,
+      "per_user": {
+        "G": 0.9084999286004327,
+        "H": 0.5855843452902167,
+        "I": 0.6040112402433392,
+        "J": 0.8583009723897078
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0",
+      "git_commit": "bf1ac10",
+      "summary_sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/tn4/summary.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.796040960297622,
+      "micro": 0.7908559902848185,
+      "per_user": {
+        "G": 0.9174097681158399,
+        "H": 0.6363579014666796,
+        "I": 0.7316730744026814,
+        "J": 0.8987230972052868
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1",
+      "git_commit": "bf1ac10",
+      "summary_sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/summary.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.7931539468114162,
+      "micro": 0.7882392464197733,
+      "per_user": {
+        "G": 0.9132066692631768,
+        "H": 0.6596316409310626,
+        "I": 0.7164927180597953,
+        "J": 0.8832847589916296
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    },
+    {
+      "run_id": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2",
+      "git_commit": "bf1ac10",
+      "summary_sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/summary.csv"
+      ],
+      "macro": 0.8129693533016576,
+      "micro": 0.8084747178380547,
+      "per_user": {
+        "G": 0.9113418065458767,
+        "H": 0.6972833544394624,
+        "I": 0.7446299289074854,
+        "J": 0.8986223233138061
+      },
+      "session_counts": {
+        "G": 134,
+        "H": 138,
+        "I": 145,
+        "J": 120
+      }
+    }
+  ],
+  "files": [
+    {
+      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt",
+      "sha256": "a9bfa687404434cb9f2710ba6cffed1eac9530e365d168b096192a015ec74ed9",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv",
+      "sha256": "928a6504c037ecad95636fb17e5c15e2cbf55e9d5152ce8d3cc1027d0b67b9f6",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.txt",
+      "sha256": "ec2352372cb322e3e39341e81ae685724b505b38843a0bbf4f05db361f8cd07f",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.txt",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/curve.csv",
+      "sha256": "8ca546a48f916ac5e6d81e9ecb8acfe346ae775cd68b3289b1165c044d8e2735",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/curve.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.txt",
+      "sha256": "f386c0794cf0c1ae41595bf628628e89c9e16ea5fc03d44fb96285e71f6b0ea9",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/curve.csv",
+      "sha256": "89136dad406e161a9b987ac0649d1b011318c1488183ec6ecc59d39cb7881fd2",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt",
+      "sha256": "0df7851532f815d1944c0fa33530fbe84c7f8995b1a468b3d6cef5c0e21662ec",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv",
+      "sha256": "95048af146956619be8931d3444b2a773674a8f314cdf6d0e98cdb49860adc0d",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.txt",
+      "sha256": "ef32db6b737a02e84dba44cdfd960a3ff193de5e24eb1e4ca45c9051abdda17a",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.txt",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/curve.csv",
+      "sha256": "9b60f3651840e427d753366a0ec01dc6b18f23ac972993f0194836b308e1a920",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/curve.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.txt",
+      "sha256": "4eb070cb67cbfed96e0daaa9494babe4160ca4ba982f4360e017abc703096550",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/curve.csv",
+      "sha256": "31465a6d7b3309d4d99f19e5056c48bcf8bcdfe2c4f7b2981cd7a0feb32b7108",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt",
+      "sha256": "d0fa985e3563c264cfc8d59e5996b7aae92b3b6f2f8afbf8f159906c50fcc9ac",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv",
+      "sha256": "a92103d7fccd918a1b41a8d8320ff8ca323d3541f06c5b2fa127a30300d48fc6",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.txt",
+      "sha256": "57a97ad834e2a51a6163e9e22910befb2cb836dda80e212865394308d26d5849",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/curve.csv",
+      "sha256": "57bf50736e9ba29a71b6fecccab278fc220ae439341325b8711c3226971b1d00",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.txt",
+      "sha256": "f97ad2d9c8435ea904691e7ff772e45dceaea3e905f1a54d12bd191e0a302ae6",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/curve.csv",
+      "sha256": "8af24a4fcd55a5d979ad17589af7fe2b4da89d7fb91aaf5c33f75b7016ad0317",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
+      "sha256": "36f184c83697a67f1d856a00a5ef9b2b5dcaf7b1c88d38b602aa2bd558b1038c",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
+      "sha256": "3319ab775a68ffd88c22dea5d572c8eb1a27bb7dc28a268bcfe5959d0023fbe2",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
+      "sha256": "7ecf7658fad1e535a4762f2f35de59a87adf4a4c0175de133ed25499612b6534",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
+      "sha256": "c15aaa3a3603321efea531b0d719bda8ceb1598d5daf0cb08b9fd9ffdc9391f0",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/curve.csv"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
+      "sha256": "ceb340b4063d1fa4cab6dcc9df8644b03b65baebbedb630a83dee847fe10c579",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.txt"
+      ]
+    },
+    {
+      "path": "ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
+      "sha256": "efd313210011fa790cd0c5f6dc675849832a3c12b4a289d796fccc42d1420fe6",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/curve.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv",
+      "sha256": "b9ccee467b15ae84d68275fb3f0511d07c98268b2a4c54a2b8e4832f3f20cf70",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed0.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.csv",
+      "sha256": "e8c8858f8c65601ad985ecd8066cf34030c44b2337d3e8f405a10cab71228aa5",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.csv",
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed1.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.csv",
+      "sha256": "f037bafd869e2eff12e4a8d41b4d5a6eaf99dd218702b4b5b4ec052906321eaf",
+      "sources": [
+        "tn4_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2/tn4/scores_ds_tcn_c192_k5_n4_none_do0.2_dpel_mse_pearson_a0.2_corr0.9_seed2.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv",
+      "sha256": "62f599ed992502dbae7e422587130821f526b053d8f00f86cc3a68bdc7a2fa0c",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed0.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.csv",
+      "sha256": "82f0c2b2fe89065baab234bd7d10d17b9559e17420d22f41d59590cb64d85276",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.csv",
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed1.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.csv",
+      "sha256": "9796ee12693ec0fbb3452cc63e156327199200832c57b0bf921345b717357c17",
+      "sources": [
+        "tn4_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2/tn4/scores_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_pearson_a0.6_corr0.9_seed2.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv",
+      "sha256": "b3c11b5364df900addb02a5e6019df749aa6c77d0575ae9d269d92ed2a792d04",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.csv",
+      "sha256": "e3e065a2d7c5178199615293509e4e75b842df3720c33d5e2f1505127ad465d6",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.csv",
+      "sha256": "1d31c1a92064186e37d976b2caee5903f1b406d55c8930736a1cd2b3f93a3e4f",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
+      "sha256": "308a382b768ebbb0335c8b049325a16efb235b8bbfcbe13e1f4569c6354ea6a1",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
+      "sha256": "dec9c65df26364e278a59d0bc5b8661bc3c0a79ab006466ac69aa9c9b8686cba",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed1.csv"
+      ]
+    },
+    {
+      "path": "scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
+      "sha256": "38a1707fa3da42a282c571306bd7241feb1b45ac042c876a52e9d2392530764d",
+      "sources": [
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed0/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed1/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv",
+        "tn4_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2/tn4/scores_ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed2.csv"
+      ]
+    }
+  ]
+}
