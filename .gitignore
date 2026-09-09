@@ -46,3 +46,26 @@ venv/
 # Notebook nháp để riêng, không đưa lên git: 424 KB output, trùng nội dung với
 # notebooks/TN0.ipynb đã commit. Giữ trên máy để tra lại.
 notebooks/tn0_reproduce.ipynb
+
+# submission: chỉ đưa các notebook đã chọn vào bản nộp.
+# Các notebook khác vẫn giữ ở máy; danh mục: docs/SUBMISSION_NOTEBOOKS.json.
+*.ipynb
+!/notebooks/DATA_PREPARE.ipynb
+!/notebooks/TN0.ipynb
+!/notebooks/TN1_TCN_DSTCN_model_selection.ipynb
+!/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb
+!/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c192.ipynb
+!/notebooks/TN1_final_evaluation.ipynb
+!/notebooks/TN2_ReceptiveField_DS_TCN_c64_4fold.ipynb
+!/notebooks/TN2_ReceptiveField_DS_TCN_c192_4fold.ipynb
+!/notebooks/TN2_ReceptiveField_DS_TCN_c64.ipynb
+!/notebooks/TN2_ReceptiveField_DS_TCN_c192.ipynb
+!/notebooks/TN2_DS_TCN_RevIN.ipynb
+!/notebooks/TN2_TCN_RevIN.ipynb
+!/notebooks/TN_test_ds_tcn_192.ipynb
+!/notebooks/TN3_HybridLoss_DS_TCN_c64.ipynb
+!/notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb
+!/notebooks/TN3_HybridLoss_DS_TCN_c192.ipynb
+!/notebooks/TN4_final_test_ds_tcn_c64.ipynb
+!/notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb
+!/notebooks/TN4_final_test_ds_tcn_c192.ipynb
