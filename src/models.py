@@ -92,7 +92,7 @@ class RevIN(nn.Module):
     MỘT CHỖ LỆCH BÀI GỐC, CÓ LÝ DO
 
     Bài gốc có thêm hai tham số học được gamma và beta, áp sau khi chuẩn hoá.
-    Ở đây bỏ chúng đi, vì TN2 so CÙNG một kiến trúc có và không có RevIN —
+    Ở đây bỏ chúng đi, vì đây là phép so CÙNG một kiến trúc có và không có RevIN —
     thêm tham số học được là hai cấu hình khác số tham số, không còn cô lập
     đúng một biến. Bỏ chúng thì bật hay tắt RevIN cho ra đúng cùng số tham số.
 
@@ -698,7 +698,7 @@ class MixLinear(nn.Module):
     độ lệch chuẩn, nên BIÊN ĐỘ được giữ nguyên.
 
     Ba dữ kiện rời, chưa nối thành nhân quả:
-      - TN2: bật RevIN, thứ CÓ chia độ lệch chuẩn, làm DS-TCN giảm 0,0124.
+      - Nhánh RevIN của TN1: bật RevIN, thứ CÓ chia độ lệch chuẩn, làm DS-TCN giảm 0,0124.
       - Đo trên 173 buổi ghi dev: biên độ cửa sổ có tương quan 0,53 với chất
         lượng ứng viên, dương ở 96,5% buổi ghi.
       - Chọn kênh chỉ bằng biên độ, không dùng model, đạt 0,6243 so với 0,2251

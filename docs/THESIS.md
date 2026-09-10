@@ -228,8 +228,8 @@ Không cần Optuna. Dùng các cấu hình đã định trong notebook; mỗi l
 | Bước | Thay đổi / phạm vi chạy | Đầu vào train → đầu vào chấm | Đầu ra quyết định |
 |---|---|---|---|
 | TN1 | 5 cấu hình nền, mỗi cấu hình seed 0/1/2 × 4 fold | Windows của 6 người train → phiên radar của 2 người validation | CV macro; giữ C64/RF61 và C192/RF61 cho khảo sát tiếp. |
+| TN1 RevIN | DS-TCN nền RF253 + RevIN, seed 0/1/2 × 4 fold | Như TN1 | Ghi kết quả giảm điểm; không đi tiếp nhánh này. |
 | TN2 RF | C64/C192, k5/k7/k9, mỗi cấu hình seed 0 × 4 fold; k3 dùng lại TN1 | Như TN1 | Giữ 64/RF61, 64/RF121, 192/RF121. |
-| TN2 RevIN | DS-TCN nền RF253 + RevIN, seed 0/1/2 × 4 fold | Như TN1 | Ghi kết quả giảm điểm; không đi tiếp nhánh này. |
 | TN3 | Ba cấu hình giữ lại; α = 0,0 đến 0,9 bước 0,1; seed 0 × 4 fold | Như TN1 | Chọn alpha riêng; MSE làm mốc từ TN1/TN2, không cần train lại chỉ để đổi tên TN. |
 | TN4 | Bốn tổ hợp chính: RF121 Pearson, RF61 hybrid, C192 hybrid, RF121 MSE; mỗi tổ hợp 3 seed | `windows/final_train/` ABCDEFKL → `by_user/` GHIJ | Test macro từng seed, trung bình ± sample std. |
 
@@ -305,7 +305,7 @@ runs/tn4/ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0/final.pth
 | TN1 C64/C192 RF61 | `tn1_ds_tcn_rf61_c64.zip`, `tn1_ds_tcn_rf61_c192.zip` |
 | TN2 RF bốn fold | `tn2_rf_c64_4fold.zip`, `tn2_rf_c192_4fold.zip` |
 | TN2 C64 sàng lọc KL | `tn2_rf_ds_tcn_c64.zip` |
-| TN2 RevIN | `tn2_ds_tcn_revin.zip` |
+| TN1 RevIN | `tn2_ds_tcn_revin.zip` (đặt tên theo experiment `tn2` lúc chạy; nội dung thuộc TN1) |
 | Phép thử C192 BN/dropout kênh | `tn_test_ds_tcn_c192.zip` |
 | TN3 | `tn3_ds_tcn_c64.zip` (RF61), `tn3_ds_tcn_c64_k5.zip` (RF121), `tn3_ds_tcn_c192.zip` |
 | TN4 | Runner tự tạo `tn4_<run_id>.zip` sau mỗi seed/tổ hợp. |
@@ -497,22 +497,9 @@ Ba bản sáu block có RF253; hai bản bốn block k3 có RF61. So giữa các
 
 64/RF61 có điểm trung bình cao nhất và ít tham số nhất trong bảng nên được giữ làm nền gọn. Bản 192 được giữ để khảo sát ảnh hưởng của tăng dung lượng, không gọi là thắng TN1.
 
-### TN2 — giữ nhiều RF để nghiên cứu tiếp
+#### TN1 — nhánh DS-TCN + RevIN
 
-TN2 có **nhánh khảo sát RF** dưới đây và **nhánh RevIN** trình bày ngay sau bảng RF. Trong lệnh chạy, nhánh RF dùng experiment `tn2_rf`, nhánh RevIN dùng `tn2`; cách gọi này không thay đổi file kết quả đã có.
-
-So cùng **seed 0, bốn fold, MSE**:
-
-| RF | Kernel | C64 | C192 |
-|---|---:|---:|---:|
-| 61 | 3 | 0,758244 | 0,757493 |
-| 121 | 5 | 0,757855 | 0,764428 |
-| 181 | 7 | 0,743657 | 0,732562 |
-| 241 | 9 | 0,736970 | 0,738416 |
-
-Giữ **64/RF61, 64/RF121, 192/RF121**. RF121 không thắng RF61 ở C64 với MSE, nhưng có điểm gần nhau trong lượt khảo sát; nhóm tiếp tục thử loss trên cả hai. Đổi kernel cũng làm thay số trọng số depthwise, nên đây là khảo sát **kernel/RF khi giữ độ sâu và số kênh**.
-
-#### TN2 — nhánh DS-TCN + RevIN
+Phép thử này so cùng một kiến trúc có và không có RevIN nên thuộc TN1 (chọn kiến trúc). Trong lệnh chạy nó dùng experiment `tn2`; kết quả trong repo đã gộp vào `runs/tn1/DS-TCN-nen+RevIN/`.
 
 **Câu hỏi khảo sát:** chuẩn hóa riêng mỗi cửa sổ đầu vào rồi khôi phục thang đo đầu ra có cải thiện việc chọn ứng viên không?
 
@@ -538,7 +525,22 @@ Các điểm seed được chép từ output/bảng hiện có và làm tròn s�
 
 **Kết luận được phép rút ra:** thêm RevIN vào **DS-TCN nền RF253 có BatchNorm** giảm CV trung bình khoảng **0,012394**, và thấp hơn nền ở cả ba seed. Vì thế nhánh này không được giữ trong cấu hình cuối. Kết quả không chứng minh RevIN luôn có hại với mọi kiến trúc, cũng không chứng minh bỏ BatchNorm sẽ tốt hơn.
 
-**Bằng chứng đã lưu:** [notebook DS-TCN + RevIN](../notebooks/TN2_DS_TCN_RevIN.ipynb) có output kiểm tra model, log train/validation cho ba seed trên các fold AB, CE, DF, KL và output lưu kết quả. Ô `runtime.unassign()` trống không có nghĩa thực nghiệm chưa chạy; đây là lệnh ngắt phiên Colab. Bảng tổng hợp: [bảng từng seed](BANG_TCN_TUNG_SEED.md); công thức RevIN: [src/models.py](../src/models.py).
+**Bằng chứng đã lưu:** [notebook DS-TCN + RevIN](../notebooks/TN1_DS_TCN_RevIN.ipynb) có output kiểm tra model, log train/validation cho ba seed trên các fold AB, CE, DF, KL và output lưu kết quả. Ô `runtime.unassign()` trống không có nghĩa thực nghiệm chưa chạy; đây là lệnh ngắt phiên Colab. Bảng tổng hợp: [bảng từng seed](BANG_TCN_TUNG_SEED.md); công thức RevIN: [src/models.py](../src/models.py).
+
+### TN2 — giữ nhiều RF để nghiên cứu tiếp
+
+TN2 chỉ khảo sát RF; trong lệnh chạy dùng experiment `tn2_rf`. Nhánh RevIN nằm ở TN1 vì nó so kiến trúc có và không có RevIN.
+
+So cùng **seed 0, bốn fold, MSE**:
+
+| RF | Kernel | C64 | C192 |
+|---|---:|---:|---:|
+| 61 | 3 | 0,758244 | 0,757493 |
+| 121 | 5 | 0,757855 | 0,764428 |
+| 181 | 7 | 0,743657 | 0,732562 |
+| 241 | 9 | 0,736970 | 0,738416 |
+
+Giữ **64/RF61, 64/RF121, 192/RF121**. RF121 không thắng RF61 ở C64 với MSE, nhưng có điểm gần nhau trong lượt khảo sát; nhóm tiếp tục thử loss trên cả hai. Đổi kernel cũng làm thay số trọng số depthwise, nên đây là khảo sát **kernel/RF khi giữ độ sâu và số kênh**.
 
 ### TN3 — chọn loss riêng cho từng cấu hình
 
@@ -610,7 +612,7 @@ Bảng giải thích đầy đủ, số tham số và câu trả lời hội đ�
 |---|---|
 | [Mốc DS-TCN trên GHIJ](../notebooks/TN1_final_evaluation.ipynb) | Kết quả test của DS-TCN nền; giữ lệnh/output DS-TCN. |
 | [RF C64, một fold](../notebooks/TN2_ReceptiveField_DS_TCN_c64.ipynb) | Sàng lọc sơ bộ, tách khỏi kết quả CV bốn fold. |
-| [DS-TCN + RevIN](../notebooks/TN2_DS_TCN_RevIN.ipynb) | Đã chạy 3 seed × 4 fold: **0,729715 ± 0,007271**, thấp hơn nền 0,012394. Xem phân tích nhánh RevIN tại mục 4. |
+| [DS-TCN + RevIN](../notebooks/TN1_DS_TCN_RevIN.ipynb) | Nhánh phụ của TN1. Đã chạy 3 seed × 4 fold: **0,729715 ± 0,007271**, thấp hơn nền 0,012394. Xem phân tích nhánh RevIN tại mục 4. |
 | [DS-TCN-192 thử BatchNorm](../notebooks/TN_test_ds_tcn_192.ipynb) | Phép thử bổ sung; khác cả norm và loại dropout với nhánh chính. |
 
 Phép thử C192/RF121 với BatchNorm và dropout theo kênh đạt **0,756618** (seed 0 × 4 fold), so với khoảng **0,764428** của tổ hợp không norm và dropout phần tử. Đây là so hai tổ hợp, không phải ablation chỉ thay BatchNorm. Bảng cấu hình/số tham số: [BANG_TCN.md](BANG_TCN.md); các kết quả một fold C64 và RF301/RF361 tra output notebook sàng lọc, không nhập vào bảng CV bốn fold.

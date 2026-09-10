@@ -112,7 +112,7 @@ ghi **script nào biến nó thành file kế tiếp**.
 1.  gt (nhịp thở tham chiếu)     make_npz.py       min-max [-1,1], MỘT LẦN cả 1500 mẫu
 2.  mỗi sóng ứng viên            transform()       min-max [-1,1], MỘT LẦN cả 1500 mẫu
                                 (trong make_windows và trong scoring)
-3.  RevIN  (chỉ thí nghiệm TN2)  bên trong model   z-score TỪNG cửa sổ 200 mẫu, đảo được
+3.  RevIN  (chỉ nhánh RevIN của TN1)  bên trong model   z-score TỪNG cửa sổ 200 mẫu, đảo được
 ```
 
 `uwb` thô trong `by_user/*.npz` **chưa** qua bước nào — chuẩn hoá xảy ra ở

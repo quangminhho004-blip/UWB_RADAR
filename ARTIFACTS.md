@@ -109,7 +109,7 @@ Tất cả tên dưới theo ô lưu notebook hoặc quy tắc runner, nằm tro
 | TN1 nền | `tn1_tcn_weightnorm.zip`, hoặc các ZIP `tn1_<config_id>.zip` | TCN BN, TCN WN, DS-TCN nền; mỗi cấu hình 3 seed × 4 fold. |
 | TN1 RF61 | `tn1_ds_tcn_rf61_c64.zip`, `tn1_ds_tcn_rf61_c192.zip` | C64/C192, mỗi cấu hình 3 seed × 4 fold. |
 | TN2 RF | `tn2_rf_c64_4fold.zip`, `tn2_rf_c192_4fold.zip` | k5/k7/k9 mỗi mức seed 0 × 4 fold. RF61 dùng lại TN1. |
-| TN2 RevIN | `tn2_ds_tcn_revin.zip` | DS-TCN nền + RevIN, 3 seed × 4 fold. |
+| TN1 RevIN | `tn2_ds_tcn_revin.zip` | DS-TCN nền + RevIN, 3 seed × 4 fold. Nhánh phụ so kiến trúc; tên tệp mang `tn2` theo experiment lúc chạy. |
 | TN3 RF61 | `tn3_ds_tcn_c64.zip` | C64/k3, alpha 0–0,9 bước 0,1, mỗi alpha seed 0 × 4 fold. |
 | TN3 RF121 | `tn3_ds_tcn_c64_k5.zip` | C64/k5, cùng dải alpha và giao thức. |
 | TN3 đối chứng | `tn3_ds_tcn_c192.zip` | C192/k5, cùng dải alpha và giao thức. |

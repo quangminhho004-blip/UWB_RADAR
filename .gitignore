@@ -59,7 +59,7 @@ notebooks/tn0_reproduce.ipynb
 !/notebooks/TN2_ReceptiveField_DS_TCN_c64_4fold.ipynb
 !/notebooks/TN2_ReceptiveField_DS_TCN_c192_4fold.ipynb
 !/notebooks/TN2_ReceptiveField_DS_TCN_c64.ipynb
-!/notebooks/TN2_DS_TCN_RevIN.ipynb
+!/notebooks/TN1_DS_TCN_RevIN.ipynb
 !/notebooks/TN_test_ds_tcn_192.ipynb
 !/notebooks/TN3_HybridLoss_DS_TCN_c64.ipynb
 !/notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb

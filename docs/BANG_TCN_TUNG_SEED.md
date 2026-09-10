@@ -26,8 +26,8 @@ lại được từ dòng từng fold.
 ## Quy tắc so sánh
 
 **Chỉ so những dòng cùng cột thực nghiệm.** Cột đó ghi rõ dòng nào chạy chung
-một lượt. `TN2` có hai vòng riêng — RevIN và tầm nhìn — chạy ở hai thư mục kết
-quả khác nhau, nên hai vòng đó cũng không đặt chung với nhau.
+một lượt. Dòng RevIN thuộc `TN1` — nó so cùng một kiến trúc có và không có RevIN.
+`TN2` chỉ đổi tầm nhìn, chạy ở thư mục `tn2_rf`.
 
 **Chênh lệch nhỏ hơn `seed_std` thì không xếp hạng được.** Dao động đo được
 trong đồ án trải từ 0,0007 đến 0,0154.
@@ -59,7 +59,7 @@ trong đồ án trải từ 0,0007 đến 0,0154.
 | DS-TCN-64 k9n4 | 40.153 | 241 | 0 | 0,736969 | — | — | TN2 tầm nhìn | `TN2_ReceptiveField_DS_TCN_c64_4fold` |
 | DS-TCN-192 k9n4 | 317.017 | 241 | 0 | 0,738416 | — | — | TN2 tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
 | DS-TCN-192 k7n4 | 313.945 | 181 | 0 | 0,732561 | — | — | TN2 tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
-| DS-TCN-64 + RevIN | 56.281 | 253 | 0 | 0,723775 | 0,729715 | 0,007271 | TN2 RevIN | `TN2_DS_TCN_RevIN` |
+| DS-TCN-64 + RevIN | 56.281 | 253 | 0 | 0,723775 | 0,729715 | 0,007271 | TN1 RevIN | `TN1_DS_TCN_RevIN` |
 | ↳ |  |  | 1 | 0,737823 |  |  |  |  |
 | ↳ |  |  | 2 | 0,727547 |  |  |  |  |
 
@@ -105,7 +105,7 @@ DS-TCN dùng **ít hơn 2,7 lần tham số** mà điểm ngang TCN BatchNorm (c
 0,0002). So với WeightNorm thì thấp hơn 0,0041, xấp xỉ dao động seed của chính
 nó — chưa xếp hạng được.
 
-### RevIN — cùng **TN2** vòng RevIN, cùng kiến trúc, khác đúng một lớp
+### RevIN — cùng **TN1**, cùng kiến trúc, khác đúng một lớp
 
 | | macro |
 |---|---:|

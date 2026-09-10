@@ -207,7 +207,7 @@ Nguồn: [TN1_TCN_DSTCN_model_selection](../notebooks/TN1_TCN_DSTCN_model_select
 | DS-TCN nền RF253 + RevIN, 3 seed × 4 fold | 0,7297 ± 0,0073, thấp hơn mốc 0,7421 | Không giữ nhánh RevIN này; không suy rộng thành mọi norm đều có hại. |
 | DS-TCN-192/RF121, BatchNorm, dropout theo kênh, seed 0 × 4 fold | Khoảng 0,7566; bản không norm + dropout phần tử khoảng 0,7644 | Hai tổ hợp khác cả norm và loại dropout; chưa tách riêng ảnh hưởng norm. |
 
-Notebook: [TN2_DS_TCN_RevIN](../notebooks/TN2_DS_TCN_RevIN.ipynb), [TN_test_ds_tcn_192](../notebooks/TN_test_ds_tcn_192.ipynb).
+Notebook: [TN1_DS_TCN_RevIN](../notebooks/TN1_DS_TCN_RevIN.ipynb), [TN_test_ds_tcn_192](../notebooks/TN_test_ds_tcn_192.ipynb).
 
 ## 7. TN2 — khảo sát RF và giữ RF121
 

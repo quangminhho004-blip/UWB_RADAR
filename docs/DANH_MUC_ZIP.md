@@ -40,14 +40,14 @@ Mỗi zip chứa: `<cấu hình>_val_AB/final.pth` + `curve.csv` cho cả 4 fold
 | `tn1_lstm*.zip` | `TN1_LSTM` · `TN1_LSTM_small` | LSTM-352, LSTM-67 (cả CV lẫn nhánh GHIJ) | |
 | `tn1_ghij_lstm_h67.zip` | `TN1_LSTM_small` | LSTM-67 train đủ 8 người, test GHIJ | |
 | `tn1_ghij_*.zip` | `TN1_final_evaluation` | LSTM-352 · DS-TCN-nền · TCN-64 — test GHIJ, tự sinh tên `<exp>_<run_id>.zip` | |
+| `tn2_ds_tcn_revin.zip` | `TN1_DS_TCN_RevIN` | DS-TCN-nền + RevIN, 4 fold × 3 seed — nhánh phụ so kiến trúc; giải nén vào `runs/tn1/DS-TCN-nen+RevIN/`. Tên tệp mang `tn2` vì đó là experiment lúc chạy. | |
+| `tn2_tcn_revin.zip` | `TN1_TCN_RevIN` | TCN-64 + RevIN *(chưa chạy)* | |
 
 
-## TN2 — tầm nhìn và RevIN
+## TN2 — tầm nhìn (receptive field)
 
 | tệp nén | notebook | chứa gì | ARTIFACT |
 |---|---|---|---|
-| `tn2_ds_tcn_revin.zip` | `TN2_DS_TCN_RevIN` | DS-TCN-nền + RevIN, 4 fold × 3 seed | |
-| `tn2_tcn_revin.zip` | `TN2_TCN_RevIN` | TCN-64 + RevIN *(chưa chạy)* | |
 | `tn2_rf_c64_4fold.zip` | `TN2_ReceptiveField_DS_TCN_c64_4fold` | Ours-64/121, 64/181, 64/241 — kernel 5·7·9, đủ 4 fold, 1 seed | |
 | `tn2_rf_c192_4fold.zip` | `TN2_ReceptiveField_DS_TCN_c192_4fold` | Ours-192/121, 192/181, 192/241 — đủ 4 fold, 1 seed | |
 | `tn2_rf_ds_tcn_c64.zip` | `TN2_ReceptiveField_DS_TCN_c64` | vòng SÀNG LỌC 1 fold, kernel 5·7·9·11·13 | |

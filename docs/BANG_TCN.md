@@ -36,11 +36,12 @@ trong đồ án trải từ 0,0007 đến 0,0154.
 | DS-TCN-64 k9n4 | 40.153 | 241 | 0,736969 | 1 | **TN2** tầm nhìn | `TN2_ReceptiveField_DS_TCN_c64_4fold` |
 | DS-TCN-192 k9n4 | 317.017 | 241 | 0,738416 | 1 | **TN2** tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
 | DS-TCN-192 k7n4 | 313.945 | 181 | 0,732561 | 1 | **TN2** tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
-| DS-TCN-64 + RevIN | 56.281 | 253 | 0,729715 ± 0,007271 | **3** | **TN2** RevIN | `TN2_DS_TCN_RevIN` |
+| DS-TCN-64 + RevIN | 56.281 | 253 | 0,729715 ± 0,007271 | **3** | **TN1** RevIN | `TN1_DS_TCN_RevIN` |
 
-Cột **thực nghiệm** là thứ quyết định dòng nào so được với dòng nào. `TN2` có
-**hai vòng khác nhau** — RevIN và tầm nhìn — chạy ở hai thư mục kết quả riêng
-(`tn2` và `tn2_rf`), nên cũng không đặt chung.
+Cột **thực nghiệm** là thứ quyết định dòng nào so được với dòng nào. Dòng RevIN
+thuộc `TN1`: nó so cùng một kiến trúc có và không có RevIN — đúng câu hỏi chọn
+kiến trúc, kết quả ở `runs/tn1/DS-TCN-nen+RevIN/`. `TN2` chỉ đổi tầm nhìn, chạy
+ở thư mục `tn2_rf`.
 
 **Cột micro của bảng này còn trống.** `run_cv.py` ghi `score_micro` vào dòng
 từng fold nhưng **quên ghi vào dòng `TONG`**, mà bảng chỉ đọc dòng `TONG`. Chữa
@@ -79,7 +80,7 @@ DS-TCN dùng **ít hơn 2,7 lần tham số** mà điểm ngang TCN BatchNorm (c
 0,0002). So với WeightNorm thì thấp hơn 0,0041, xấp xỉ dao động seed của chính
 nó — chưa xếp hạng được.
 
-### RevIN — cùng **TN2** vòng RevIN, cùng kiến trúc, khác đúng một lớp
+### RevIN — cùng **TN1**, cùng kiến trúc, khác đúng một lớp
 
 | | macro |
 |---|---:|
