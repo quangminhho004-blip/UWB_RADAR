@@ -508,7 +508,7 @@ So cùng **seed 0, bốn fold, MSE**:
 | 61 | 3 | 0,758244 | 0,757493 |
 | 121 | 5 | 0,757855 | 0,764428 |
 | 181 | 7 | 0,743657 | 0,732562 |
-| 241 | 9 | 0,736970 | 0,736623 |
+| 241 | 9 | 0,736970 | 0,738416 |
 
 Giữ **64/RF61, 64/RF121, 192/RF121**. RF121 không thắng RF61 ở C64 với MSE, nhưng có điểm gần nhau trong lượt khảo sát; nhóm tiếp tục thử loss trên cả hai. Đổi kernel cũng làm thay số trọng số depthwise, nên đây là khảo sát **kernel/RF khi giữ độ sâu và số kênh**.
 

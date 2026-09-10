@@ -34,7 +34,7 @@ trong đồ án trải từ 0,0007 đến 0,0154.
 | TCN-64 BatchNorm | 151.513 | 253 | 0,742337 ± 0,004369 | **3** | **TN1** | `TN1_TCN_DSTCN_model_selection` |
 | DS-TCN-64 bản đầu | 56.281 | 253 | 0,742109 ± 0,000673 | **3** | **TN1** | `TN1_TCN_DSTCN_model_selection` |
 | DS-TCN-64 k9n4 | 40.153 | 241 | 0,736969 | 1 | **TN2** tầm nhìn | `TN2_ReceptiveField_DS_TCN_c64_4fold` |
-| DS-TCN-192 k9n4 | 317.017 | 241 | 0,736623 | 1 | **TN2** tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
+| DS-TCN-192 k9n4 | 317.017 | 241 | 0,738416 | 1 | **TN2** tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
 | DS-TCN-192 k7n4 | 313.945 | 181 | 0,732561 | 1 | **TN2** tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
 | DS-TCN-64 + RevIN | 56.281 | 253 | 0,729715 ± 0,007271 | **3** | **TN2** RevIN | `TN2_DS_TCN_RevIN` |
 
@@ -99,7 +99,7 @@ chất lượng ứng viên, và chọn kênh chỉ bằng biên độ không d�
 |---:|---:|---:|
 | 121 | 0,757855 | **0,764427** |
 | 181 | 0,743657 | 0,732561 |
-| 241 | 0,736969 | 0,736623 |
+| 241 | 0,736969 | 0,738416 |
 
 Tầm nhìn 121 hơn 181 là **0,0142** (c64) và **0,0319** (c192), đều lớn hơn dao
 động seed. Mức 61 chạy ở **TN1** nên để riêng, không đặt chung bảng này.

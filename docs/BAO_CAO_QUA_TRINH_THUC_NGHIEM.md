@@ -218,7 +218,7 @@ So **cùng seed 0, cùng 4 fold, cùng MSE**; RF61 lấy đúng seed 0 của TN1
 | 3 / RF61 | 0,758244 | 0,757493 |
 | 5 / RF121 | 0,757855 | 0,764428 |
 | 7 / RF181 | 0,743657 | 0,732562 |
-| 9 / RF241 | 0,736970 | 0,736623 |
+| 9 / RF241 | 0,736970 | 0,738416 |
 
 **64/RF121 không thắng 64/RF61 trong bảng MSE.** Nó có điểm rất gần RF61 trong lượt khảo sát, trong khi RF181/RF241 thấp hơn, nên nhóm giữ cả RF61 và RF121 để khảo sát loss.
 

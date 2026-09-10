@@ -57,14 +57,12 @@ trong đồ án trải từ 0,0007 đến 0,0154.
 | ↳ |  |  | 1 | 0,742256 |  |  |  |  |
 | ↳ |  |  | 2 | 0,742697 |  |  |  |  |
 | DS-TCN-64 k9n4 | 40.153 | 241 | 0 | 0,736969 | — | — | TN2 tầm nhìn | `TN2_ReceptiveField_DS_TCN_c64_4fold` |
-| DS-TCN-192 k9n4 | 317.017 | 241 | 0 | 0,736623 * | — | — | TN2 tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
+| DS-TCN-192 k9n4 | 317.017 | 241 | 0 | 0,738416 | — | — | TN2 tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
 | DS-TCN-192 k7n4 | 313.945 | 181 | 0 | 0,732561 | — | — | TN2 tầm nhìn | `TN2_ReceptiveField_DS_TCN_c192_4fold` |
 | DS-TCN-64 + RevIN | 56.281 | 253 | 0 | 0,723775 | 0,729715 | 0,007271 | TN2 RevIN | `TN2_DS_TCN_RevIN` |
 | ↳ |  |  | 1 | 0,737823 |  |  |  |  |
 | ↳ |  |  | 2 | 0,727547 |  |  |  |  |
 
-`*` Dòng `DS-TCN-192 k9n4` lấy từ **đầu ra notebook**, không có trong tệp nén
-trên Drive — ô nén có lẽ không chạy sau cấu hình cuối. Mọi dòng khác đọc từ
 `summary.csv` trong tệp nén.
 
 
@@ -128,7 +126,7 @@ chất lượng ứng viên, và chọn kênh chỉ bằng biên độ không d�
 | 61 | **0,760877** | 0,747955 | nền, kế thừa từ TN1, 3 seed |
 | 121 | 0,757855 | **0,764427** | 1 seed |
 | 181 | 0,743657 | 0,732561 | 1 seed |
-| 241 | 0,736969 | 0,736623 | 1 seed |
+| 241 | 0,736969 | 0,738416 | 1 seed |
 
 TN2 giữ nguyên cấu hình TN1 đã chốt, **chỉ đổi kernel**, nên nền không chạy lại.
 
