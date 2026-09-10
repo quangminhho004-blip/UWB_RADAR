@@ -1,8 +1,8 @@
 # runs/tn1 — chọn kiến trúc (4 fold · 3 seed)
 
-Layout: `<cấu hình>/seed<N>/<fold>/{curve.csv, scores.csv}`.
+Layout: `<cấu hình>/seed<N>/<fold>/{curve.csv, scores.csv, final.pth}`.
 `summary.csv` giữ cột `run_id` đầy đủ để truy nguồn; dòng `fold=TONG` là cv_score.
-Bỏ `final.pth` cho nhẹ.
+`final.pth` là trọng số cuối mỗi fold (không kèm trạng thái Adam), giữ để chạy lại inference.
 
 | thư mục | notebook sinh ra | config_id | cv_score (3 seed) |
 |---|---|---|---:|
@@ -20,4 +20,4 @@ Ba dòng TONG nền (BatchNorm seed 0, DS-TCN-nen seed 0 và 2) tính lại từ
 `DS-TCN-nen+RevIN/` gắn RevIN vào DS-TCN nền: đây là phép so kiến trúc "có RevIN
 vs không", nên thuộc TN1 (chọn kiến trúc), không phải TN2 (trường tiếp nhận).
 RevIN tệ hơn nền 0,0124 (0,729715 so với 0,742110) — nhánh cụt, không mang tiếp.
-Layout `DS-TCN-nen+RevIN/seed<N>/<fold>/{curve.csv, scores.csv}`.
+Layout `DS-TCN-nen+RevIN/seed<N>/<fold>/{curve.csv, scores.csv, final.pth}`.

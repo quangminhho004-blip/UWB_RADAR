@@ -1,6 +1,7 @@
 # runs/tn1_ghij — mốc DS-TCN nền trên GHIJ (3 seed)
 
-Layout: `DS-TCN-nen/seed<N>/{curve.csv, scores.csv, selection.txt}`.
+Layout: `DS-TCN-nen/seed<N>/{curve.csv, scores.csv, selection.txt, final.pth}`.
+`final.pth` là trọng số train đủ ABCDEFKL của mỗi seed.
 
 | thư mục | notebook | config_id | GHIJ macro (3 seed) |
 |---|---|---|---:|

@@ -1,6 +1,6 @@
 # runs/tn3 — hàm loss lai (10 mức alpha · 4 fold · 1 seed)
 
-Layout: `<cấu hình>/a<alpha>/seed0/<fold>/{curve.csv, scores.csv}`.
+Layout: `<cấu hình>/a<alpha>/seed0/<fold>/{curve.csv, scores.csv, final.pth}`.
 `a0` = alpha 0,0 = Pearson thuần. `summary.csv` có 10 dòng TONG mỗi cấu hình.
 
 | thư mục | notebook | config_id | đỉnh |

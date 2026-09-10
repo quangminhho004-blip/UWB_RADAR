@@ -1,6 +1,6 @@
 # runs/tn2_rf — tầm nhìn DS-TCN (4 fold · 1 seed)
 
-Layout: `<cấu hình>/seed0/<fold>/{curve.csv, scores.csv}`.
+Layout: `<cấu hình>/seed0/<fold>/{curve.csv, scores.csv, final.pth}`.
 Nền tầm nhìn 61 là cấu hình TN1 đã chốt, không chạy lại ở đây — TN2 chỉ đổi kernel.
 
 | thư mục | notebook | config_id | cv_score |

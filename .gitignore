@@ -72,6 +72,10 @@ notebooks/tn0_reproduce.ipynb
 !/notebooks/GOM_ZIP_KET_QUA.ipynb
 !/notebooks/TAI_ZIP_TN4.ipynb
 
-# TN4 nhỏ (12 file, 5 MB) — cho phép commit để chạy lại inference
+# Checkpoint bản nộp — cho phép commit để chạy lại inference / đối chiếu
+!runs/tn1/**/*.pth
+!runs/tn1_ghij/**/*.pth
+!runs/tn2_rf/**/*.pth
+!runs/tn3/**/*.pth
 !runs/tn4/**/*.pth
 !/notebooks/TAI_ZIP_TN123.ipynb
