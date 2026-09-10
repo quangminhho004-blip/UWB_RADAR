@@ -1,0 +1,4 @@
+# Giữ nguyên byte gốc của kết quả để đối chiếu / hash về sau.
+*.csv -text
+*.txt -text
+*.pth binary
