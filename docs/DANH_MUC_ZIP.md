@@ -32,11 +32,11 @@ Mỗi zip chứa: `<cấu hình>_val_AB/final.pth` + `curve.csv` cho cả 4 fold
 | `tn1_ds_tcn_rf61_c64.zip` | `TN1_DS_TCN_RF61_no_norm_do02_c64` | **Ours-64/61** — 37.081 ts | |
 | `tn1_ds_tcn_rf61_c192.zip` | `TN1_DS_TCN_RF61_no_norm_do02_c192` | Ours-192/61 — 307.801 ts | |
 | `tn1_tcn_weightnorm.zip` | `TN1_TCN_DSTCN_model_selection` | DS-TCN-nền + TCN-64 BatchNorm + TCN-64 WeightNorm | |
-| `tn1_modern_tcn.zip` | `TN1_ModernTCN` | ModernTCN-32 — 56.985 ts | |
-| `tn1_bilstm_h41.zip` | `TN1_BiLSTM` | BiLSTM-41 | |
-| `tn1_cnn_lstm_h58.zip` | `TN1_CNN_LSTM` | CNN-LSTM-58 | |
-| `tn1_gru_h77.zip` | `TN1_GRU` | GRU-77 *(chưa chạy)* | |
-| `tn1_mix_linear.zip` | `TN1_MixLinear` | MixLinear-63 | |
+| `tn1_modern_tcn.zip` | `TN1_ModernTCN` | ModernTCN-32 — 56.985 ts *(mã ở nhánh `main`)* | |
+| `tn1_bilstm_h41.zip` | `TN1_BiLSTM` | BiLSTM-41 *(mã ở nhánh `main`)* | |
+| `tn1_cnn_lstm_h58.zip` | `TN1_CNN_LSTM` | CNN-LSTM-58 *(mã ở nhánh `main`)* | |
+| `tn1_gru_h77.zip` | `TN1_GRU` | GRU-77 *(chưa chạy; mã ở nhánh `main`)* | |
+| `tn1_mix_linear.zip` | `TN1_MixLinear` | MixLinear-63 *(mã ở nhánh `main`)* | |
 | `tn1_lstm*.zip` | `TN1_LSTM` · `TN1_LSTM_small` | LSTM-352, LSTM-67 (cả CV lẫn nhánh GHIJ) | |
 | `tn1_ghij_lstm_h67.zip` | `TN1_LSTM_small` | LSTM-67 train đủ 8 người, test GHIJ | |
 | `tn1_ghij_*.zip` | `TN1_final_evaluation` | LSTM-352 · DS-TCN-nền · TCN-64 — test GHIJ, tự sinh tên `<exp>_<run_id>.zip` | |
@@ -85,7 +85,7 @@ Mỗi zip tích luỹ: sau mỗi alpha `save_results.py` chạy lại nên zip m
 
 | tệp nén | notebook | chứa gì | ARTIFACT |
 |---|---|---|---|
-| `tn_mixlinear_c0.zip` · `c2.zip` · `c3.zip` | `TN_MixLinear_C0/C2/C3` | biến thể ghép nhánh MixLinear, 1 seed | |
+| `tn_mixlinear_c0.zip` · `c2.zip` · `c3.zip` | `TN_MixLinear_C0/C2/C3` | biến thể ghép nhánh MixLinear, 1 seed *(mã ở nhánh `main`)* | |
 | `tn_test_ds_tcn_c192.zip` | `TN_test_ds_tcn_192` | bản thử 192/121-BN (BatchNorm), 1 seed | |
 
 

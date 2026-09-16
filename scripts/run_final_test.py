@@ -70,9 +70,7 @@ SUMMARY_FILE = "runs/summary.csv"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="ds_tcn",
-                    help="lstm | bilstm | gru | cnn_lstm | tcn | ds_tcn | modern_tcn | "
-                         "mix_linear | mix_linear_linear | mix_linear_mlp | "
-                         "low_rank_linear")
+                    help="lstm | tcn | ds_tcn")
 parser.add_argument("--revin", default="false", help="true | false")
 parser.add_argument("--loss", default="mse", help="mse | mse_pearson")
 parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE khi loss=mse_pearson")
@@ -93,28 +91,6 @@ parser.add_argument("--dropout", type=float, default=0.0,
 parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE,
                     help="số chiều ẩn của LSTM. Mặc định 352 là cấu hình "
                          "MobiVital công bố; 67 cho ~56k tham số, ngang DS-TCN-64")
-parser.add_argument("--conv_channels", type=int, default=32,
-                    help="số kênh của khối tích chập trong cnn_lstm")
-parser.add_argument("--conv_kernel", type=int, default=5,
-                    help="bề rộng bộ lọc tích chập trong cnn_lstm. "
-                         "kernel 5 phủ 0,1 giây ở tần số lấy mẫu 50 Hz")
-parser.add_argument("--kernel_large", type=int, default=31,
-                    help="ModernTCN: kernel nhánh rộng")
-parser.add_argument("--kernel_small", type=int, default=5,
-                    help="ModernTCN: kernel nhánh hẹp")
-parser.add_argument("--period_len", type=int, default=10,
-                    help="MixLinear: cỡ chia đoạn bên trong mạng")
-parser.add_argument("--lpf", type=int, default=5,
-                    help="MixLinear: số hệ số FFT tần thấp được giữ")
-parser.add_argument("--mix_alpha", type=float, default=0.5,
-                    help="MixLinear: trọng số nhánh thời gian khi trộn hai nhánh. "
-                         "KHÁC --alpha của loss mse_pearson")
-parser.add_argument("--mix_hidden", type=int, default=2,
-                    help="MixLinear: chiều trung gian nhánh tần số. "
-                         "Quá 3 là vô ích, xem docstring lớp MixLinear")
-parser.add_argument("--correction_hidden", type=int, default=4,
-                    help="chiều giữa của nhánh phụ trong mix_linear_linear, "
-                         "mix_linear_mlp và low_rank_linear. KHÁC --mix_hidden")
 parser.add_argument("--dropout_kind", default="channel",
                     choices=["channel", "element"],
                     help="channel = nn.Dropout1d, xoá cả một kênh, mặc định của "
@@ -138,36 +114,10 @@ revin = args.revin.lower() == "true"
 # Hậu tố CHỈ thêm khi giá trị khác mặc định, nhờ đó tên của mọi lần chạy cũ
 # không đổi khi thêm tuỳ chọn mới. Ví dụ lstm_mse_corr0.9_seed0 giữ nguyên dù
 # về sau có thêm --hidden, --norm hay tuỳ chọn nào nữa.
-if args.model in ("lstm", "bilstm"):
-    # Họ hồi quy: chỉ có hidden, không có tham số nào của TCN.
+if args.model == "lstm":
+    # Hậu tố CHỈ thêm khi hidden khác 352 của MobiVital, nhờ đó tên của mọi lần
+    # chạy cũ không đổi khi thêm tuỳ chọn mới.
     arch_tag = "" if args.hidden == mv.LSTM_HIDDEN_SIZE else "_h%d" % args.hidden
-elif args.model == "cnn_lstm":
-    # Không có "cấu hình gốc" nào để lấy làm mặc định, nên ghi đủ ba con số
-    # quyết định kiến trúc. Đổi bất kỳ cái nào là ra tên khác, không đè kết quả.
-    arch_tag = "_h%d_c%d_k%d" % (args.hidden, args.conv_channels, args.conv_kernel)
-elif args.model == "modern_tcn":
-    # Mặc định --channels 64 và --n_blocks 6 là của TCN, KHÔNG phải của
-    # ModernTCN (32 và 3). Ghi cả hai vào tên để quên cờ thì lộ ra ngay.
-    arch_tag = "_c%d_n%d" % (args.channels, args.n_blocks)
-    if args.kernel_large != 31 or args.kernel_small != 5:
-        arch_tag += "_kl%d_ks%d" % (args.kernel_large, args.kernel_small)
-elif args.model == "gru":
-    # Luôn ghi hidden. Khác lstm/bilstm ở chỗ GRU không có cấu hình gốc nào của
-    # MobiVital để lấy làm mặc định, nên "khác mặc định mới ghi" là vô nghĩa.
-    arch_tag = "_h%d" % args.hidden
-elif args.model == "low_rank_linear":
-    arch_tag = "_h%d" % args.correction_hidden
-elif args.model in ("mix_linear_linear", "mix_linear_mlp"):
-    # Ghi cả tham số của nền lẫn chiều nhánh phụ, vì cả hai đổi kiến trúc.
-    arch_tag = "_p%d_lpf%d_h%d" % (args.period_len, args.lpf,
-                                   args.correction_hidden)
-elif args.model == "mix_linear":
-    # Hai con số này quyết định cả kiến trúc lẫn số tham số, luôn ghi.
-    arch_tag = "_p%d_lpf%d" % (args.period_len, args.lpf)
-    if args.mix_alpha != 0.5:
-        arch_tag += "_a%g" % args.mix_alpha
-    if args.mix_hidden != 2:
-        arch_tag += "_r%d" % args.mix_hidden
 else:
     # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
     arch_tag = "_c%d" % args.channels
@@ -226,16 +176,7 @@ model = models.build_model(args.model, revin=revin,
                                    n_blocks=args.n_blocks,
                                    dropout=args.dropout,
                                    norm=args.norm,
-                                   dropout_kind=args.dropout_kind,
-                                   conv_channels=args.conv_channels,
-                                   conv_kernel=args.conv_kernel,
-                                   kernel_large=args.kernel_large,
-                                   kernel_small=args.kernel_small,
-                                   period_len=args.period_len,
-                                   lpf=args.lpf,
-                                   mix_hidden=args.mix_hidden,
-                                   correction_hidden=args.correction_hidden,
-                                   mix_alpha=args.mix_alpha)
+                                   dropout_kind=args.dropout_kind)
 n_params = models.count_params(model)
 print(n_params, "tham số")
 print()
