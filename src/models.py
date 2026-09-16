@@ -39,7 +39,7 @@ SỐ THAM SỐ ĐO ĐƯỢC
     ds_tcn-64 k5n4 RF121            38.105
     ds_tcn-64 k3n4 RF61             37.081    cấu hình gọn nhất được giữ
 
-Tự in lại các số này: xem cuối docs/CAU_HINH_TN1.txt
+Bảng đầy đủ kèm điểm CV: docs/BANG_TCN.md
 
 RevIN là lớp bọc, dùng được với tcn và ds_tcn.
 
@@ -49,7 +49,6 @@ TÀI LIỆU THAM CHIẾU
     Howard et al. (2017), arXiv:1704.04861        -- depthwise separable
     Kim, Kim, Tae, Park, Choi, Choo (2022), ICLR  -- RevIN
 
-Trích dẫn từng tham số: xem docs/THAM_CHIEU.md
 """
 
 import torch

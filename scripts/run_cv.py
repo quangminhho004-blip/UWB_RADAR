@@ -5,7 +5,7 @@
 Số ra là `cv_score`. Muốn so hai cấu hình thì chạy script này hai lần rồi so
 `cv_score`. Chốt xong mới chạy scripts/run_final_test.py một lần duy nhất.
 
-BỐN FOLD (docs/PROTOCOL.md mục 2, CỐ ĐỊNH cho mọi thí nghiệm)
+BỐN FOLD (docs/CHIA_DU_LIEU.md mục 3, CỐ ĐỊNH cho mọi thí nghiệm)
 
     fold      train 6 người      chấm điểm 2 người
     val_AB    C D E F K L        A B
@@ -100,7 +100,7 @@ parser.add_argument("--norm", default="batch",
 parser.add_argument("--folds", default="all",
                     help="all = chạy đủ 4 fold. Hoặc liệt kê cách nhau bằng dấu "
                          "phẩy, ví dụ val_KL. Chạy một fold là VÒNG SÀNG LỌC, "
-                         "không phải vòng kết luận — xem docs/SANG_LOC.md")
+                         "không phải vòng kết luận — xem docs/THESIS.md mục 2")
 parser.add_argument("--experiment", required=True,
                     help="tên thực nghiệm, ví dụ tn1 — quyết định thư mục runs/<tên>/")
 args = parser.parse_args()
@@ -273,7 +273,7 @@ cv_std = float(np.std(fold_scores))
 # trùng. Bỏ qua để lệnh vẫn chạy được và vẫn in ra bảng tổng kết.
 # Dòng TONG chỉ có nghĩa khi chạy ĐỦ 4 fold. Chạy một phần mà vẫn ghi thì
 # compare_cv đọc phải một "cv_score" tính từ một fold — số đó cao hơn hẳn và
-# đảo cả thứ hạng, xem docs/SANG_LOC.md. Bốn dòng fold vẫn được ghi bình
+# đảo cả thứ hạng, xem docs/THESIS.md mục 2. Bốn dòng fold vẫn được ghi bình
 # thường, nên chạy nốt các fold còn lại thì dòng TONG tự có.
 du_bon_fold = len(chosen) == len(FOLDS)
 if not du_bon_fold:

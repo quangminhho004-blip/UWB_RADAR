@@ -219,7 +219,7 @@ def mean_by_user(rows):
     """Điểm trung bình của từng người, từ dữ liệu score_all trả về.
 
     Điểm chính thức của đồ án là trung bình các số này (macro theo người),
-    không phải trung bình trên toàn bộ buổi ghi — xem docs/PROTOCOL.md mục 4.
+    không phải trung bình trên toàn bộ buổi ghi — xem docs/CHIA_DU_LIEU.md.
     Lý do: mỗi người có số buổi ghi khác nhau, tính gộp thì người ghi nhiều
     buổi bị tính nặng ký hơn một cách vô lý.
     """

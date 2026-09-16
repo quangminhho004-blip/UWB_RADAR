@@ -16,7 +16,7 @@ Mỗi file CSV là một session, có 1500 dòng.
     cột 132..251  = phần ảo  của UWB
     cột áp chót   = respiration ground truth
 
-Đây là PIPELINE TRAIN/VALIDATE (xem docs/PROTOCOL.md mục 1).
+Đây là PIPELINE TRAIN/VALIDATE (xem docs/CHIA_DU_LIEU.md).
 
 VÌ SAO ĐỌC CSV TRONG THƯ MỤC MOBIVITAL
 

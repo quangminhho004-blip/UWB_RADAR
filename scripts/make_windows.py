@@ -4,7 +4,7 @@
 
 Luồng:  đọc dữ liệu -> gọi generate_dataset() của MobiVital -> lấy X, y -> lưu .npz
 
-Chạy hai lần, cho hai pipeline (xem docs/PROTOCOL.md mục 1):
+Chạy hai lần, cho hai pipeline (xem docs/CHIA_DU_LIEU.md):
 
     dev_cv/      cắt RIÊNG từng người A B C D E F K L, để ghép fold tuỳ ý
     final_train/ cắt GỘP cả 8 người, đúng thứ tự MobiVital, cho số công bố
