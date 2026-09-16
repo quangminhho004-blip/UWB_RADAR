@@ -57,6 +57,7 @@ notebooks/tn0_reproduce.ipynb
 !/notebooks/TN1_CNN_LSTM.ipynb
 !/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb
 !/notebooks/NAP_KET_QUA_TN1.ipynb
+!/notebooks/NAP_MOC_GHIJ.ipynb
 
 # Tài liệu giữ local để truy vết, không đưa vào bản nộp.
 /.submission_archive/
