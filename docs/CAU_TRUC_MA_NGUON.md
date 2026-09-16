@@ -23,7 +23,7 @@ Drive; `scripts/` không biết gì về notebook nào gọi nó.
 
 | file | làm gì |
 |---|---|
-| `models.py` | Ba kiến trúc có kết quả công bố: LSTM (bản MobiVital), TCN, DS-TCN — kèm lớp bọc RevIN. Tất cả cùng một giao diện: vào `(batch, 200)`, ra `(batch, 25)`. `build_model(tên, ...)` dựng theo tên. Vòng chọn kiến trúc còn thử BiLSTM, GRU, CNN-LSTM, ModernTCN và MixLinear; mã của chúng nằm ở nhánh `main`, kết quả ở [BANG_TCN.md](BANG_TCN.md) và [DANH_MUC_ZIP.md](DANH_MUC_ZIP.md). |
+| `models.py` | Bốn kiến trúc của TN1: LSTM (bản MobiVital), CNN-LSTM, TCN, DS-TCN. Tất cả cùng một giao diện: vào `(batch, 200)`, ra `(batch, 25)`. `build_model(tên, ...)` dựng theo tên. Bảng kết quả: [BANG_TCN.md](BANG_TCN.md). |
 | `training.py` | Vòng train: chia batch, tính loss, Adam, in tiến độ. Lưu checkpoint mỗi epoch để Colab ngắt phiên còn chạy tiếp được. |
 | `scoring.py` | Bộ chọn kênh và hàm chấm điểm. Cho mỗi buổi ghi: chạy model trên khoảng 126 ứng viên còn lại sau bộ lọc, chọn ứng viên tự dự báo chính nó tốt nhất, rồi tính Pearson với nhịp thở thật. |
 | `losses.py` | MSE, Pearson, và hàm lai `alpha × MSE + (1 − alpha) × (1 − Pearson)`. |
@@ -55,7 +55,6 @@ Drive; `scripts/` không biết gì về notebook nào gọi nó.
 | file | làm gì |
 |---|---|
 | `run_cv.py` | **Chọn cấu hình.** Chạy 4 fold trên tám người ABCDEFKL. Không bao giờ đụng G H I J. Fold nào đã xong thì bỏ qua, không train lại. |
-| `run_final_test.py` | **Số công bố.** Train đủ ABCDEFKL rồi chấm đúng một lần trên GHIJ. Chỉ chạy sau khi đã chốt cấu hình bằng `run_cv.py`. |
 | `run_tn0.py` | Chạy pipeline đồ án và pipeline MobiVital trên cùng dữ liệu rồi đối chiếu. Đây là bước chứng minh hai bên tương đương. |
 
 ### Đọc và cất kết quả
@@ -64,7 +63,7 @@ Drive; `scripts/` không biết gì về notebook nào gọi nó.
 |---|---|
 | `compare_cv.py` | In bảng so các cấu hình trong một thực nghiệm: `cv_mean`, `seed_std`, `fold_std`, điểm từng seed. |
 | `save_results.py` | Nén toàn bộ kết quả một thực nghiệm thành `.zip` rồi chép sang Drive. |
-| `analyze_oracle_dev.py` | Tính trần trên: điểm đạt được nếu luôn chọn đúng kênh tốt nhất. Không train, không chạy model. |
+| `gop_summary.py` | Chèn các dòng metric lấy về từ tệp nén trên Drive vào `runs/tn1/summary.csv`. Không đè dòng đã có. |
 | `setup_colab.py` | Chuẩn bị môi trường Colab sau khi clone repo: cài gói, ghim đúng commit MobiVital, in thiết bị đang có. |
 
 
@@ -74,11 +73,8 @@ Drive; `scripts/` không biết gì về notebook nào gọi nó.
 |---|---|
 | `DATA_PREPARE` | Dựng dữ liệu từ đầu. Chạy một lần. |
 | `TN0`, `tn0_reproduce` | Tái lập MobiVital, chứng minh hai pipeline tương đương. |
-| `TN1_*` | So các kiến trúc ở cùng ngân sách tham số. Nhánh nộp giữ notebook của TCN, DS-TCN và RevIN. |
-| `TN2_ReceptiveField_*`, `TN2_*_RevIN` | Khảo sát tầm nhìn, và khảo sát RevIN. |
-| `TN3_HybridLoss_*` | Quét mức alpha của hàm loss lai. |
-| `TN4_final_test_*` | Test cuối trên GHIJ. Số công bố. |
-| `XEM_KET_QUA_TREN_DRIVE`, `CHAN_DOAN_TN3` | Công cụ: xem tệp nén trên Drive, chẩn đoán khi khôi phục thiếu dòng. |
+| `TN1_*` | Bốn cấu hình của TN1, mỗi notebook một cấu hình, 4 fold × 3 hạt giống. |
+| `NAP_KET_QUA_TN1` | Công cụ: lấy kết quả đã chạy từ tệp nén trên Drive về, xếp vào `runs/tn1/`. Không train gì. |
 
 Notebook nào cũng cùng một khuôn: gắn Drive → clone mã → lấy dữ liệu → khôi
 phục kết quả đã chạy → kiểm số tham số → các ô train → bảng kết quả → ngắt phiên.
@@ -98,7 +94,6 @@ phục kết quả đã chạy → kiểm số tham số → các ô train → b
             |
             +--> dev_cv/       -> run_cv.py         -> chọn cấu hình
             |
-            +--> final_train/  -> run_final_test.py -> số công bố
                                         |
                                         v
                               runs/<thực nghiệm>/   checkpoint, điểm từng buổi ghi

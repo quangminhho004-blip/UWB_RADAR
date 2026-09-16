@@ -23,9 +23,9 @@ chạy liền mạch cho kết quả y hệt.
 
 VÌ SAO GHI CẢ MSE LẪN PEARSON MỖI EPOCH
 
-TN3 sẽ so MSE thuần với MSE + Pearson. Hai hàm loss cho giá trị ở thang khác
-nhau, `train_loss` của hai bên không so được. Nên ghi tách từng thành phần, luôn
-luôn, bất kể đang tối ưu cái nào. `train_mse` so được xuyên suốt TN1 đến TN6.
+Hàm loss có tuỳ chọn ghép MSE với Pearson. Hai hàm loss cho giá trị ở thang
+khác nhau, `train_loss` của hai bên không so được. Nên ghi tách từng thành phần,
+luôn luôn, bất kể đang tối ưu cái nào. Nhờ đó `train_mse` so được xuyên suốt.
 
 VỀ VALIDATION
 

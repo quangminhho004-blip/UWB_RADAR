@@ -15,9 +15,8 @@ gọi model 52 lần mỗi ứng viên, rồi so từng cửa sổ 25 mẫu.
 PHẠM VI CỦA NHÁNH NÀY
 
 Nhánh nộp cuối chỉ giữ bốn cấu hình của thực nghiệm 1, và đúng mã cần để dựng
-lại chúng. Các kiến trúc từng thử trong quá trình chọn (bilstm, gru,
-modern_tcn, mix_linear) và các thực nghiệm sau (tầm nhìn, hàm loss lai, kiểm
-tra trên GHIJ) không nằm ở nhánh này.
+lại chúng. Các kiến trúc khác từng thử trong quá trình chọn, và các thực nghiệm
+sau, không nằm ở nhánh này.
 
     hồi quy       đọc lần lượt từng mẫu, mang trạng thái đi theo
       lstm        LSTMMultiStep của MobiVital, làm mốc so sánh

@@ -9,7 +9,7 @@ MobiVital train bằng MSE nhưng chấm điểm bằng Pearson. Hai thước đ
     Pearson  chỉ quan tâm HÌNH DẠNG  -- lên xuống cùng nhịp là đủ
 
 Sóng nhịp thở đã kéo về [-1, 1] nên biên độ không mang thông tin gì thêm. Model
-dành sức khớp biên độ là phí. Đó là lý do TN3 thử đưa Pearson vào loss.
+dành sức khớp biên độ là phí. Đó là lý do có tuỳ chọn đưa Pearson vào loss.
 
 alpha là trọng số cho MSE:
 

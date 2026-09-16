@@ -1,6 +1,16 @@
 # Contactless and Robust Respiration Monitoring based on UWB Radar
 
-Bản nộp trên nhánh **submission** tập trung vào **TCN/DS-TCN**, theo thứ tự **TN0 → TN1 → TN2 → TN3 → TN4**. Hai mô hình cuối: ưu tiên **DS-TCN 64/RF121 với Pearson loss thuần**, sau đó **DS-TCN 64/RF61 với hybrid α = 0,6**.
+Bản nộp trên nhánh **final_submission** có hai thực nghiệm: **TN0** tái lập
+MobiVital, **TN1** so bốn kiến trúc trên cùng dữ liệu và cùng giao thức.
+
+**Cấu hình được chọn: DS-TCN 64, kernel 3, 4 khối — 37.081 tham số, CV macro 0,760878 ± 0,003095.**
+
+| Cấu hình | Tham số | CV macro (4 fold × 3 seed) |
+|---|---:|---:|
+| **DS-TCN 64, k3 n4** | **37.081** | **0,760878 ± 0,003095** |
+| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756992 ± 0,004156 |
+| LSTM 67 | 56.908 | 0,753208 ± 0,001967 |
+| CNN-LSTM 58 | 55.667 | 0,752658 ± 0,003757 |
 
 **Bắt đầu đọc:** [Tóm tắt thesis và danh mục thực nghiệm](docs/THESIS.md).
 
@@ -8,12 +18,11 @@ Danh mục tài liệu và vai trò từng file: [docs/README.md](docs/README.md
 
 **Bàn giao cho thành viên đóng gói bản nộp:** [ARTIFACTS.md](ARTIFACTS.md) — gói dữ liệu/kết quả cần lấy, checkpoint, kiểm TN0 và các link Drive cần điền.
 
-- [Báo cáo chi tiết: vì sao chọn từng tham số](docs/BAO_CAO_QUA_TRINH_THUC_NGHIEM.md).
-- [Sơ đồ các nhánh](docs/SO_DO_NHANH.md).
+- [Bảng kết quả TN1](docs/BANG_TCN.md).
+- [Vì sao chia dữ liệu như vậy](docs/CHIA_DU_LIEU.md).
 - [Pipeline train và inference](docs/PIPELINE_2.md).
-- [Danh mục 17 notebook của bản nộp](docs/SUBMISSION_NOTEBOOKS.json).
 
-Các notebook mô hình ngoài phạm vi không có trong cây tệp hiện tại của bản nộp. TN0 giữ mô hình tham chiếu MobiVital để kiểm tra pipeline; mã dùng chung trong src/ và scripts/ được giữ để các notebook chạy được. Các commit lịch sử không bị viết lại.
+Nhánh này chỉ giữ mã của bốn kiến trúc đã công bố. Các kiến trúc từng thử mà không công bố, và các thực nghiệm sau TN1, không nằm ở đây. Các commit lịch sử không bị viết lại.
 
 ## Bài toán
 
@@ -21,14 +30,14 @@ Mô hình dự báo 25 mẫu tiếp theo từ 200 mẫu lịch sử của từng
 
 ## Chạy trên Colab
 
-Mở notebook từ nhánh submission, ví dụ:
+Mở notebook từ nhánh `final_submission`, ví dụ:
 
-[DATA_PREPARE trên Colab](https://colab.research.google.com/github/quangminhho004-blip/UWB_RADAR/blob/submission/notebooks/DATA_PREPARE.ipynb) · [TN0 trên Colab](https://colab.research.google.com/github/quangminhho004-blip/UWB_RADAR/blob/submission/notebooks/TN0.ipynb) · [TN4 cấu hình cuối trên Colab](https://colab.research.google.com/github/quangminhho004-blip/UWB_RADAR/blob/submission/notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb)
+[DATA_PREPARE](https://colab.research.google.com/github/quangminhho004-blip/UWB_RADAR/blob/final_submission/notebooks/DATA_PREPARE.ipynb) · [TN0](https://colab.research.google.com/github/quangminhho004-blip/UWB_RADAR/blob/final_submission/notebooks/TN0.ipynb) · [TN1 cấu hình được chọn](https://colab.research.google.com/github/quangminhho004-blip/UWB_RADAR/blob/final_submission/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb)
 
 Ô setup trong notebook lấy đúng nhánh:
 
 ```bash
-git clone --branch submission --single-branch https://github.com/quangminhho004-blip/UWB_RADAR.git
+git clone --branch final_submission --single-branch https://github.com/quangminhho004-blip/UWB_RADAR.git
 cd UWB_RADAR
 python scripts/setup_colab.py
 ```
@@ -56,12 +65,9 @@ Các notebook thực nghiệm khôi phục dữ liệu đã xử lý bằng `scr
 | Bước | Việc thực hiện | Seed/fold |
 |---|---|---|
 | TN0 | Đối chiếu pipeline với MobiVital | Theo từng phép kiểm chứng trong notebook |
-| TN1 | Khảo sát TCN/DS-TCN; giữ hai mức dung lượng | 3 seed × 4 fold |
-| TN2 | Khảo sát kernel/RF | RF mới: seed 0 × 4 fold; RF61 dùng lại nền |
-| TN3 | Khảo sát alpha của loss | Seed 0 × 4 fold mỗi alpha |
-| TN4 | Train đủ ABCDEFKL, test GHIJ | 3 seed cho mỗi tổ hợp |
+| TN1 | So bốn kiến trúc: DS-TCN 64, LSTM 352, LSTM 67, CNN-LSTM 58 | 3 seed × 4 fold, đủ cho cả bốn |
 
-Notebook phụ một fold là sàng lọc sơ bộ, không trộn điểm với CV bốn fold. Danh mục từng notebook và trạng thái nằm trong [THESIS.md](docs/THESIS.md).
+Không cấu hình nào chạy ít seed hay ít fold hơn cấu hình khác. G H I J không dùng để chọn cấu hình, và nhánh này không có bước test cuối trên chúng. Danh mục notebook nằm trong [THESIS.md](docs/THESIS.md).
 
 ## Mã và kết quả
 
@@ -71,11 +77,11 @@ src/         Model, huấn luyện, loss, chọn ứng viên, kết quả
 scripts/     Chuẩn bị dữ liệu, runner và lưu/so sánh kết quả
 docs/        Tóm tắt thesis, báo cáo và sơ đồ
 data/        Dữ liệu tải riêng; repo giữ checksums.txt
-runs/        Artifact thực nghiệm; checkpoint không commit
+runs/        Artifact thực nghiệm; checkpoint của tn1 có commit
 external/    Mã MobiVital tải riêng
 ```
 
-`scripts/run_cv.py` đánh giá trên bốn fold thuộc ABCDEFKL. `scripts/run_final_test.py` train đủ ABCDEFKL rồi đánh giá GHIJ. Số chính của đồ án là Pearson macro theo người. Thư mục kết quả được đặt bằng `--experiment`; cấu hình và seed tạo tên run riêng.
+`scripts/run_cv.py` đánh giá trên bốn fold thuộc ABCDEFKL. Số chính của đồ án là Pearson macro theo người. Thư mục kết quả được đặt bằng `--experiment`; cấu hình và seed tạo tên run riêng.
 
 Output cũ trong notebook là bằng chứng lần chạy đã lưu, không phải kết quả chạy lại sau khi chỉnh bản nộp. Các tài liệu cũ được giữ để tra cứu; **THESIS.md là điểm vào của bản nộp hiện tại**.
 

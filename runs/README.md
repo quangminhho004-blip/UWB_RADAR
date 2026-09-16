@@ -1,6 +1,8 @@
 # runs/ — kết quả thực nghiệm
 
-**Kết quả đã giải nén cho bản nộp:** [TN4 — bảng tổng hợp và 12 lượt test](tn4/README.md). Có summary, scores từng phiên, TXT lựa chọn, curve và manifest nguồn; chưa có checkpoint trong bộ nhập này. TN1–TN3 chưa được nhập trong đợt này; TN0 đã có trước được giữ nguyên.
+**Nhánh này có hai thực nghiệm:** [`tn0/`](tn0/) tái lập MobiVital, và
+[`tn1/`](tn1/README.md) chọn kiến trúc giữa bốn cấu hình. Không có thực nghiệm
+nào khác, cũng không có phần kiểm tra trên G H I J.
 
 Mỗi thực nghiệm một thư mục. Mọi thứ của nó nằm chung một chỗ: checkpoint, đường
 cong loss, bảng lựa chọn kênh, điểm từng buổi ghi, metric.
@@ -22,12 +24,10 @@ runs/
 │   ├── <cấu hình>_val_AB/final.pth  curve.csv
 │   ├── scores_<cấu hình>_val_AB.csv
 │   └── summary.csv  README.txt
-├── tn1.zip
-│
-└── tn7/                 <- scripts/run_final_test.py --experiment tn7
+└── tn1.zip
 ```
 
-`--experiment` **bắt buộc** ở `run_cv.py` và `run_final_test.py`; nó quyết định
+`--experiment` **bắt buộc** ở `run_cv.py`; nó quyết định
 tên thư mục. Không có thùng dùng chung, không thực nghiệm nào ghi đè thực nghiệm
 khác.
 
@@ -44,14 +44,13 @@ khác.
 |---|---|
 | `run_id` | tên lần chạy, gộp từ cấu hình |
 | `experiment` | `tn0`, `tn1`, … — trùng tên thư mục |
-| `timestamp` `git_commit` `device` | chạy lúc nào, bản code nào, phần cứng gì |
+| `timestamp` `git_commit` `device` | chạy lúc nào, bản code nào, `cuda` hay `cpu`. Cố ý không ghi tên đời GPU |
 
-**Cấu hình đang thử** — đây là thứ TN1–TN6 thay đổi
+**Cấu hình đang thử** — đây là thứ TN1 thay đổi giữa bốn cấu hình
 
 | cột | nghĩa |
 |---|---|
-| `model` | `lstm` · `tcn` · `ds_tcn` |
-| `revin` | 0 hoặc 1 |
+| `model` | `lstm` · `cnn_lstm` · `tcn` · `ds_tcn` |
 | `loss` `alpha` | `mse` hoặc `mse_pearson`; `alpha` là trọng số phần MSE |
 | `corr_threshold` | ngưỡng lọc sóng đáng học lúc cắt cửa sổ, mặc định 0.9 |
 | `seed` | hạt giống ngẫu nhiên |
@@ -74,20 +73,19 @@ khác.
 | **`score_macro`** | **số quyết định**. Trung bình theo người, không theo buổi ghi — mỗi người có số buổi khác nhau, tính gộp thì người ghi nhiều buổi bị tính nặng ký vô lý |
 | `score_micro` | trung bình theo buổi ghi, để tham khảo |
 | `score_std` | độ lệch chuẩn giữa 4 fold, chỉ có ở dòng `fold = TONG` |
-| `n_sessions` | số buổi ghi đã chấm. Test GHIJ phải đúng **537** |
+| `n_sessions` | số buổi ghi đã chấm ở fold đó |
 | `n_negative` | số buổi Pearson âm — bắt lỗi thầm, sóng chọn ra ngược pha |
 | `minutes_score` | thời gian chấm |
-| `test_ghij_macro` | chỉ `run_final_test.py` điền. **Số công bố trong luận văn** |
 
 `train_mse` và `score_macro` là **hai thước đo khác nhau, không quy đổi cho nhau**.
 `train_mse` đo trên cửa sổ đã lọc bằng `corr(sóng, nhịp thở thật) > 0.9` — tức đã
 nhìn đáp án. `score_macro` đo trên buổi ghi thô, model tự chọn kênh, không nhìn
 đáp án. Chọn cấu hình phải nhìn `score_macro`. `train_mse` thấp không đảm bảo
-`score_macro` cao — đó chính là lý do có TN3.
+`score_macro` cao.
 
 ### `scores_*.csv` — điểm từng buổi ghi
 
-Một dòng một buổi ghi, 537 dòng khi test GHIJ.
+Một dòng một buổi ghi của hai người trong fold đó.
 
 | cột | nghĩa |
 |---|---|

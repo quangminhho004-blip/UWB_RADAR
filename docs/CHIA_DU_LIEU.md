@@ -229,7 +229,7 @@ Vì vậy tài liệu luôn in **cả ba số riêng lẻ** bên cạnh `mean ±
 
 ## 7. Bốn fold cố định cho mọi thí nghiệm
 
-Bốn fold trên **không đổi** từ TN1 đến TN6. Không xáo lại, không chọn ngẫu nhiên
+Bốn fold trên **không đổi** cho mọi thí nghiệm. Không xáo lại, không chọn ngẫu nhiên
 theo từng lần chạy.
 
 Vì mục đích của các thí nghiệm là so cấu hình với nhau. Nếu mỗi thí nghiệm chia
@@ -284,8 +284,7 @@ script sinh ra nó và tệp lưu lại nó.
 | dữ liệu khớp từng byte với pipeline tác giả | `scripts/check_data.py` | output ô 18 của `notebooks/TN0.ipynb` |
 | chia `ABCDEFKL` / `GHIJ` (mục 2) | của tác giả | `external/mobivital/dataset_preparation/prep_breath_final.py` dòng 29 và 61 |
 | số cửa sổ train mỗi người (mục 4) | `scripts/make_windows.py` | `data/processed/windows/dev_cv/*.npz` |
-| điểm từng fold, `cv_score` (mục 3, 6) | `scripts/run_cv.py` | `runs/summary.csv` và `runs/tn1/scores_*.csv` |
-| điểm trên `GHIJ` (mục 6) | `scripts/run_final_test.py` | `runs/tn1_ghij/*.txt` và `scores_*.csv` |
+| điểm từng fold, `cv_score` (mục 3, 6) | `scripts/run_cv.py` | `runs/tn1/summary.csv` và `runs/tn1/<cấu hình>/seed<N>/<fold>/scores.csv` |
 | bảng so bốn cấu hình | `scripts/compare_cv.py` | output notebook, đọc từ hai nguồn trên |
 | pipeline đồ án tương đương pipeline gốc | `scripts/run_tn0.py --compare` | `runs/tn0/` và output `notebooks/TN0.ipynb` |
 
@@ -295,10 +294,10 @@ script sinh ra nó và tệp lưu lại nó.
 |---|---|
 | `DATA_PREPARE.ipynb` | dựng `by_user/*.npz` và `windows/`, đối chiếu với dữ liệu tác giả |
 | `TN0.ipynb` | chứng minh pipeline đồ án cho ra đúng số của pipeline MobiVital: 537/537 buổi ghi chọn trùng kênh, chênh lệch 0 |
-| `TN1_LSTM.ipynb` | LSTM-352: 4 fold x 3 hạt giống, và `GHIJ` 3 hạt giống |
-| `TN1_TCN_DSTCN_model_selection.ipynb` | TCN-64 và DS-TCN-64: 4 fold x 3 hạt giống |
-| `TN1_LSTM_small.ipynb` | LSTM-67: 4 fold x 3 hạt giống, và `GHIJ` 3 hạt giống |
-| `TN1_final_evaluation.ipynb` | gộp kết quả các phiên, bảng so sánh, `GHIJ` cho DS-TCN-64 |
+| `TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb` | DS-TCN 64 k3 n4: 4 fold x 3 hạt giống |
+| `TN1_LSTM.ipynb` | LSTM-352: 4 fold x 3 hạt giống |
+| `TN1_LSTM_small.ipynb` | LSTM-67: 4 fold x 3 hạt giống |
+| `TN1_CNN_LSTM.ipynb` | CNN-LSTM-58: 4 fold x 3 hạt giống |
 
 Mọi notebook đều lưu kèm output. Mở trên GitHub là thấy đúng con số đã chạy,
 không cần chạy lại.

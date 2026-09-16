@@ -52,7 +52,7 @@ OUT_DIR = "data/processed/windows"
 USERS = ["A", "B", "C", "D", "E", "F", "K", "L"]
 
 # Ngưỡng lọc sóng đáng học. 0.9 là giá trị MobiVital công bố.
-# TN4 sẽ quét thêm: thêm số vào danh sách này rồi chạy lại.
+# Muốn quét thêm ngưỡng: thêm số vào danh sách này rồi chạy lại.
 THRESHOLDS = [0.9]
 
 HISTORY_LENGTH = 200      # số mẫu đưa vào model

@@ -1,29 +1,42 @@
-# Tài liệu của nhánh submission
+# Tài liệu của nhánh `final_submission`
 
-Đọc từ `THESIS.md`; các file còn lại cung cấp bằng chứng và giải thích chi tiết. Hai mô hình cuối được trình bày theo thứ tự **64/RF121 + Pearson**, rồi **64/RF61 + hybrid α = 0,6**.
+Nhánh này chỉ có **TN0** (tái lập MobiVital) và **TN1** (chọn kiến trúc, bốn cấu
+hình). Các thực nghiệm sau — tầm nhìn, hàm loss lai, kiểm tra trên GHIJ — và mã
+của những kiến trúc từng thử mà không công bố đều không nằm ở đây.
 
-Đóng gói để nộp hội đồng: [ARTIFACTS.md](../ARTIFACTS.md) liệt kê dữ liệu, ZIP kết quả, checkpoint, trạng thái thiếu và cách kiểm trước khi bàn giao.
+Đọc từ [THESIS.md](THESIS.md).
 
 | File | Giữ để làm gì? |
 |---|---|
-| [THESIS.md](THESIS.md) | Tổng quan TN0–TN4, macro/micro, cấu hình, kết quả và lựa chọn cuối. |
-| [BAO_CAO_QUA_TRINH_THUC_NGHIEM.md](BAO_CAO_QUA_TRINH_THUC_NGHIEM.md) | Giải thích thiết kế, lý do từng tham số và giới hạn kết luận. |
-| [BANG_TCN.md](BANG_TCN.md) | Bảng kết quả tổng hợp TCN/DS-TCN. |
-| [BANG_TCN_TUNG_SEED.md](BANG_TCN_TUNG_SEED.md) | Điểm từng seed để kiểm tra dao động và đối chiếu bảng tổng hợp. |
-| [SO_DO_NHANH.md](SO_DO_NHANH.md) | Sơ đồ cấu hình đi qua TN1–TN4. |
-| [PIPELINE_2.md](PIPELINE_2.md) | Sơ đồ train/inference và giải thích từng block cho slide. |
-| [CHIA_DU_LIEU.md](CHIA_DU_LIEU.md) | Bằng chứng về chia theo người và các fold. Giao thức đang dùng được tóm tắt trong THESIS.md. |
-| [CAU_TRUC_MA_NGUON.md](CAU_TRUC_MA_NGUON.md) | Tra cứu vai trò các phần mã nguồn; danh mục notebook hiện hành nằm trong manifest. |
-| [TOC_DO.md](TOC_DO.md) | Ghi chú hiệu năng lịch sử khi tái lập TN0, không phải benchmark mô hình cuối. |
-| [SUBMISSION_NOTEBOOKS.json](SUBMISSION_NOTEBOOKS.json) | Danh mục chính xác 17 notebook được giữ trong bản nộp. |
+| [THESIS.md](THESIS.md) | Giao thức, cách chấm điểm macro/micro, bốn cấu hình và kết quả. |
+| [BANG_TCN.md](BANG_TCN.md) | Bảng kết quả TN1 và những gì đọc được từ nó. |
+| [CHIA_DU_LIEU.md](CHIA_DU_LIEU.md) | Vì sao chia theo người, bốn fold cố định, G H I J để riêng. |
+| [PIPELINE_2.md](PIPELINE_2.md) | Sơ đồ train và inference, giải thích từng khối. |
+| [SO_DO_DU_LIEU.md](SO_DO_DU_LIEU.md) | Dữ liệu đi từ CSV thô tới cửa sổ train. |
+| [CAU_TRUC_MA_NGUON.md](CAU_TRUC_MA_NGUON.md) | Vai trò từng phần mã nguồn. |
+| [DANH_MUC_ZIP.md](DANH_MUC_ZIP.md) | Tệp nén kết quả trên Drive, cái nào đã vào git. |
 
-## TN0: các bằng chứng cần giữ
+Đóng gói để nộp: [ARTIFACTS.md](../ARTIFACTS.md).
 
-- [TN0.ipynb](../notebooks/TN0.ipynb): lệnh/output của TN0a, TN0b, TN0c.
-- [Ghi chú TN0 lịch sử](../notebooks/TN0.md): đã gắn nhãn outdated để tránh trộn các lần chạy.
-- [runs/tn0](../runs/tn0/): TXT và CSV hiện có; trạng thái những artifact chưa có được ghi trong THESIS.md.
-- [data/checksums.txt](../data/checksums.txt) và [scripts/checksums.py](../scripts/checksums.py): mốc đối chiếu nội dung mảng dữ liệu `by_user` giữa các máy. Không phải điểm model; script tạo lại tệp mốc, không tự kiểm tra pass/fail.
+## Bốn cấu hình
 
-## Tài liệu đã loại khỏi bản nộp
+| cấu hình | tham số | CV macro |
+|---|---:|---:|
+| **DS-TCN 64, k3 n4** | **37.081** | **0,760878 ± 0,003095** |
+| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756992 ± 0,004156 |
+| LSTM 67 | 56.908 | 0,753208 ± 0,001967 |
+| CNN-LSTM 58 | 55.667 | 0,752658 ± 0,003757 |
 
-Các bản pipeline cũ, bảng tổng hợp ngoài phạm vi, kế hoạch chưa sử dụng và thiết kế MixLinear đã được loại khỏi `docs/`. Nội dung cần cho báo cáo hiện tại được dẫn ở bảng trên. Bản local lưu tại `.submission_archive/docs/`, được Git bỏ qua; tài liệu từng commit vẫn có thể truy vết trong lịch sử Git. Việc dọn tài liệu không thay đổi số liệu hoặc output notebook.
+## Bằng chứng gốc
+
+- [notebooks/](../notebooks/) — sáu notebook, mỗi ô đều còn nguyên output lúc chạy
+- [runs/tn0/](../runs/tn0/) — bảng lựa chọn kênh và điểm từng phiên của phần tái lập
+- [runs/tn1/](../runs/tn1/) — checkpoint, đường cong loss, điểm từng phiên của bốn cấu hình
+- [data/checksums.txt](../data/checksums.txt) — mốc đối chiếu nội dung mảng `by_user` giữa các máy. Không phải điểm model; `scripts/checksums.py` tạo lại tệp mốc chứ không tự báo đạt/trượt.
+
+## Không trích dẫn kiến trúc từ bài báo nào
+
+Khối tích chập trong `src/models.py` là thiết kế của đồ án. Nó không phải bản
+tái lập của một kiến trúc đã công bố, nên tài liệu ở đây không nói "cài theo
+bài X" ở bất kỳ chỗ nào. Tham chiếu duy nhất còn giữ là **MobiVital** — bài gốc
+mà đồ án cải tiến, và là đích của TN0.

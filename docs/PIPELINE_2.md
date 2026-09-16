@@ -416,11 +416,10 @@ Mỗi buổi ghi của dataset có cả **radar** và **sóng đai đo hô hấp
 <summary>Chi tiết kỹ thuật khi được hỏi</summary>
 
 - Sóng đai ở khối 8 là GT của **dataset MobiVital**, không phải dữ liệu ApneaLink của demo. Trong CSV gốc, `scripts/make_npz.py` đọc cột áp chót (`data[:, -2]`), chuẩn hóa và lưu vào trường **`gt`** trong file NPZ theo người. Trường **`uwb`** chứa radar tương ứng.
-- Khi validation AB, lấy GT của chính các buổi thuộc A và B; khi test GHIJ, lấy GT của chính các buổi thuộc GHIJ. Không lấy sóng đai của nhóm train để chấm cho người khác.
+- Khi validation AB, lấy GT của chính các buổi thuộc A và B; Không lấy sóng đai của nhóm train để chấm cho người khác.
 - **Pearson ở 6.3:** dự báo ↔ radar thật, dùng để chọn. **Pearson ở 8.2:** sóng đã chọn ↔ đai, dùng để đánh giá.
 - Pearson không phải phần trăm chính xác hay sai số nhịp thở/phút.
 - Macro theo người khác micro trung bình trực tiếp các buổi. Ghi đúng cách tổng hợp ở từng bảng kết quả.
-- Oracle là phân tích riêng dùng GT để chọn ứng viên tốt nhất. Chỉ so oracle/model khi cùng tập người, cùng tập ứng viên và cùng phép lấy trung bình; không trừ oracle-dev với điểm test GHIJ.
 
 </details>
 
@@ -436,7 +435,7 @@ Giao thức chia dữ liệu áp dụng cho cả tám khối; đây không phả
 | Fold KL | A B C D E F | K L |
 | Test cuối sau khi chốt cấu hình | A B C D E F K L | G H I J |
 
-**Câu nói khi trình bày:** “Trong mỗi fold, mô hình học từ sáu người và được đánh giá trên hai người khác. Chọn cấu hình xong, chúng em huấn luyện lại trên đủ tám người phát triển rồi chấm trên GHIJ.”
+**Câu nói khi trình bày:** “Trong mỗi fold, mô hình học từ sáu người và được đánh giá trên hai người khác. Điểm của một cấu hình là trung bình bốn fold, lấy lại trên ba hạt giống.”
 
 
 <details>
@@ -446,7 +445,7 @@ Giao thức chia dữ liệu áp dụng cho cả tám khối; đây không phả
 - Train dùng GT để tạo tập học; validation tự chọn sóng bằng inversion detector và model. GT validation chỉ chấm kết quả.
 - **Seed** điều khiển các nguồn ngẫu nhiên như khởi tạo và xáo trộn. Độ dao động giữa seed khác độ dao động giữa fold.
 - Ghi đúng số seed thực tế của từng khảo sát. Không lấy fold có điểm cao nhất làm kết quả chung hoặc chọn checkpoint cuối chỉ vì fold đó cao nhất.
-- GHIJ đã được đánh giá trong TN0; không nói “chỉ mở đúng một lần” như một sự kiện đã xảy ra. Nếu có dùng test để điều chỉnh cấu hình thì phải nêu giới hạn đó.
+- G H I J đã được đánh giá trong TN0, nên không nói “chỉ mở đúng một lần” như một sự kiện đã xảy ra. Nhánh nộp này không dùng G H I J để chọn cấu hình, và cũng không có bước test cuối trên chúng.
 - Mean ± std không tự chứng minh ý nghĩa thống kê hay tương đương giữa hai cấu hình.
 
 </details>
@@ -455,6 +454,6 @@ Giao thức chia dữ liệu áp dụng cho cả tám khối; đây không phả
 
 - [Đọc CSV](../scripts/make_npz.py), [tạo cửa sổ](../scripts/make_windows.py), [hàm tạo dữ liệu train gốc](https://github.com/nesl/mobivital-public/blob/4319731d2769d4134c92088dd846666e262f18e9/training/utils/model_utils.py).
 - [Biến đổi sóng](https://github.com/nesl/mobivital-public/blob/4319731d2769d4134c92088dd846666e262f18e9/utils/model_utils.py), [phát hiện đảo sóng](https://github.com/nesl/mobivital-public/blob/4319731d2769d4134c92088dd846666e262f18e9/utils/peak_width_inverter.py), [chọn sóng và chấm điểm](../src/scoring.py).
-- [Huấn luyện](../src/training.py), [4-fold CV](../scripts/run_cv.py), [test cuối](../scripts/run_final_test.py).
+- [Huấn luyện](../src/training.py), [4-fold CV](../scripts/run_cv.py).
 
 **Khi đưa vào slide:** dùng sơ đồ và một câu ý chính. Phần giải thích chi tiết dành cho người thuyết trình và câu hỏi của hội đồng.

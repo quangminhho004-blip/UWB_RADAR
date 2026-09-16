@@ -20,13 +20,12 @@ CỘT NÀO LÀ LÚC TRAIN, CỘT NÀO LÚC CHẤM
     score_*   đo trên BUỔI GHI thô, bằng Pearson, qua bộ chọn kênh
 
 Hai thước đo khác nhau, không quy đổi cho nhau. `train_mse` thấp không đảm bảo
-`score_macro` cao — đó chính là lý do có TN3.
+`score_macro` cao.
 
 VỀ CỘT minutes_*
 
 Chỉ để tính giờ Colab, KHÔNG dùng làm bằng chứng tốc độ trong luận văn: phần
-cứng Colab đổi giữa các phiên (T4 hôm nay, L4 hôm sau), lại dùng chung nên bị
-bóp tuỳ lúc. Muốn so tốc độ thì đo riêng, hai model trong cùng một phiên. Còn
+cứng Colab đổi giữa các phiên, lại dùng chung nên bị bóp tuỳ lúc. Muốn so tốc độ thì đo riêng, hai model trong cùng một phiên. Còn
 câu "TCN hơn vì kiến trúc hay vì to hơn" thì cột n_params trả lời được, và nó
 không phụ thuộc phần cứng.
 """

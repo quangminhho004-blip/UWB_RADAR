@@ -140,7 +140,7 @@ def check_tcn(model, norm, dropout_kind="channel"):
               "dùng nn.Dropout, xoá từng phần tử")
     else:
         check(n_chan > 0 and n_elem == 0,
-              "dùng nn.Dropout1d, spatial dropout theo Bai mục 3.4")
+              "dùng nn.Dropout1d, xoá cả một kênh")
 
     print("\n7. Tầm nhìn so với cửa sổ vào")
     k = model.blocks[0].layer_one["conv"]

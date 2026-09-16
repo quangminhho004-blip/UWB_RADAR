@@ -49,7 +49,7 @@ ghi **script nào biến nó thành file kế tiếp**.
 │    dev_cv/                            final_train/                            │
 │    A_corr0.9_h200_f25.npz … L         train_corr0.9_h200_f25.npz              │
 │    8 người, cắt RIÊNG từng người      8 người GỘP, đúng thứ tự MobiVital      │
-│    → run_cv.py ghép 4 fold tuỳ ý      → run_final_test.py                     │
+│    → run_cv.py ghép 4 fold cố định                                            │
 │                                                                              │
 │    KHÔNG có GHIJ trong đây                                                    │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -100,9 +100,8 @@ ghi **script nào biến nó thành file kế tiếp**.
 
 | bước | đọc từ | vì sao |
 |---|---|---|
-| **train** (run_cv, run_final_test) | `windows/` | cửa sổ đã cắt sẵn, đã lọc, đã chuẩn hoá — nhanh |
+| **train** (run_cv) | `windows/` | cửa sổ đã cắt sẵn, đã lọc, đã chuẩn hoá — nhanh |
 | **chấm 2 người validate** (trong CV) | `by_user/*.npz` thô | cửa sổ `windows/` có nhìn nhãn → dùng để chấm là rò rỉ |
-| **chấm GHIJ** (test cuối) | `by_user/*.npz` thô | y như trên, và GHIJ vốn không có trong `windows/` |
 | **đối chiếu dữ liệu** | `by_user/` so `data_final/*.npy` | chứng minh hai pipeline đọc ra cùng byte |
 
 
@@ -112,7 +111,6 @@ ghi **script nào biến nó thành file kế tiếp**.
 1.  gt (nhịp thở tham chiếu)     make_npz.py       min-max [-1,1], MỘT LẦN cả 1500 mẫu
 2.  mỗi sóng ứng viên            transform()       min-max [-1,1], MỘT LẦN cả 1500 mẫu
                                 (trong make_windows và trong scoring)
-3.  RevIN  (chỉ nhánh RevIN của TN1)  bên trong model   z-score TỪNG cửa sổ 200 mẫu, đảo được
 ```
 
 `uwb` thô trong `by_user/*.npz` **chưa** qua bước nào — chuẩn hoá xảy ra ở
