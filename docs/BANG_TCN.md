@@ -15,7 +15,7 @@ của đồ án, theo [THESIS.md](THESIS.md) mục 2.
 **micro** — trung bình toàn bộ phiên đo. Bài báo MobiVital công bố theo thước này.
 
 **Chênh lệch nhỏ hơn `seed_std` thì không xếp hạng được.** Dao động giữa ba seed
-của chính các cấu hình này trải từ 0,0020 đến 0,0042.
+của chính các cấu hình này trải từ 0,0020 đến 0,0041.
 
 
 ## Bảng chính — 4 fold trên ABCDEFKL, 3 seed
@@ -23,9 +23,9 @@ của chính các cấu hình này trải từ 0,0020 đến 0,0042.
 | cấu hình | họ | tham số | tầm nhìn | CV macro | seed_std |
 |---|---|---:|---:|---:|---:|
 | **DS-TCN 64, k3 n4** | tích chập | **37.081** | 61 | **0,760878** | 0,003095 |
-| LSTM 352 | hồi quy | 1.502.713 | cả 200 mẫu | 0,756992 | 0,004156 |
-| LSTM 67 | hồi quy | 56.908 | cả 200 mẫu | 0,753208 | 0,001967 |
-| CNN-LSTM 58 | lai | 55.667 | cả 200 mẫu | 0,752658 | 0,003757 |
+| LSTM 352 | hồi quy | 1.502.713 | cả 200 mẫu | 0,756998 | 0,004141 |
+| LSTM 67 | hồi quy | 56.908 | cả 200 mẫu | 0,753208 | 0,001966 |
+| CNN-LSTM 58 | lai | 55.667 | cả 200 mẫu | 0,752666 | 0,003749 |
 
 `LSTM 352` là kiến trúc của MobiVital, giữ nguyên, làm mốc.
 
@@ -38,7 +38,7 @@ của chính các cấu hình này trải từ 0,0020 đến 0,0042.
 |---|---:|---:|---:|
 | **DS-TCN 64** | **37.081** | **0,760878** | — |
 | LSTM 67 | 56.908 | 0,753208 | −0,0077 |
-| CNN-LSTM 58 | 55.667 | 0,752658 | −0,0082 |
+| CNN-LSTM 58 | 55.667 | 0,752666 | −0,0082 |
 
 DS-TCN dùng **ít hơn 1,5 lần tham số** mà điểm cao hơn cả hai. Chênh lệch
 0,0077 và 0,0082 đều lớn hơn `seed_std` của mọi cấu hình trong bảng, nên xếp
@@ -49,10 +49,10 @@ hạng này đọc được.
 | | tham số | CV macro |
 |---|---:|---:|
 | **DS-TCN 64** | **37.081** | **0,760878** |
-| LSTM 352 | 1.502.713 | 0,756992 |
+| LSTM 352 | 1.502.713 | 0,756998 |
 
 **Ít hơn 40,5 lần tham số**, điểm cao hơn 0,0039. Con số 0,0039 nằm trong
-khoảng dao động seed của LSTM 352 (0,0042), nên phát biểu an toàn là **ngang
+khoảng dao động seed của LSTM 352 (0,0041), nên phát biểu an toàn là **ngang
 điểm với ít hơn 40 lần tham số**, không phải "vượt".
 
 

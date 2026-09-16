@@ -36,11 +36,11 @@ lọc riêng.
 | tệp nén | notebook | cấu hình | trong git chưa | ARTIFACT |
 |---|---|---|---|---|
 | `tn1_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_corr0.9_seed2.zip` | `TN1_DS_TCN_RF61_no_norm_do02_c64` | **DS-TCN 64 — 37.081 ts** | **rồi**, `runs/tn1/DS-TCN-C64-RF61/` | |
-| `tn1_lstm_mse_corr0.9_seed2.zip` | `TN1_LSTM` | LSTM 352 — 1.502.713 ts | chưa | |
-| `tn1_lstm_h67_mse_corr0.9_seed2.zip` | `TN1_LSTM_small` | LSTM 67 — 56.908 ts | chưa | |
-| `tn1_cnn_lstm_h58.zip` | `TN1_CNN_LSTM` | CNN-LSTM 58 — 55.667 ts | chưa | |
+| `tn1_lstm_mse_corr0.9_seed2.zip` | `TN1_LSTM` | LSTM 352 — 1.502.713 ts | rồi | |
+| `tn1_lstm_h67_mse_corr0.9_seed2.zip` | `TN1_LSTM_small` | LSTM 67 — 56.908 ts | rồi | |
+| `tn1_cnn_lstm_h58.zip` | `TN1_CNN_LSTM` | CNN-LSTM 58 — 55.667 ts | rồi | |
 
-Ba dòng "chưa" lấy về bằng [`NAP_KET_QUA_TN1.ipynb`](../notebooks/NAP_KET_QUA_TN1.ipynb).
+Cả bốn đã nằm trong git. Nạp lại nếu cần bằng [`NAP_KET_QUA_TN1.ipynb`](../notebooks/NAP_KET_QUA_TN1.ipynb).
 
 
 ## Trong MỖI tệp nén luôn có

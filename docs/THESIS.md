@@ -15,9 +15,9 @@
 | Cấu hình | Tham số | CV macro (4 fold × 3 seed) |
 |---|---:|---:|
 | **DS-TCN 64, k3 n4** | **37.081** | **0,760878 ± 0,003095** |
-| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756992 ± 0,004156 |
-| LSTM 67 | 56.908 | 0,753208 ± 0,001967 |
-| CNN-LSTM 58 | 55.667 | 0,752658 ± 0,003757 |
+| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756998 ± 0,004141 |
+| LSTM 67 | 56.908 | 0,753208 ± 0,001966 |
+| CNN-LSTM 58 | 55.667 | 0,752666 ± 0,003749 |
 
 Các thực nghiệm sau — khảo sát tầm nhìn, hàm loss lai, kiểm tra trên G H I J —
 **không** nằm ở nhánh này.
@@ -532,9 +532,9 @@ Nguồn cấu hình: [models.py](../src/models.py) và bốn notebook ở mục 
 | Cấu hình | Tham số | seed 0 | seed 1 | seed 2 | CV macro ± std |
 |---|---:|---:|---:|---:|---:|
 | **DS-TCN 64, k3 n4** | **37.081** | 0,758245 | 0,760101 | 0,764287 | **0,760878 ± 0,003095** |
-| LSTM 352 | 1.502.713 | 0,760698 | 0,752525 | 0,757769 | 0,756992 ± 0,004156 |
-| LSTM 67 | 56.908 | 0,753584 | 0,751081 | 0,754958 | 0,753208 ± 0,001967 |
-| CNN-LSTM 58 | 55.667 | 0,749769 | 0,756900 | 0,751329 | 0,752658 ± 0,003757 |
+| LSTM 352 | 1.502.713 | 0,760698 | 0,752525 | 0,757769 | 0,756998 ± 0,004141 |
+| LSTM 67 | 56.908 | 0,753584 | 0,751081 | 0,754958 | 0,753208 ± 0,001966 |
+| CNN-LSTM 58 | 55.667 | 0,749769 | 0,756900 | 0,751329 | 0,752666 ± 0,003749 |
 
 **Đọc được gì:**
 
@@ -543,7 +543,7 @@ DS-TCN 64 hơn LSTM 67 **0,0077** và hơn CNN-LSTM 58 **0,0082**, với **ít h
 mọi cấu hình trong bảng, nên xếp hạng đọc được.
 
 So với LSTM 352, DS-TCN 64 hơn **0,0039** với **ít hơn 40,5 lần tham số**. Con
-số 0,0039 **nhỏ hơn** dao động seed của LSTM 352 (0,0042), nên phát biểu an toàn
+số 0,0039 **nhỏ hơn** dao động seed của LSTM 352 (0,0041), nên phát biểu an toàn
 là **ngang điểm ở ít hơn 40 lần tham số**, không phải "vượt".
 
 **Đọc KHÔNG được:**

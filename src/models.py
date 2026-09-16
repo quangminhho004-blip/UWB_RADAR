@@ -29,9 +29,9 @@ sau, không nằm ở nhánh này.
 BỐN CẤU HÌNH CÔNG BỐ
 
     cấu hình             tham số   điểm CV macro (4 fold x 3 seed)
-    lstm-352           1.502.713   0,756992 +- 0,004156   baseline MobiVital
-    lstm-67               56.908   0,753208 +- 0,001967
-    cnn_lstm-58           55.667   0,752658 +- 0,003757
+    lstm-352           1.502.713   0,756998 +- 0,004141   baseline MobiVital
+    lstm-67               56.908   0,753208 +- 0,001966
+    cnn_lstm-58           55.667   0,752666 +- 0,003749
     ds_tcn-64 k3n4        37.081   0,760878 +- 0,003095   cấu hình được chọn
 
 Ba cấu hình dưới cùng ngân sách tham số (khoảng 55-57 nghìn) nên so được trực

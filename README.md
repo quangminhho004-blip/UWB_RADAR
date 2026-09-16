@@ -8,9 +8,9 @@ MobiVital, **TN1** so bốn kiến trúc trên cùng dữ liệu và cùng giao 
 | Cấu hình | Tham số | CV macro (4 fold × 3 seed) |
 |---|---:|---:|
 | **DS-TCN 64, k3 n4** | **37.081** | **0,760878 ± 0,003095** |
-| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756992 ± 0,004156 |
-| LSTM 67 | 56.908 | 0,753208 ± 0,001967 |
-| CNN-LSTM 58 | 55.667 | 0,752658 ± 0,003757 |
+| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756998 ± 0,004141 |
+| LSTM 67 | 56.908 | 0,753208 ± 0,001966 |
+| CNN-LSTM 58 | 55.667 | 0,752666 ± 0,003749 |
 
 **Bắt đầu đọc:** [Tóm tắt thesis và danh mục thực nghiệm](docs/THESIS.md).
 

@@ -11,29 +11,25 @@ macro **0,760878 ± 0,003095**.
 | Cấu hình | Tham số | CV macro (4 fold × 3 seed) | Artifact trong git |
 |---|---:|---:|---|
 | **DS-TCN 64, k3 n4** | **37.081** | **0,760878 ± 0,003095** | **đủ** — 12 checkpoint, curve, scores |
-| LSTM 352 | 1.502.713 | 0,756992 ± 0,004156 | chưa — nạp từ Drive |
-| LSTM 67 | 56.908 | 0,753208 ± 0,001967 | chưa — nạp từ Drive |
-| CNN-LSTM 58 | 55.667 | 0,752658 ± 0,003757 | chưa — nạp từ Drive |
+| LSTM 352 | 1.502.713 | 0,756998 ± 0,004141 | **đủ** — 12 checkpoint, curve, scores |
+| LSTM 67 | 56.908 | 0,753208 ± 0,001966 | **đủ** — 12 checkpoint, curve, scores |
+| CNN-LSTM 58 | 55.667 | 0,752666 ± 0,003749 | **đủ** — 12 checkpoint, curve, scores |
 
 
 ## 1. Trạng thái bàn giao
 
-**Đủ trong git:** mã nguồn, sáu notebook có output, `runs/tn0/`, và toàn bộ
-artifact của cấu hình được chọn ở `runs/tn1/DS-TCN-C64-RF61/`.
+**Đủ trong git:** mã nguồn, sáu notebook có output, `runs/tn0/`, và artifact
+đầy đủ của **cả bốn** cấu hình trong `runs/tn1/` — 48 checkpoint, 48 `curve.csv`,
+48 `scores.csv`, `summary.csv` 60 dòng.
 
-**Còn thiếu:** artifact của ba cấu hình mốc. Chúng **đã train xong** — log đầy đủ
-nằm trong `TN1_LSTM.ipynb`, `TN1_LSTM_small.ipynb`, `TN1_CNN_LSTM.ipynb` — nhưng
-tệp kết quả chỉ được nén lên Drive, chưa bao giờ vào git.
-
-Lấy về bằng [`notebooks/NAP_KET_QUA_TN1.ipynb`](notebooks/NAP_KET_QUA_TN1.ipynb).
-Notebook đó tự tính lại điểm macro từ `scores.csv` rồi so với bảng trên; lệch
-quá 0,0001 là báo.
+Ba cấu hình mốc được nạp từ tệp nén trên Drive bằng
+[`notebooks/NAP_KET_QUA_TN1.ipynb`](notebooks/NAP_KET_QUA_TN1.ipynb); điểm tính
+lại từ `scores.csv` khớp bảng trên.
 
 | Mục người đóng gói cần điền | Trạng thái |
 |---|---|
 | Link Drive chia sẻ được cho `by_user.tar`, `windows.tar.gz` | chưa có |
 | Link Drive chia sẻ được cho các ZIP kết quả TN1 | chưa có |
-| Ba thư mục baseline trong `runs/tn1/` | chưa nạp |
 
 **Không đánh dấu hoàn tất chỉ vì notebook có output.** Output chứng minh đã
 chạy; nó không phải là checkpoint và không phải là điểm từng phiên.
@@ -116,8 +112,8 @@ Danh mục đầy đủ: [docs/DANH_MUC_ZIP.md](docs/DANH_MUC_ZIP.md).
 
 ## 6. Checkpoint
 
-`runs/tn1/DS-TCN-C64-RF61/seed{0,1,2}/val_{AB,CE,DF,KL}/final.pth` — **12 tệp,
-đã commit**. Mỗi tệp là `state_dict` sau epoch cuối của một fold, không kèm
+`runs/tn1/<cấu hình>/seed{0,1,2}/val_{AB,CE,DF,KL}/final.pth` — **48 tệp, đã
+commit**, 12 tệp mỗi cấu hình. Mỗi tệp là `state_dict` sau epoch cuối của một fold, không kèm
 trạng thái Adam.
 
 Kiểm cả 12 nạp được:
@@ -180,4 +176,5 @@ Mỗi lượt CV mất một tới ba giờ.
 - TN0 đạt theo mục 4
 - Link Drive chia sẻ được đã điền cho dữ liệu và cho từng ZIP kết quả
 
-Hiện tại **chưa đủ**: thiếu ba thư mục baseline và thiếu link Drive.
+Hiện tại bốn dòng đầu **đã đủ**. Còn thiếu **link Drive chia sẻ được** — đó là
+mục duy nhất chưa xong.
