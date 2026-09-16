@@ -1,4 +1,0 @@
-# Giữ nguyên byte gốc để SHA-256 trong SOURCE_MANIFEST.json khớp sau khi checkout.
-*.csv -text
-*.txt -text
-*.pth binary

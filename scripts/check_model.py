@@ -3,6 +3,7 @@
     python scripts/check_model.py --model ds_tcn --channels 64 --kernel_size 5 --n_blocks 4
     python scripts/check_model.py --model tcn --channels 64 --norm weight
     python scripts/check_model.py --model lstm --hidden 67 --compare-with lstm
+    python scripts/check_model.py --model cnn_lstm --hidden 58 --compare-with lstm --compare-hidden 67
 
 VÌ SAO CẦN
 
@@ -17,13 +18,9 @@ KIỂM GÌ
     tcn/ds_tcn   norm=weight thì BatchNorm bị gỡ hẳn và WeightNorm được áp;
                  norm=none thì không có lớp chuẩn hoá nào; đúng loại
                  dropout; và tầm nhìn so với cửa sổ 200 mẫu
-    revin        không thêm tham số học được, đảo ngược được, và có
-                 đổi đầu ra thật
+    cnn_lstm     độ dài chuỗi vào LSTM đúng 50, và LSTM là MỘT chiều
 
 Model `lstm` là bản của MobiVital, chỉ chạy phần kiểm chung.
-
-Các phép kiểm của bilstm, gru, cnn_lstm, modern_tcn và mix_linear nằm ở nhánh
-`main` cùng mã của chúng.
 
 Không kiểm chất lượng dự báo — việc đó là của run_cv.py.
 """
@@ -93,36 +90,26 @@ def check_save_load(model, rebuild):
     check(torch.equal(before, after), "nạp lại cho ra đúng đầu ra cũ")
 
 
-def check_revin(model, build_without_revin):
-    print("\n6. Riêng RevIN")
-    check(model.revin is not None, "RevIN được gắn vào model")
+def check_cnn_lstm(model):
+    """Hai chỗ dễ sai của CNN-LSTM, kiểm bằng số chứ không đọc mã."""
+    print("\n5. Riêng CNN-LSTM")
 
-    n_with = models.count_params(model)
-    n_without = models.count_params(build_without_revin())
-    print("   có RevIN %d tham số, không RevIN %d" % (n_with, n_without))
-    check(n_with == n_without,
-          "số tham số KHÔNG đổi — RevIN không thêm tham số học được")
-
-    print("\n7. RevIN đảo ngược được")
-    x = torch.randn(4, mv.HISTORY_LENGTH) * 5 + 3      # cố ý lệch thang đo
-    model.eval()
+    # Hai tầng stride 2 phải rút 200 mẫu xuống đúng 50. Sai padding một mẫu là
+    # ra 49 hoặc 51 mà model vẫn chạy bình thường, không báo gì.
+    x = torch.randn(4, 1, mv.HISTORY_LENGTH)
     with torch.no_grad():
-        normed = model.revin.normalize(x)
-        restored = model.revin.denormalize(normed)
-    print("   sau chuẩn hoá: trung bình %.4f, độ lệch %.4f"
-          % (normed.mean().item(), normed.std().item()))
-    check(abs(normed.mean().item()) < 0.01, "trung bình về gần 0")
-    check(abs(normed.std().item() - 1) < 0.05, "độ lệch chuẩn về gần 1")
-    check(torch.allclose(restored, x, atol=1e-3),
-          "denormalize trả lại đúng đầu vào ban đầu")
+        feat = model.conv(x)
+    print("   tích chập: (%d, %d, %d) -> (%d, %d, %d)"
+          % (tuple(x.shape) + tuple(feat.shape)))
+    check(feat.shape[2] == mv.HISTORY_LENGTH // 4,
+          "chuỗi rút đúng 4 lần, còn %d bước cho LSTM" % (mv.HISTORY_LENGTH // 4))
 
-    print("\n8. Đầu ra đổi khi bật RevIN")
-    plain = build_without_revin()
-    plain.load_state_dict(model.state_dict(), strict=False)
-    plain.eval()
-    with torch.no_grad():
-        check(not torch.allclose(model(x), plain(x)),
-              "cùng trọng số nhưng đầu ra khác — RevIN có tác dụng thật")
+    # LSTM phải MỘT chiều. Nếu ai đó bật bidirectional thì output[:, -1, :]
+    # lấy phải nửa chiều ngược mới đọc đúng một mẫu — hỏng ngầm, không báo lỗi.
+    check(not model.lstm.bidirectional,
+          "LSTM một chiều, nên output[:, -1, :] đã đọc hết chuỗi")
+    check(model.lstm.input_size == feat.shape[1],
+          "số kênh tích chập khớp input_size của LSTM")
 
 
 def check_tcn(model, norm, dropout_kind="channel"):
@@ -182,7 +169,8 @@ parser.add_argument("--norm", default="batch",
                     choices=["batch", "weight", "none"])
 parser.add_argument("--dropout_kind", default="channel",
                     choices=["channel", "element"])
-parser.add_argument("--revin", default="false")
+parser.add_argument("--conv_channels", type=int, default=32)
+parser.add_argument("--conv_kernel", type=int, default=5)
 parser.add_argument("--compare-with", dest="compare_with", default=None,
                     help="tên model đem so số tham số, ví dụ lstm")
 parser.add_argument("--compare-hidden", dest="compare_hidden", type=int, default=None,
@@ -192,8 +180,9 @@ args = parser.parse_args()
 
 def build(name, hidden):
     return models.build_model(name,
-                              revin=args.revin.lower() == "true",
                               hidden=hidden,
+                              conv_channels=args.conv_channels,
+                              conv_kernel=args.conv_kernel,
                               channels=args.channels,
                               kernel_size=args.kernel_size,
                               n_blocks=args.n_blocks,
@@ -210,11 +199,9 @@ check_save_load(model, lambda: build(args.model, args.hidden))
 
 if args.model in ("tcn", "ds_tcn"):
     check_tcn(model, args.norm, args.dropout_kind)
-    if args.revin.lower() == "true":
-        check_revin(model, lambda: models.build_model(
-            args.model, revin=False, channels=args.channels,
-            kernel_size=args.kernel_size, n_blocks=args.n_blocks,
-            dropout=args.dropout, norm=args.norm))
+
+if args.model == "cnn_lstm":
+    check_cnn_lstm(model)
 
 if args.compare_with:
     print("\nSO SỐ THAM SỐ với %s" % args.compare_with)

@@ -1,9 +1,9 @@
 """Chạy 4-fold trên ABCDEFKL để chọn cấu hình. KHÔNG đụng G H I J.
 
-    python scripts/run_cv.py --model ds_tcn --revin true
+    python scripts/run_cv.py --model cnn_lstm --hidden 58
 
 Số ra là `cv_score`. Muốn so hai cấu hình thì chạy script này hai lần rồi so
-`cv_score`. Chốt xong mới chạy scripts/run_final_test.py một lần duy nhất.
+`cv_score`. G H I J để nguyên, không dùng để chọn cấu hình.
 
 BỐN FOLD (docs/CHIA_DU_LIEU.md mục 3, CỐ ĐỊNH cho mọi thí nghiệm)
 
@@ -68,27 +68,30 @@ SUMMARY_FILE = "runs/summary.csv"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", default="ds_tcn",
-                    help="lstm | tcn | ds_tcn")
-parser.add_argument("--revin", default="false", help="true | false")
+                    help="lstm | cnn_lstm | tcn | ds_tcn")
 parser.add_argument("--loss", default="mse", help="mse | mse_pearson")
 parser.add_argument("--alpha", type=float, default=1.0, help="trọng số MSE khi loss=mse_pearson")
 parser.add_argument("--corr", type=float, default=mv.CORR_THRESHOLD)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--epochs", type=int, default=mv.EPOCHS)
 parser.add_argument("--channels", type=int, default=64,
-                    help="số kênh ẩn của TCN. Bai et al. mục A.1 chọn sao cho "
-                         "model to xấp xỉ model đem so; đồ án cố ý thu nhỏ")
+                    help="số kênh ẩn của TCN. Thu nhỏ model là mục tiêu của "
+                         "đồ án nên không chọn theo cỡ của mốc đem so")
 parser.add_argument("--kernel_size", type=int, default=3,
-                    help="bề rộng bộ lọc. Bai mục 3.3: tầm nhìn một tầng = (k-1)*d")
+                    help="bề rộng bộ lọc. Tầm nhìn một tầng = (k-1)*dilation")
 parser.add_argument("--n_blocks", type=int, default=6,
-                    help="số khối. Phải đủ để tầm nhìn phủ 200 mẫu vào "
-                         "(Bai mục 5 và A.1). k=3, n=6, khối hai tầng -> 253")
+                    help="số khối. k=3, n=6, khối hai tầng -> tầm nhìn 253, "
+                         "phủ hết 200 mẫu vào. Cấu hình được chọn dùng n=4")
 parser.add_argument("--dropout", type=float, default=0.0,
-                    help="spatial dropout (Bai mục 3.4). Mặc định 0.0 cho khớp "
-                         "LSTM của MobiVital, để TN1 chỉ đổi đúng một biến")
+                    help="tỉ lệ dropout. Mặc định 0.0 cho khớp LSTM của "
+                         "MobiVital, để TN1 chỉ đổi đúng một biến")
 parser.add_argument("--hidden", type=int, default=mv.LSTM_HIDDEN_SIZE,
-                    help="số chiều ẩn của LSTM. Mặc định 352 là cấu hình "
-                         "MobiVital công bố; 67 cho ~56k tham số, ngang DS-TCN-64")
+                    help="số chiều ẩn của lstm và cnn_lstm. Mặc định 352 là "
+                         "cấu hình MobiVital công bố; 67 cho ~56k tham số")
+parser.add_argument("--conv_channels", type=int, default=32,
+                    help="số kênh của hai tầng tích chập trong cnn_lstm")
+parser.add_argument("--conv_kernel", type=int, default=5,
+                    help="bề rộng bộ lọc của cnn_lstm. 5 phủ 0,1 giây ở 50 Hz")
 parser.add_argument("--dropout_kind", default="channel",
                     choices=["channel", "element"],
                     help="channel = nn.Dropout1d, xoá cả một kênh, mặc định của "
@@ -96,7 +99,7 @@ parser.add_argument("--dropout_kind", default="channel",
 parser.add_argument("--norm", default="batch",
                     choices=["batch", "weight", "none"],
                     help="chuẩn hoá trong khối TCN. batch là mặc định của đồ án; "
-                         "weight là bản đúng chuẩn Bai et al. mục 3.4")
+                         "none là cấu hình được chọn")
 parser.add_argument("--folds", default="all",
                     help="all = chạy đủ 4 fold. Hoặc liệt kê cách nhau bằng dấu "
                          "phẩy, ví dụ val_KL. Chạy một fold là VÒNG SÀNG LỌC, "
@@ -108,8 +111,6 @@ args = parser.parse_args()
 # Mỗi thực nghiệm một thư mục riêng.
 EXP_DIR = "runs/" + args.experiment
 
-revin = args.revin.lower() == "true"
-
 # Tên cấu hình phải chứa channels: TCN-64 và TCN-200 cùng model, cùng loss,
 # cùng seed — không đưa channels vào thì hai cấu hình ra CÙNG một tên, ghi đè
 # kết quả của nhau. Model lstm không có channels nên bỏ qua.
@@ -118,6 +119,11 @@ revin = args.revin.lower() == "true"
 # về sau có thêm --hidden, --norm hay tuỳ chọn nào nữa.
 if args.model == "lstm":
     arch_tag = "" if args.hidden == mv.LSTM_HIDDEN_SIZE else "_h%d" % args.hidden
+elif args.model == "cnn_lstm":
+    # Không có "cấu hình gốc" nào để lấy làm mặc định, nên ghi đủ ba con số
+    # quyết định kiến trúc. Đổi bất kỳ cái nào là ra tên khác, không đè kết quả.
+    arch_tag = "_h%d_c%d_k%d" % (args.hidden, args.conv_channels,
+                                 args.conv_kernel)
 else:
     # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
     arch_tag = "_c%d" % args.channels
@@ -141,9 +147,8 @@ loss_tag = args.loss
 if args.loss == "mse_pearson":
     loss_tag += "_a%g" % args.alpha
 
-config_id = "%s%s%s_%s_corr%s_seed%d" % (
-    args.model, arch_tag, "_revin" if revin else "",
-    loss_tag, args.corr, args.seed)
+config_id = "%s%s_%s_corr%s_seed%d" % (
+    args.model, arch_tag, loss_tag, args.corr, args.seed)
 
 os.makedirs(EXP_DIR, exist_ok=True)
 
@@ -176,8 +181,10 @@ def run_one_fold(fold_name, val_users):
     print(X.shape[0], "cửa sổ train")
 
     training.set_seed(args.seed)
-    model = models.build_model(args.model, revin=revin,
+    model = models.build_model(args.model,
                                hidden=args.hidden,
+                               conv_channels=args.conv_channels,
+                               conv_kernel=args.conv_kernel,
                                channels=args.channels,
                                kernel_size=args.kernel_size,
                                n_blocks=args.n_blocks,
@@ -205,7 +212,6 @@ def run_one_fold(fold_name, val_users):
     results.add_summary({"run_id": run_id,
                          "experiment": args.experiment,
                          "model": args.model,
-                         "revin": int(revin),
                          "loss": args.loss,
                          "alpha": args.alpha,
                          "corr_threshold": args.corr,
@@ -284,15 +290,16 @@ if du_bon_fold and results.find_run(
     results.add_summary({"run_id": config_id + "_tong",
                          "experiment": args.experiment,
                          "model": args.model,
-                         "revin": int(revin),
                          "loss": args.loss,
                          "alpha": args.alpha,
                          "corr_threshold": args.corr,
                          "seed": args.seed,
                          "fold": "TONG",
                          "val_users": "".join(DEV_USERS),
-                         "n_params": models.count_params(models.build_model(args.model, revin=revin,
+                         "n_params": models.count_params(models.build_model(args.model,
                                hidden=args.hidden,
+                               conv_channels=args.conv_channels,
+                               conv_kernel=args.conv_kernel,
                                channels=args.channels,
                                kernel_size=args.kernel_size,
                                n_blocks=args.n_blocks,

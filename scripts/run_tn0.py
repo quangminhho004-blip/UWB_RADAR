@@ -309,8 +309,7 @@ if args.case:
     device = args.device
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
-    print("thiết bị:", device,
-          torch.cuda.get_device_name(0) if device == "cuda" else "")
+    print("thiết bị:", device)
     print()
 
     {"a": case_a, "b": case_b, "c": case_c}[args.case](device)

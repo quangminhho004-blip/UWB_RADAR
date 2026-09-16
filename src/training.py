@@ -2,7 +2,7 @@
 
     from src import training
     training.set_seed(0)
-    model = models.build_model("ds_tcn", revin=True)
+    model = models.build_model("ds_tcn", channels=64)
     result = training.train(model, train_loader, val_loader, "runs/tn1/fold1_seed0")
 
 CHÍNH SÁCH FILE

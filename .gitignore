@@ -47,35 +47,21 @@ venv/
 # notebooks/TN0.ipynb đã commit. Giữ trên máy để tra lại.
 notebooks/tn0_reproduce.ipynb
 
-# submission: chỉ đưa các notebook đã chọn vào bản nộp.
-# Các notebook khác vẫn giữ ở máy; danh mục: docs/SUBMISSION_NOTEBOOKS.json.
+# Bản nộp cuối: chỉ TN0 và TN1 bốn cấu hình. Sáu notebook dưới đây là toàn bộ
+# bằng chứng chạy; notebook khác vẫn nằm ở máy nhưng không đưa lên git.
 *.ipynb
 !/notebooks/DATA_PREPARE.ipynb
 !/notebooks/TN0.ipynb
-!/notebooks/TN1_TCN_DSTCN_model_selection.ipynb
+!/notebooks/TN1_LSTM.ipynb
+!/notebooks/TN1_LSTM_small.ipynb
+!/notebooks/TN1_CNN_LSTM.ipynb
 !/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb
-!/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c192.ipynb
-!/notebooks/TN1_final_evaluation.ipynb
-!/notebooks/TN2_ReceptiveField_DS_TCN_c64_4fold.ipynb
-!/notebooks/TN2_ReceptiveField_DS_TCN_c192_4fold.ipynb
-!/notebooks/TN2_ReceptiveField_DS_TCN_c64.ipynb
-!/notebooks/TN1_DS_TCN_RevIN.ipynb
-!/notebooks/TN_test_ds_tcn_192.ipynb
-!/notebooks/TN3_HybridLoss_DS_TCN_c64.ipynb
-!/notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb
-!/notebooks/TN3_HybridLoss_DS_TCN_c192.ipynb
-!/notebooks/TN4_final_test_ds_tcn_c64.ipynb
-!/notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb
-!/notebooks/TN4_final_test_ds_tcn_c192.ipynb
-# Tài liệu cũ giữ local để truy vết, không đưa vào bản nộp.
-/.submission_archive/
-!/notebooks/GOM_ZIP_KET_QUA.ipynb
-!/notebooks/TAI_ZIP_TN4.ipynb
+!/notebooks/NAP_KET_QUA_TN1.ipynb
 
-# Checkpoint bản nộp — cho phép commit để chạy lại inference / đối chiếu
+# Tài liệu giữ local để truy vết, không đưa vào bản nộp.
+/.submission_archive/
+# Kho của nhóm khác, nằm cùng thư mục làm việc — không phải của đồ án này.
+/MobiVital_Submission/
+
+# Checkpoint bản nộp — cho phép commit để chạy lại inference / đối chiếu.
 !runs/tn1/**/*.pth
-!runs/tn1_ghij/**/*.pth
-!runs/tn2_rf/**/*.pth
-!runs/tn3/**/*.pth
-!runs/tn4/**/*.pth
-!/notebooks/TAI_ZIP_TN123.ipynb

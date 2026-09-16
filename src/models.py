@@ -1,7 +1,7 @@
 """Các model dự báo. Tất cả cùng một giao diện.
 
     from src import models
-    model = models.build_model("ds_tcn", revin=True)
+    model = models.build_model("ds_tcn", channels=64)
     pred = model(torch.randn(64, 200))     # -> (64, 25)
 
 GIAO DIỆN BẮT BUỘC
@@ -14,41 +14,29 @@ gọi model 52 lần mỗi ứng viên, rồi so từng cửa sổ 25 mẫu.
 
 PHẠM VI CỦA NHÁNH NÀY
 
-Nhánh nộp chỉ giữ ba model có kết quả công bố. Quá trình chọn kiến trúc còn thử
-bilstm, gru, cnn_lstm, modern_tcn và mix_linear; mã của chúng nằm ở nhánh `main`,
-kết quả ở bảng trong docs/BANG_TCN.md và tệp nén liệt kê ở docs/DANH_MUC_ZIP.md.
-
-BA MODEL, HAI HỌ
+Nhánh nộp cuối chỉ giữ bốn cấu hình của thực nghiệm 1, và đúng mã cần để dựng
+lại chúng. Các kiến trúc từng thử trong quá trình chọn (bilstm, gru,
+modern_tcn, mix_linear) và các thực nghiệm sau (tầm nhìn, hàm loss lai, kiểm
+tra trên GHIJ) không nằm ở nhánh này.
 
     hồi quy       đọc lần lượt từng mẫu, mang trạng thái đi theo
       lstm        LSTMMultiStep của MobiVital, làm mốc so sánh
+      cnn_lstm    tích chập rút đặc trưng rồi mới đưa vào LSTM
 
     tích chập     nhìn cả cửa sổ một lúc, không mang trạng thái
-      tcn         nhân quả, giãn dần — Bai et al. 2018
+      tcn         nhân quả, giãn dần
       ds_tcn      như trên, tách depthwise + pointwise, ít tham số hơn nhiều
 
-SỐ THAM SỐ ĐO ĐƯỢC
+BỐN CẤU HÌNH CÔNG BỐ
 
-    cấu hình                       tham số
-    lstm-352                     1.502.713    baseline MobiVital
-    ds_tcn-192 k3n4 RF61           307.801
-    tcn-64 batchnorm               151.513
-    tcn-64 weightnorm              150.745
-    lstm-67                         56.908    mốc của dải cùng ngân sách
-    ds_tcn-64 nền, 6 block          56.281
-    ds_tcn-64 k5n4 RF121            38.105
-    ds_tcn-64 k3n4 RF61             37.081    cấu hình gọn nhất được giữ
+    cấu hình             tham số   điểm CV macro (4 fold x 3 seed)
+    lstm-352           1.502.713   0,756992 +- 0,004156   baseline MobiVital
+    lstm-67               56.908   0,753208 +- 0,001967
+    cnn_lstm-58           55.667   0,752658 +- 0,003757
+    ds_tcn-64 k3n4        37.081   0,760878 +- 0,003095   cấu hình được chọn
 
-Bảng đầy đủ kèm điểm CV: docs/BANG_TCN.md
-
-RevIN là lớp bọc, dùng được với tcn và ds_tcn.
-
-TÀI LIỆU THAM CHIẾU
-
-    Bai, Kolter & Koltun (2018), arXiv:1803.01271 -- TCN
-    Howard et al. (2017), arXiv:1704.04861        -- depthwise separable
-    Kim, Kim, Tae, Park, Choi, Choo (2022), ICLR  -- RevIN
-
+Ba cấu hình dưới cùng ngân sách tham số (khoảng 55-57 nghìn) nên so được trực
+tiếp với nhau. Bảng đầy đủ: docs/BANG_TCN.md
 """
 
 import torch
@@ -62,49 +50,6 @@ except ImportError:
     from torch.nn.utils import weight_norm
 
 from src import mobivital_reference as mv
-
-
-class RevIN(nn.Module):
-    """Chuẩn hoá theo từng mẫu, rồi trả lại thang đo cũ ở đầu ra.
-
-    Kim, Kim, Tae, Park, Choi, Choo (2022), ICLR — "Reversible Instance
-    Normalization for Accurate Time-Series Forecasting against Distribution
-    Shift".
-
-    Mỗi cửa sổ 200 mẫu có mức nền và biên độ riêng: người thở sâu hay nông,
-    ngồi gần hay xa radar. Model phải học vừa hình dạng vừa mấy thứ đó.
-
-    RevIN gỡ phần đó ra: trừ trung bình, chia độ lệch chuẩn, cho model chỉ lo
-    hình dạng. Xong thì nhân lại và cộng lại vào đầu ra.
-
-    MỘT CHỖ LỆCH BÀI GỐC, CÓ LÝ DO
-
-    Bài gốc có thêm hai tham số học được gamma và beta, áp sau khi chuẩn hoá.
-    Ở đây bỏ chúng đi, vì đây là phép so CÙNG một kiến trúc có và không có RevIN —
-    thêm tham số học được là hai cấu hình khác số tham số, không còn cô lập
-    đúng một biến. Bỏ chúng thì bật hay tắt RevIN cho ra đúng cùng số tham số.
-
-    TRẠNG THÁI GIỮA HAI LƯỢT GỌI
-
-    `normalize` cất mean và std vào chính đối tượng để `denormalize` dùng lại.
-    Trong một lượt forward thì normalize luôn chạy trước, nên không sao. Nhưng
-    gọi `denormalize` riêng lẻ là lấy nhầm giá trị của lượt trước.
-    """
-
-    def normalize(self, x):
-        # Bám đúng mã tác giả: phương sai KHÔNG hiệu chỉnh Bessel, và epsilon
-        # cộng TRONG căn chứ không ngoài.
-        #     tác giả   sqrt(var(unbiased=False) + eps)
-        #     dễ viết   std() + eps          <- lệch hai chỗ
-        # Với cửa sổ gần phẳng hai công thức lệch nhau nhiều; trên dữ liệu này
-        # cửa sổ phẳng nhất đo được có std 0,0092 nên lệch tối đa 5%, còn
-        # 99,85% cửa sổ lệch dưới 2%. Lệch nhỏ, nhưng sửa thì miễn phí.
-        self.mean = x.mean(dim=1, keepdim=True)
-        self.std = torch.sqrt(x.var(dim=1, keepdim=True, unbiased=False) + 1e-5)
-        return (x - self.mean) / self.std
-
-    def denormalize(self, y):
-        return y * self.std + self.mean
 
 
 def apply_weight_norm(module):
@@ -127,36 +72,54 @@ def apply_weight_norm(module):
 
 
 class TCNBlock(nn.Module):
-    """Một khối tích chập nhân quả, theo Bai et al. 2018 (arXiv:1803.01271).
+    """Một khối tích chập nhân quả giãn, có nhánh tắt cộng thẳng.
 
-    Bám đúng Hình 1(b) và mục 3.4 của bài báo: mỗi khối có HAI tầng tích chập
-    nhân quả giãn, mỗi tầng kèm phi tuyến, rồi cộng nhánh tắt.
+    Đây là thiết kế của đồ án, không phải bản tái lập một kiến trúc có sẵn nào.
+    Mọi con số trong bảng kết quả đều sinh ra từ đúng khối này.
 
-        "Within a residual block, the TCN has two layers of dilated causal
-         convolution and non-linearity, for which we used the rectified linear
-         unit (ReLU)."                                    -- Bai et al., muc 3.4
+    CẤU TRÚC
 
-    "Nhân quả" (mục 3.2): mẫu thứ t chỉ được nhìn các mẫu <= t. Làm bằng cách
-    đệm thêm bên TRÁI đúng (kernel_size - 1) * dilation rồi cắt phần thừa bên
-    phải — chính là cách bài báo mô tả.
+        vào ──┬─ tầng 1 ─ tầng 2 ──(+)── ra
+              └───────────────────┘
 
-    "Giãn" (mục 3.3, phương trình 2): bỏ cách quãng khi lấy mẫu. Tầm nhìn của
-    một tầng là (k - 1) * d.
+        một tầng = đệm trái → tích chập giãn → chuẩn hoá → ReLU → dropout
 
-    HAI CHỖ LỆCH BÀI BÁO, CÓ LÝ DO
+    Hai tầng trong cùng một khối dùng CÙNG một độ giãn. Độ giãn tăng gấp đôi
+    khi sang khối sau, việc đó do lớp TCN bên ngoài lo.
 
-    1. Chuẩn hoá dùng BatchNorm thay vì WeightNorm (Bai mục 3.4). Lý do: nhánh
-       ds_tcn theo MobileNets (Howard et al. 2017, arXiv:1704.04861) mục 3.1 —
-       "MobileNets use both batchnorm and ReLU nonlinearities for both layers".
-       Dùng chung một loại chuẩn hoá cho cả hai nhánh thì TN1 mới cô lập đúng
-       một biến là phép tích chập.
+    NHÂN QUẢ
 
-    2. Không có nhánh 1x1 trên đường tắt. Bài báo thêm nó khi số kênh vào và ra
-       khác nhau (mục 3.4, Hình 1b); ở đây mọi khối giữ nguyên số kênh nên
-       không cần.
+    Đầu ra ở thời điểm t chỉ được nhìn mẫu t trở về trước. Cài bằng cách đệm
+    thêm (kernel_size - 1) * dilation mẫu vào bên TRÁI rồi để tích chập tự cắt
+    phần thừa bên phải — không dùng padding đối xứng.
 
-    Dropout dùng Dropout1d — xoá cả một kênh, đúng "spatial dropout" bài báo
-    nói ở mục 3.4.
+    "Giãn" là lấy mẫu cách quãng: tầm nhìn một tầng là (kernel_size - 1) * d
+    trong khi số tham số không đổi.
+
+    KHÔNG CÓ PHI TUYẾN SAU PHÉP CỘNG
+
+    `forward` trả về `x + residual` rồi thôi. Nhiều thiết kế residual đặt thêm
+    một ReLU sau phép cộng; ở đây không có. Đường tắt vì thế là đường thẳng
+    hoàn toàn từ đầu vào khối tới đầu ra khối.
+
+    Đây là lựa chọn cố định của mọi cấu hình trong đồ án, nên các phép so giữa
+    tcn và ds_tcn vẫn cân — hai bên dùng chung đúng lớp này.
+
+    KHÔNG CÓ NHÁNH 1x1 TRÊN ĐƯỜNG TẮT
+
+    Mọi khối giữ nguyên số kênh từ đầu tới cuối, nên đầu vào cộng thẳng được
+    với đầu ra, không cần lớp chiếu cho khớp chiều.
+
+    DEPTHWISE (separable=True)
+
+    Thay một tích chập thường bằng hai phép nối tiếp:
+
+        depthwise   mỗi kênh một bộ lọc riêng, KHÔNG trộn kênh  (groups=channels)
+        pointwise   kernel 1, CHỈ trộn kênh
+
+    Đếm thật ở C=64, k=3: thường 12.352 tham số, tách ra còn 4.416 — bằng
+    0,357 lần. Chuẩn hoá và ReLU đặt MỘT lần sau cả hai phép, không chèn vào
+    giữa.
     """
 
     def __init__(self, channels, kernel_size, dilation, dropout, separable,
@@ -164,7 +127,7 @@ class TCNBlock(nn.Module):
         super().__init__()
         self.left_pad = (kernel_size - 1) * dilation
 
-        # Hai tầng giống hệt nhau, cùng độ giãn — Bai et al. Hình 1(b).
+        # Hai tầng giống hệt nhau, cùng độ giãn.
         self.layer_one = self._one_layer(channels, kernel_size, dilation,
                                          dropout, separable, norm, dropout_kind)
         self.layer_two = self._one_layer(channels, kernel_size, dilation,
@@ -176,8 +139,8 @@ class TCNBlock(nn.Module):
         if separable:
             # Depthwise: mỗi kênh một bộ lọc riêng, không trộn kênh.
             # Pointwise: kernel 1, chỉ trộn kênh.
-            # Howard et al. 2017 mục 3.1, phương trình (3) và (5). Chi phí giảm
-            # còn 1/N + 1/D_K^2 lần so với tích chập thường.
+            # Ở C kênh, kernel k: tích chập thường tốn C*C*k tham số, tách ra
+            # còn C*k + C*C. Với C=64, k=3 là 12.352 xuống 4.416.
             conv = nn.Sequential(
                 nn.Conv1d(channels, channels, kernel_size,
                           dilation=dilation, groups=channels),
@@ -217,52 +180,42 @@ class TCNBlock(nn.Module):
         residual = x
         x = self._run_layer(self.layer_one, x)
         x = self._run_layer(self.layer_two, x)
-        return x + residual                             # Bai mục 3.4, pt. (3)
+        return x + residual        # không có phi tuyến sau phép cộng
 
 
 class TCN(nn.Module):
-    """Chồng nhiều khối TCN, giãn gấp đôi mỗi khối.
+    """Chồng nhiều khối TCNBlock, độ giãn gấp đôi mỗi khối.
 
     RÀNG BUỘC CHÍNH: TẦM NHÌN PHẢI PHỦ HẾT CỬA SỔ VÀO
 
-        "The most important factor for picking parameters is to make sure that
-         the TCN has a sufficiently large receptive field by choosing k and d
-         that can cover the amount of context needed for the task."
-                                                   -- Bai et al., muc A.1
-
-    Cửa sổ vào 200 mẫu. Nhịp thở khoảng 0.25 Hz, lấy mẫu 50 Hz, nên một nhịp
-    cũng đúng 200 mẫu. Tầm nhìn với khối hai tầng:
+    Cửa sổ vào 200 mẫu. Nhịp thở khoảng 0,25 Hz, lấy mẫu 50 Hz, nên một nhịp
+    thở cũng đúng 200 mẫu. Mỗi khối có hai tầng nên tầm nhìn là
 
         (k - 1) * 2 * sum(2^i, i = 0..n-1) + 1
 
-        k=3, n=6  ->  253  >= 200   ĐỦ
-        k=3, n=5  ->  125  <  200   THIẾU
+        k=3, n=6  ->  253  >= 200   đủ phủ một nhịp thở
+        k=3, n=5  ->  125  <  200   thiếu
+        k=3, n=4  ->   61              cấu hình được chọn
 
-    Nên mặc định n_blocks = 6, kernel_size = 3.
+    Mặc định n_blocks = 6 là để thoả ràng buộc trên. Nhưng cấu hình cho điểm
+    cao nhất lại là n_blocks = 4, tầm nhìn 61 — chưa tới một phần ba nhịp thở.
+    Đây là kết quả đo được, không phải suy ra từ ràng buộc; xem docs/BANG_TCN.md.
 
-    dropout mặc định 0.0, hai lý do:
-      - Bai et al. Bảng 2 dùng dropout 0.0 cho Adding Problem, bài hồi quy liên
-        tục gần với dự báo dạng sóng nhất
-      - LSTM của MobiVital cũng dropout = 0.0; TN1 so KIẾN TRÚC nên phải giữ
-        regularization giống nhau, không thêm biến thứ hai
+    dropout mặc định 0,0 vì LSTM của MobiVital cũng không dùng dropout. Thực
+    nghiệm 1 so KIẾN TRÚC, nên regularization phải giống nhau giữa các cấu hình,
+    không thêm biến thứ hai. Cấu hình được chọn bật dropout 0,2 theo phần tử —
+    đó là một phần của chính cấu hình đó, đã ghi trong tên.
 
-    channels mặc định 64 là CỐ Ý LỆCH bài báo. Bai mục A.1 chọn số kênh sao cho
-    model to xấp xỉ model hồi quy đem so; ở đây thu nhỏ model chính là mục tiêu
-    của đồ án. Đây là giới hạn của TN1, TN5 sẽ quét lại.
+    norm mặc định "batch". Cấu hình được chọn dùng "none" — không có lớp chuẩn
+    hoá nào. Tuỳ chọn "weight" viết lại trọng số của lớp tích chập thay vì thêm
+    lớp vào luồng dữ liệu; xem apply_weight_norm.
 
-    norm mặc định "batch" cũng LỆCH bài báo — Bai mục 3.4 dùng WeightNorm. Lý do
-    chọn BatchNorm là để nhánh ds_tcn (Howard 2017 mục 3.1, vốn dùng BatchNorm)
-    và nhánh tcn chuẩn hoá giống nhau, nhờ đó so hai nhánh chỉ đổi đúng một biến
-    là phép tích chập.
-
-    Nhưng lập luận đó chỉ đòi hai nhánh GIỐNG NHAU, không đòi phải là BatchNorm;
-    chọn WeightNorm cho cả hai cũng thoả. Nên bản đúng chuẩn Bai chạy được bằng
-    norm="weight", và kết luận về tcn chỉ nên phát biểu kèm tên kiểu chuẩn hoá
-    đã dùng.
+    channels mặc định 64. Thu nhỏ model là mục tiêu của đồ án, nên không chọn
+    số kênh theo cách cho model to ngang mốc hồi quy đem so.
     """
 
     def __init__(self, channels=64, kernel_size=3, n_blocks=6,
-                 dropout=0.0, separable=False, revin=False, norm="batch",
+                 dropout=0.0, separable=False, norm="batch",
                  dropout_kind="channel"):
         super().__init__()
         self.input_conv = nn.Conv1d(1, channels, 1)
@@ -274,55 +227,125 @@ class TCN(nn.Module):
         self.blocks = nn.Sequential(*blocks)
 
         self.output_linear = nn.Linear(channels, mv.FUTURE_LENGTH)
-        self.revin = RevIN() if revin else None
 
     def forward(self, x):
-        if self.revin is not None:
-            x = self.revin.normalize(x)
-
         x = x.unsqueeze(1)          # (batch, 200) -> (batch, 1, 200)
         x = self.input_conv(x)
         x = self.blocks(x)
         x = x[:, :, -1]             # chỉ lấy mẫu cuối cùng
-        y = self.output_linear(x)   # -> (batch, 25)
-
-        if self.revin is not None:
-            y = self.revin.denormalize(y)
-        return y
+        return self.output_linear(x)      # -> (batch, 25)
 
 
-KHONG_HO_TRO_REVIN = ("lstm",)
+class CNNLSTM(nn.Module):
+    """Tích chập rút đặc trưng cục bộ rồi đưa vào LSTM. Dự báo đa bước.
+
+    KHÔNG PHẢI ConvLSTM
+
+    ConvLSTM là kiến trúc khác hẳn: nó đưa tích chập vào BÊN TRONG ô LSTM, thay
+    phép nhân ma trận bằng tích chập. Ở đây tích chập đứng TRƯỚC, rút đặc trưng
+    xong mới đưa vào một LSTM thường. Tên đúng là CNN-LSTM.
+
+    LUỒNG DỮ LIỆU
+
+        (batch, 200)              200 mẫu quá khứ
+          -> (batch, 1, 200)
+          -> Conv1d(1, 32, k=5, s=2, p=2) -> BatchNorm -> ReLU   -> (b, 32, 100)
+          -> Conv1d(32, 32, k=5, s=2, p=2) -> BatchNorm -> ReLU  -> (b, 32,  50)
+          -> đổi trục                                            -> (b, 50, 32)
+          -> LSTM(input_size=32, hidden, 2 tầng, MỘT chiều)
+          -> output[:, -1, :]                                    -> (b, hidden)
+          -> Linear(hidden, 25)                                  -> (b, 25)
+
+    VÌ SAO output[:, -1, :] Ở ĐÂY LÀ ĐÚNG
+
+    LSTM này MỘT chiều, nên bước cuối đã đọc hết chuỗi. Chỗ phải tránh
+    `output[:, -1, :]` là LSTM hai chiều, vì với chiều ngược thì bước cuối lại
+    chính là mẫu nó xử lý đầu tiên.
+
+    ĐƯỢC GÌ SO VỚI LSTM THUẦN
+
+    Mỗi bước LSTM nhận 32 số mô tả một ĐOẠN sóng, thay vì một mẫu đơn lẻ. Và
+    chuỗi ngắn đi bốn lần, từ 200 bước tuần tự xuống 50 — đây chính là nút thắt
+    tốc độ của LSTM, vì 200 bước không song song hoá được.
+
+    GIỚI HẠN PHẢI GHI KHI BÁO CÁO
+
+    Kiến trúc này đổi ĐỒNG THỜI hai thứ: cách trích đặc trưng, và độ dài chuỗi
+    đưa vào LSTM. Nếu nó thắng thì chưa biết nhờ cái nào. Đối chứng rẻ để tách
+    hai nguyên nhân: thay hai tầng tích chập bằng AvgPool 200 xuống 50 rồi đưa
+    vào LSTM — nếu bản AvgPool cũng thắng thì công là của việc rút ngắn chuỗi,
+    không phải của đặc trưng tích chập. Đối chứng này CHƯA chạy.
+
+    THAM SỐ MẶC ĐỊNH
+
+        conv_channels 32, conv_kernel 5, hai tầng stride 2, hidden 58
+        -> 55.667 tham số, xấp xỉ lstm-67 (56.908) để so cùng ngân sách
+
+    Chọn 32 kênh để phần tích chập nhẹ, dồn ngân sách cho LSTM. kernel 5 phủ
+    0,1 giây ở tần số lấy mẫu 50 Hz, cỡ một đoạn dốc của sóng thở.
+    """
+
+    def __init__(self, hidden_size=58, conv_channels=32, conv_kernel=5,
+                 num_layers=2, future_len=25):
+        super().__init__()
+        pad = conv_kernel // 2          # giữ độ dài chia đôi đúng khi stride 2
+
+        self.conv = nn.Sequential(
+            nn.Conv1d(1, conv_channels, conv_kernel, stride=2, padding=pad),
+            nn.BatchNorm1d(conv_channels),
+            nn.ReLU(),
+            nn.Conv1d(conv_channels, conv_channels, conv_kernel,
+                      stride=2, padding=pad),
+            nn.BatchNorm1d(conv_channels),
+            nn.ReLU(),
+        )
+        self.lstm = nn.LSTM(input_size=conv_channels, hidden_size=hidden_size,
+                            num_layers=num_layers, batch_first=True)
+        self.linear = nn.Linear(hidden_size, future_len)
+
+    def forward(self, x):
+        if x.dim() == 2:
+            x = x.unsqueeze(1)                   # (b, 200) -> (b, 1, 200)
+
+        x = self.conv(x)                         # -> (b, 32, 50)
+        x = x.transpose(1, 2)                    # -> (b, 50, 32)
+
+        x, _ = self.lstm(x)
+        return self.linear(x[:, -1, :])          # một chiều nên bước cuối là đủ
 
 
-def build_model(name, revin=False, **kwargs):
+def build_model(name, **kwargs):
     """Dựng model theo tên, để notebook chỉ cần truyền chuỗi.
 
-        build_model("lstm")
-        build_model("lstm", hidden=67)
-        build_model("ds_tcn", revin=True, channels=96)
+        build_model("lstm")                  -> 1.502.713 tham số
+        build_model("lstm", hidden=67)       ->    56.908
+        build_model("cnn_lstm", hidden=58)   ->    55.667
+        build_model("ds_tcn", channels=64, kernel_size=3, n_blocks=4,
+                    dropout=0.2, norm="none", dropout_kind="element")
+                                             ->    37.081
     """
-    # lstm KHÔNG có đường nối RevIN. Trước đây nó lặng lẽ bỏ qua cờ này, trong
-    # khi config_id vẫn ghi hậu tố _revin — tức là đẻ ra một tệp kết quả nói
-    # rằng đã thử RevIN, mà thật ra chưa. Báo lỗi thay vì im.
-    if revin and name in KHONG_HO_TRO_REVIN:
-        raise ValueError(
-            "model %s chưa nối RevIN, nhưng tên cấu hình sẽ ghi _revin và gây "
-            "hiểu nhầm là đã thử. Bỏ --revin, hoặc dùng tcn / ds_tcn." % name)
-
     if name == "lstm":
-        # RevIN không áp cho baseline. hidden mặc định là 352 của MobiVital;
-        # các tham số riêng của TCN (kernel_size, n_blocks...) không dùng ở đây.
+        # hidden mặc định là 352 của MobiVital. Các tham số riêng của TCN
+        # (kernel_size, n_blocks...) không dùng ở đây.
         return mv.new_lstm(kwargs.get("hidden"))
 
-    # Ngược lại, TCN không nhận `hidden` của lstm. Lọc bớt để hai script gọi
-    # build_model bằng chung một bộ đối số cho mọi model.
-    kwargs.pop("hidden", None)
+    if name == "cnn_lstm":
+        return CNNLSTM(hidden_size=kwargs.get("hidden", 58),
+                       conv_channels=kwargs.get("conv_channels", 32),
+                       conv_kernel=kwargs.get("conv_kernel", 5),
+                       future_len=mv.FUTURE_LENGTH)
+
+    # Họ tích chập không nhận `hidden` của lstm, cũng không nhận tham số riêng
+    # của cnn_lstm. Lọc bớt để mọi script gọi build_model bằng chung một bộ
+    # đối số cho mọi model.
+    for rieng in ("hidden", "conv_channels", "conv_kernel"):
+        kwargs.pop(rieng, None)
 
     if name == "tcn":
-        return TCN(separable=False, revin=revin, **kwargs)
+        return TCN(separable=False, **kwargs)
 
     if name == "ds_tcn":
-        return TCN(separable=True, revin=revin, **kwargs)
+        return TCN(separable=True, **kwargs)
 
     raise ValueError("không biết model tên " + name)
 

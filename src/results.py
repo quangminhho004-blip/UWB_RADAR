@@ -40,7 +40,7 @@ SUMMARY_COLUMNS = [
     # nhận dạng
     "run_id", "timestamp", "git_commit", "device",
     # cấu hình đang thử
-    "experiment", "model", "revin", "loss", "alpha",
+    "experiment", "model", "loss", "alpha",
     "corr_threshold", "seed", "fold", "val_users",
     # lúc train
     "n_params", "n_train_windows", "epochs",
@@ -48,8 +48,6 @@ SUMMARY_COLUMNS = [
     # lúc chấm
     "score_macro", "score_micro", "score_std", "n_sessions", "n_negative",
     "minutes_score",
-    # chỉ để nhìn, không được dùng để chọn cấu hình
-    "test_ghij_macro",
 ]
 
 SESSION_COLUMNS = ["run_id", "user", "session_file", "bin", "method",
@@ -70,11 +68,13 @@ def git_commit():
 
 
 def device_name():
-    """Tên GPU đang dùng, hoặc 'cpu'."""
+    """Loại thiết bị: "cuda" hay "cpu".
+
+    Cố ý KHÔNG ghi tên đời GPU. Tên đó không đổi kết quả nào — cùng mã, cùng
+    seed, cùng dữ liệu thì điểm như nhau — mà lại dính vào mọi bảng kết quả.
+    """
     import torch
-    if torch.cuda.is_available():
-        return torch.cuda.get_device_name(0)
-    return "cpu"
+    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def append_row(path, columns, fields):
