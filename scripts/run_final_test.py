@@ -115,8 +115,6 @@ revin = args.revin.lower() == "true"
 # không đổi khi thêm tuỳ chọn mới. Ví dụ lstm_mse_corr0.9_seed0 giữ nguyên dù
 # về sau có thêm --hidden, --norm hay tuỳ chọn nào nữa.
 if args.model == "lstm":
-    # Hậu tố CHỈ thêm khi hidden khác 352 của MobiVital, nhờ đó tên của mọi lần
-    # chạy cũ không đổi khi thêm tuỳ chọn mới.
     arch_tag = "" if args.hidden == mv.LSTM_HIDDEN_SIZE else "_h%d" % args.hidden
 else:
     # Họ tích chập: channels luôn ghi, vì TCN-64 và TCN-200 phải khác tên nhau.
