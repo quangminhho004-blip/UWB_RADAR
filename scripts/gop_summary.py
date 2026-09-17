@@ -34,9 +34,16 @@ da_co = {r["run_id"] for r in dang_co}
 
 them, trung = [], []
 for r in csv.DictReader(open(args.nguon)):
-    (trung if r["run_id"] in da_co else them).append(r["run_id"])
-    if r["run_id"] not in da_co:
-        dang_co.append({k: r.get(k, "") for k in SUMMARY_COLUMNS})
+    rid = r["run_id"]
+    if rid in da_co:
+        trung.append(rid)
+        continue
+    # Cập nhật da_co NGAY, không đợi hết vòng lặp: tệp nguồn có thể tự chứa hai
+    # dòng cùng run_id (gộp từ nhiều tệp nén trùng nhau). Không làm vậy thì cả
+    # hai cùng được chèn, và summary.csv có hai dòng cho một lần chạy.
+    da_co.add(rid)
+    them.append(rid)
+    dang_co.append({k: r.get(k, "") for k in SUMMARY_COLUMNS})
 
 dang_co.sort(key=lambda r: (r["model"], int(r["n_params"] or 0),
                             int(r["seed"] or 0), r["fold"]))

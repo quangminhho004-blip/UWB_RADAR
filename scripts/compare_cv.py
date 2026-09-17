@@ -51,15 +51,24 @@ TIE_MARGIN = 1e-6
 
 
 def read_summary(experiment):
-    """Các dòng của thực nghiệm này trong bảng metric chung."""
-    if not os.path.exists(SUMMARY_FILE):
-        sys.exit("không thấy " + SUMMARY_FILE + " — chưa chạy run_cv.py lần nào?")
+    """Các dòng của thực nghiệm này.
 
-    rows = [r for r in csv.DictReader(open(SUMMARY_FILE))
+    Đọc runs/<thực nghiệm>/summary.csv trước, vì đó là bản đã commit vào repo.
+    Chỉ khi không có mới quay sang runs/summary.csv — bảng chung do runner ghi
+    trong phiên đang chạy, không có sẵn khi mới clone về.
+    """
+    rieng = "%s/%s/summary.csv" % (RUNS_DIR, experiment)
+    nguon = rieng if os.path.exists(rieng) else SUMMARY_FILE
+
+    if not os.path.exists(nguon):
+        sys.exit("không thấy %s, cũng không thấy %s — chưa chạy lần nào?"
+                 % (rieng, SUMMARY_FILE))
+
+    rows = [r for r in csv.DictReader(open(nguon))
             if r["experiment"] == experiment]
     if not rows:
         sys.exit("không có dòng nào của thực nghiệm '%s' trong %s"
-                 % (experiment, SUMMARY_FILE))
+                 % (experiment, nguon))
     return rows
 
 

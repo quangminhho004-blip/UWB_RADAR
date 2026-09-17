@@ -36,12 +36,13 @@ BỐN CẤU HÌNH CỦA TN1 — chọn kiến trúc
 
 MÔ HÌNH CUỐI — sau TN2 (tầm nhìn) và TN3 (hàm loss)
 
-    ds_tcn-64 k3n4, loss lai alpha 0,6      37.081 tham số
-    trên G H I J: macro 0,803590 +- 0,015350
+    ds_tcn-64 k5n4, Pearson thuần           38.105 tham số
+    trên G H I J: macro 0,801739 +- 0,009968
 
-    Mốc lstm-352 trên cùng tập đó: 0,810302 +- 0,015402. Chênh 0,0067 nhỏ hơn
-    dao động seed, nên phát biểu đúng là NGANG ĐIỂM với ít hơn 40,5 lần tham
-    số — không phải "tốt hơn". Xem docs/BANG_TCN.md mục 5.
+    Mốc lstm-352 trên cùng tập đó: 0,810302 +- 0,015402 với 1.502.713 tham số.
+    Chênh 0,0086 nằm trong khoảng dao động giữa các seed, nên KHÔNG XẾP HẠNG
+    ĐƯỢC — không nói "tốt hơn", cũng không nói "ngang điểm". Cái đọc được là
+    khoảng cách số tham số: ít hơn 39,4 lần. Xem docs/BANG_TCN.md mục 5.
 
 Bảng đầy đủ: docs/BANG_TCN.md
 """

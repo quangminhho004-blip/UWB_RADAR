@@ -38,11 +38,12 @@ import sys
 
 # ===================== CÀI ĐẶT — sửa ở đây =====================
 
-# Thư mục gốc dự án. Trên Colab khác với ở máy nên phải hỏi.
-if os.path.exists("/content"):
-    PROJECT_DIR = "/content/UWB_RADAR"
-else:
-    PROJECT_DIR = "/Users/udnb/Desktop/THESIS_GRADUATE"
+# Thư mục gốc dự án — suy ra từ vị trí chính tệp này, không gắn cứng đường dẫn
+# của một máy nào. src/mobivital_reference.py nằm ở <gốc>/src/, nên lùi hai cấp.
+# Biến môi trường UWB_RADAR_DIR ghi đè được, dùng khi chạy từ chỗ khác.
+PROJECT_DIR = os.environ.get(
+    "UWB_RADAR_DIR",
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Cấu hình MobiVital công bố, chép từ checkpoints/optimal_params.json.
 HISTORY_LENGTH = 200      # số mẫu đưa vào model
