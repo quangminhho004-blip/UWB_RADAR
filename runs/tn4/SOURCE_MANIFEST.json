@@ -397,9 +397,9 @@
     },
     {
       "path": "summary.csv",
-      "sha256": "25a3c75f5ece7995b00edfc53aa30209f21e6bf06e25f227807f66bbea4cbe6c",
-      "size_bytes": 2564,
-      "note": "Lọc lại trên nhánh final_submission: bỏ 3 dòng C192, xoá trắng cột device. 12 dòng gốc -> 9."
+      "sha256": "019ab530de406c7c27f1adf2a6c983963c5a9fdff1c3ecc345e76938838d17db",
+      "size_bytes": 3202,
+      "note": "Lọc lại trên nhánh final_submission: bỏ 3 dòng C192, xoá trắng cột device, thêm 3 dòng mốc LSTM-352 chuyển từ thực nghiệm tn1_ghij sang. 12 dòng gốc -> 12."
     }
   ],
   "layout": "Đã gom theo cấu hình: runs/tn4/<tên ngắn>/seed<N>/{final.pth, curve.csv, scores.csv, selection.txt}. summary.csv giữ cột run_id đầy đủ để truy nguồn.",

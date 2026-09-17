@@ -74,3 +74,6 @@ notebooks/tn0_reproduce.ipynb
 
 # Checkpoint bản nộp — cho phép commit để chạy lại inference / đối chiếu.
 !runs/tn1/**/*.pth
+!runs/tn2_rf/**/*.pth
+!runs/tn3/**/*.pth
+!runs/tn4/**/*.pth

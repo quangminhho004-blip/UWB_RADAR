@@ -15,7 +15,7 @@ Layout: `<cấu hình>/seed<N>/<fold>/{curve.csv, scores.csv, final.pth}`.
 để chọn tầm nhìn, rồi [TN3](../tn3/README.md) để chọn hàm loss, rồi
 [TN4](../tn4/README.md) để chấm trên G H I J.
 
-Điểm G H I J của hai mốc LSTM ở [`runs/tn1_ghij/`](../tn1_ghij/README.md).
+Điểm G H I J của mốc LSTM 352 nằm cùng bảng TN4, ở [`runs/tn4/`](../tn4/README.md).
 Bảng đầy đủ kèm cách đọc: [docs/BANG_TCN.md](../../docs/BANG_TCN.md).
 
 ## Ba thư mục baseline lấy ở đâu

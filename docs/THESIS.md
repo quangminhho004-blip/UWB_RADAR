@@ -291,7 +291,7 @@ chỉ để đổi tên thực nghiệm.
 | **DS-TCN 64/RF61, alpha 0,6** — mô hình cuối | (đúng lệnh trên) |
 | DS-TCN 64/RF121, Pearson thuần | `--kernel_size 5 --alpha 0.0` |
 | DS-TCN 64/RF121, MSE thuần — đối chứng loss | `--kernel_size 5 --loss mse`, bỏ `--alpha` |
-| Mốc LSTM 352 | `--experiment tn1_ghij --model lstm` |
+| Mốc LSTM 352 | `--model lstm`, bỏ mọi cờ của họ tích chập |
 
 **Chấm một phiên validation hoặc test:** radar 120 bin → 240 ứng viên abs/phase
 → chuẩn hoá mỗi chuỗi → inversion detector → cửa sổ 200→25 → model → Pearson dự
@@ -304,7 +304,7 @@ trong mã giữ 0 và loại 1, không phải lọc Pearson với đai ở ngư�
 ```text
 runs/
 ├── summary.csv                       metric chung, runner tra để bỏ qua lượt đã xong
-└── <experiment>/                     tn0, tn1, tn1_ghij, tn2_rf, tn3, tn4
+└── <experiment>/                     tn0, tn1, tn2_rf, tn3, tn4
     ├── summary.csv                   bản lọc theo experiment khi save_results
     ├── README.txt                    lúc đóng gói, commit đóng gói
     ├── scores_<run_id>.csv           điểm + bin/method từng phiên
@@ -356,7 +356,6 @@ cuối chứa cả những seed trước. Danh mục đầy đủ: [DANH_MUC_ZIP
 !python scripts/compare_cv.py --experiment tn2_rf
 !python scripts/compare_cv.py --experiment tn3
 !python scripts/compare_cv.py --experiment tn4 --final
-!python scripts/compare_cv.py --experiment tn1_ghij --final
 ```
 
 Chế độ `--final` gộp nhiều seed thành trung bình ± độ lệch chuẩn mẫu, dùng cho
@@ -684,7 +683,7 @@ bất cứ thứ gì. Ba seed mỗi tổ hợp.
 
 | cấu hình | tham số | macro | micro | thực nghiệm |
 |---|---:|---:|---:|---|
-| **LSTM 352** *(mốc MobiVital)* | 1.502.713 | **0,810302** ± 0,015402 | 0,805309 | TN1 GHIJ |
+| **LSTM 352** *(mốc MobiVital)* | 1.502.713 | **0,810302** ± 0,015402 | 0,805309 | TN4 |
 | **DS-TCN 64/RF61, alpha 0,6** | **37.081** | **0,803590** ± 0,015350 | — | TN4 |
 | DS-TCN 64/RF121, Pearson thuần | 38.105 | 0,801739 ± 0,009968 | — | TN4 |
 | DS-TCN 64/RF121, MSE thuần *(đối chứng)* | 38.105 | 0,762191 ± 0,021433 | — | TN4 |

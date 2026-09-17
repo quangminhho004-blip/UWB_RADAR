@@ -106,7 +106,7 @@ Giữ `RF61 + alpha 0,6` và `RF121 + alpha 0` mang xuống TN4.
 
 | cấu hình | tham số | macro | std | thực nghiệm |
 |---|---:|---:|---:|---|
-| **LSTM 352** *(mốc MobiVital)* | 1.502.713 | **0,810302** | 0,015402 | TN1 GHIJ |
+| **LSTM 352** *(mốc MobiVital)* | 1.502.713 | **0,810302** | 0,015402 | TN4 |
 | **DS-TCN 64/RF61, alpha 0,6** | **37.081** | **0,803590** | 0,015350 | TN4 |
 | DS-TCN 64/RF121, Pearson thuần | 38.105 | 0,801739 | 0,009968 | TN4 |
 | DS-TCN 64/RF121, MSE thuần *(đối chứng)* | 38.105 | 0,762191 | 0,021433 | TN4 |
@@ -183,7 +183,6 @@ python3 scripts/compare_cv.py --experiment tn1
 python3 scripts/compare_cv.py --experiment tn2_rf
 python3 scripts/compare_cv.py --experiment tn3
 python3 scripts/compare_cv.py --experiment tn4 --final
-python3 scripts/compare_cv.py --experiment tn1_ghij --final
 ```
 
 Muốn tính lại từ gốc thì đọc thẳng `scores.csv` — điểm Pearson của từng phiên

@@ -15,7 +15,7 @@ tham số**, macro G H I J **0,803590 ± 0,015350**.
 | TN2 | 3 mức kernel × 4 fold | đủ — 12 checkpoint |
 | TN3 | 20 mức alpha × 4 fold | đủ — 80 checkpoint |
 | TN4 | 3 tổ hợp × 3 seed | đủ — 9 checkpoint |
-| mốc G H I J | LSTM 352 × 3 seed | đủ — 3 checkpoint |
+| mốc G H I J | LSTM 352 × 3 seed, nằm trong TN4 | đủ — 3 checkpoint |
 
 **152 checkpoint, tất cả nạp được `strict=True`.**
 
@@ -48,7 +48,7 @@ scripts/     chuẩn bị dữ liệu · run_cv.py · run_final_test.py · compa
              · check_model.py · save_results.py · gop_summary.py · run_tn0.py
 notebooks/   12 notebook có output + 2 notebook nạp kết quả
 docs/        THESIS.md là điểm vào
-runs/        tn0, tn1, tn1_ghij, tn2_rf, tn3, tn4
+runs/        tn0, tn1, tn2_rf, tn3, tn4
 data/        chỉ giữ checksums.txt; dữ liệu tải riêng
 external/    mã MobiVital tải riêng, ghim commit
 ```
@@ -186,7 +186,7 @@ Mỗi lượt CV mất một tới ba giờ.
 
 Đủ khi tất cả các dòng dưới đây đúng:
 
-- `runs/` có đủ sáu thư mục: `tn0` `tn1` `tn1_ghij` `tn2_rf` `tn3` `tn4`
+- `runs/` có đủ năm thư mục: `tn0` `tn1` `tn2_rf` `tn3` `tn4`
 - 152 tệp `final.pth` nạp được `strict=True`
 - mọi cấu hình trong `runs/` truy được về một notebook có output
 - `compare_cv.py` dựng lại đúng các bảng trong [docs/BANG_TCN.md](docs/BANG_TCN.md)
