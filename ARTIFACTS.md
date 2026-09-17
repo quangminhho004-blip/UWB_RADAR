@@ -45,7 +45,7 @@ thiếu 1 trong 6. Kết quả của những ô đó vẫn nằm trong `runs/`.
 src/         models.py, training.py, scoring.py, losses.py, results.py,
              mobivital_reference.py
 scripts/     chuẩn bị dữ liệu · run_cv.py · run_final_test.py · compare_cv.py
-             · check_model.py · save_results.py · gop_summary.py · run_tn0.py
+             · check_model.py · save_results.py · run_tn0.py
 notebooks/   11 notebook, tất cả đều có output
 docs/        THESIS.md là điểm vào
 runs/        tn0, tn1, tn2_rf, tn3, tn4

@@ -186,7 +186,7 @@ def score_all(users, model, by_user_dir=None):
         pearson            0.9312
 
     Đây là dữ liệu thô. Từ đây tính ra được điểm theo người, điểm chung, và
-    so được thắng/hoà/thua giữa hai lần chạy bất kỳ.
+    so được từng buổi ghi giữa hai lần chạy bất kỳ.
     """
     if by_user_dir is None:
         by_user_dir = mv.PROJECT_DIR + "/data/processed/by_user"
@@ -219,7 +219,7 @@ def mean_by_user(rows):
     """Điểm trung bình của từng người, từ dữ liệu score_all trả về.
 
     Điểm chính thức của đồ án là trung bình các số này (macro theo người),
-    không phải trung bình trên toàn bộ buổi ghi — xem docs/CHIA_DU_LIEU.md.
+    không phải trung bình trên toàn bộ buổi ghi.
     Lý do: mỗi người có số buổi ghi khác nhau, tính gộp thì người ghi nhiều
     buổi bị tính nặng ký hơn một cách vô lý.
     """

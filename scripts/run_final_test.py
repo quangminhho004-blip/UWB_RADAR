@@ -3,7 +3,7 @@
     python scripts/run_final_test.py --model ds_tcn --channels 64
 
 Đây là SỐ CÔNG BỐ. Chỉ chạy sau khi đã chốt cấu hình bằng scripts/run_cv.py —
-G H I J không được nhìn vào lúc chọn cấu hình (docs/CHIA_DU_LIEU.md).
+G H I J không được nhìn vào lúc chọn cấu hình.
 
 LUỒNG
 

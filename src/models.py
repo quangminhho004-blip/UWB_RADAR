@@ -40,11 +40,10 @@ MÔ HÌNH CUỐI — sau TN2 (tầm nhìn) và TN3 (hàm loss)
     trên G H I J: macro 0,801739 +- 0,009968
 
     Mốc lstm-352 trên cùng tập đó: 0,810302 +- 0,015402 với 1.502.713 tham số.
-    Chênh 0,0086 nằm trong khoảng dao động giữa các seed, nên KHÔNG XẾP HẠNG
-    ĐƯỢC — không nói "tốt hơn", cũng không nói "ngang điểm". Cái đọc được là
-    khoảng cách số tham số: ít hơn 39,4 lần. Xem docs/BANG_TCN.md mục 5.
-
-Bảng đầy đủ: docs/BANG_TCN.md
+    Chênh quan sát được là 0,0086, nhỏ hơn mức tản giữa ba seed của cả hai bên.
+    Đây là số ĐO ĐƯỢC, chưa qua kiểm định nào — không suy ra "tốt hơn", cũng
+    không suy ra "tương đương". Cái nói chắc được là khoảng cách số tham số:
+    ít hơn 39,4 lần.
 """
 
 import torch
@@ -207,7 +206,7 @@ class TCN(nn.Module):
 
     Mặc định n_blocks = 6 là để thoả ràng buộc trên. Nhưng cấu hình cho điểm
     cao nhất lại là n_blocks = 4, tầm nhìn 61 — chưa tới một phần ba nhịp thở.
-    Đây là kết quả đo được, không phải suy ra từ ràng buộc; xem docs/BANG_TCN.md.
+    Đây là kết quả đo được, không phải suy ra từ ràng buộc.
 
     dropout mặc định 0,0 vì LSTM của MobiVital cũng không dùng dropout. Thực
     nghiệm 1 so KIẾN TRÚC, nên regularization phải giống nhau giữa các cấu hình,
