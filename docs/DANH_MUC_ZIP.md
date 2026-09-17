@@ -39,12 +39,11 @@ Link Drive: điền vào ô ARTIFACT ↓.
 Nạp lại nếu cần bằng [`NAP_KET_QUA_TN1.ipynb`](../notebooks/NAP_KET_QUA_TN1.ipynb).
 
 
-## Mốc LSTM trên G H I J (3 seed)
+## Mốc LSTM 352 trên G H I J (3 seed)
 
 | tệp nén | notebook | cấu hình | trong git | ARTIFACT |
 |---|---|---|---|---|
 | `tn1_lstm.zip` *(thư mục `tn1_ghij/` bên trong)* | `TN1_LSTM` | LSTM 352 | rồi | |
-| `tn1_ghij_lstm_h67.zip` | `TN1_LSTM_small` | LSTM 67 | rồi | |
 
 Nạp lại bằng [`NAP_MOC_GHIJ.ipynb`](../notebooks/NAP_MOC_GHIJ.ipynb). Chú ý
 `tn1_lstm.zip` nén **cả** `runs/tn1` lẫn `runs/tn1_ghij`, hai bên cùng

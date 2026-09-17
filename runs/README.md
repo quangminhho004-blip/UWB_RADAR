@@ -9,7 +9,7 @@
 | **TN2** | chọn tầm nhìn: kernel 3, 5, 7, 9 | [`tn2_rf/`](tn2_rf/README.md) |
 | **TN3** | chọn hàm loss: quét 10 mức alpha | [`tn3/`](tn3/README.md) |
 | **TN4** | chấm trên G H I J | [`tn4/`](tn4/README.md) |
-| mốc | LSTM 352 và LSTM 67 trên G H I J | [`tn1_ghij/`](tn1_ghij/README.md) |
+| mốc | LSTM 352 trên G H I J | [`tn1_ghij/`](tn1_ghij/README.md) |
 
 G H I J chỉ xuất hiện ở TN0, TN4 và thư mục mốc. Không dùng để chọn bất cứ
 thứ gì.

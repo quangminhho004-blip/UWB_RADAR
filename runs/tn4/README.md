@@ -25,11 +25,10 @@ Ba dòng trên chỉ đọc được khi đặt cạnh mốc ngoài họ TCN, �
 | | tham số | macro |
 |---|---:|---:|
 | LSTM 352 *(kiến trúc MobiVital)* | 1.502.713 | **0.810302** ± 0.015402 |
-| LSTM 67 | 56.908 | 0.801683 ± 0.002506 |
 
 **Trên tập kiểm tra độc lập, LSTM 352 đứng đầu, không phải DS-TCN.** DS-TCN thấp
-hơn 0,0067 và cao hơn LSTM 67 0,0019 — cả hai nhỏ hơn dao động seed của DS-TCN
-(0,0154), nên không xếp hạng được. Phát biểu đúng là **ngang điểm với ít hơn
+hơn 0,0067 — nhỏ hơn dao động seed của cả hai bên (0,0154), nên không xếp hạng
+được. Phát biểu đúng là **ngang điểm với ít hơn
 40,5 lần tham số**. Xem [docs/BANG_TCN.md](../../docs/BANG_TCN.md) mục 5.
 
 ## Cấu trúc thư mục

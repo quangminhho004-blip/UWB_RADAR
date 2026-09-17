@@ -291,7 +291,7 @@ chỉ để đổi tên thực nghiệm.
 | **DS-TCN 64/RF61, alpha 0,6** — mô hình cuối | (đúng lệnh trên) |
 | DS-TCN 64/RF121, Pearson thuần | `--kernel_size 5 --alpha 0.0` |
 | DS-TCN 64/RF121, MSE thuần — đối chứng loss | `--kernel_size 5 --loss mse`, bỏ `--alpha` |
-| Mốc LSTM 352 và LSTM 67 | `--experiment tn1_ghij --model lstm` (thêm `--hidden 67` cho bản nhỏ) |
+| Mốc LSTM 352 | `--experiment tn1_ghij --model lstm` |
 
 **Chấm một phiên validation hoặc test:** radar 120 bin → 240 ứng viên abs/phase
 → chuẩn hoá mỗi chuỗi → inversion detector → cửa sổ 200→25 → model → Pearson dự
@@ -341,7 +341,7 @@ tệp trên Drive, không chỉ thấy model train xong.
 | TN1 LSTM 352 | `tn1_lstm_mse_corr0.9_seed{1,2}.zip`, `tn1_lstm.zip` |
 | TN1 LSTM 67 | `tn1_lstm_h67_mse_corr0.9_seed{0,1,2}.zip` |
 | TN1 CNN-LSTM 58 | `tn1_cnn_lstm_h58_c32_k5_mse_corr0.9_seed{0,1,2}.zip`, `tn1_cnn_lstm_h58.zip` |
-| Mốc LSTM trên GHIJ | `tn1_lstm.zip` (bên trong có `tn1_ghij/`), `tn1_ghij_lstm_h67.zip` |
+| Mốc LSTM 352 trên GHIJ | `tn1_lstm.zip` — thư mục `tn1_ghij/` bên trong |
 | TN2 tầm nhìn | `tn2_rf_c64_4fold.zip` |
 | TN3 hàm loss | `tn3_ds_tcn_c64.zip` (RF61), `tn3_ds_tcn_c64_k5.zip` (RF121) |
 | TN4 | `tn4_<run_id>.zip`, runner tự tạo sau mỗi seed |
@@ -687,7 +687,6 @@ bất cứ thứ gì. Ba seed mỗi tổ hợp.
 | **LSTM 352** *(mốc MobiVital)* | 1.502.713 | **0,810302** ± 0,015402 | 0,805309 | TN1 GHIJ |
 | **DS-TCN 64/RF61, alpha 0,6** | **37.081** | **0,803590** ± 0,015350 | — | TN4 |
 | DS-TCN 64/RF121, Pearson thuần | 38.105 | 0,801739 ± 0,009968 | — | TN4 |
-| LSTM 67 *(mốc cùng ngân sách)* | 56.908 | 0,801683 ± 0,002506 | 0,796531 | TN1 GHIJ |
 | DS-TCN 64/RF121, MSE thuần *(đối chứng)* | 38.105 | 0,762191 ± 0,021433 | — | TN4 |
 
 **Hàm loss là thứ có tác dụng rõ nhất.** Cùng kiến trúc 64/RF121, chỉ đổi loss:
@@ -701,16 +700,17 @@ cùng ba seed, cùng dữ liệu, khác đúng một thứ. Và nó khớp chi�
 |---|---:|---:|
 | DS-TCN 64 | **0,760878** | 0,803590 |
 | LSTM 352 | 0,756998 | **0,810302** |
-| LSTM 67 | 0,753208 | 0,801683 |
 
 Trên tập dùng để chọn, DS-TCN đứng đầu. Trên tập không dùng để chọn, LSTM 352
 đứng đầu. Đó là dấu hiệu cấu hình được chọn hợp với tám người ABCDEFKL hơn là
 hợp với bài toán nói chung. **Phải ghi rõ chuyện này khi báo cáo, đừng chỉ trình
 bảng CV.**
 
-Chênh lệch trên G H I J: DS-TCN thấp hơn LSTM 352 **0,0067**, cao hơn LSTM 67
-**0,0019**. Cả hai **nhỏ hơn** dao động seed của DS-TCN (0,0154), nên không xếp
-hạng được.
+Chênh lệch trên G H I J: DS-TCN thấp hơn LSTM 352 **0,0067** — nhỏ hơn dao động
+seed của cả hai bên (0,0154), nên không xếp hạng được.
+
+LSTM 67 và CNN-LSTM 58 **không** được mang đi chấm trên G H I J. TN4 chỉ chấm
+mô hình cuối, đối chứng hàm loss, và mốc MobiVital.
 
 **Phát biểu đúng:** DS-TCN **37.081** tham số cho kết quả **ngang** LSTM
 **1.502.713** tham số trên tập kiểm tra độc lập — ít hơn **40,5 lần**. Không nói

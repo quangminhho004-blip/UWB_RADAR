@@ -15,9 +15,9 @@ tham số**, macro G H I J **0,803590 ± 0,015350**.
 | TN2 | 3 mức kernel × 4 fold | đủ — 12 checkpoint |
 | TN3 | 20 mức alpha × 4 fold | đủ — 80 checkpoint |
 | TN4 | 3 tổ hợp × 3 seed | đủ — 9 checkpoint |
-| mốc G H I J | LSTM 352, LSTM 67 × 3 seed | đủ — 6 checkpoint |
+| mốc G H I J | LSTM 352 × 3 seed | đủ — 3 checkpoint |
 
-**155 checkpoint, tất cả nạp được `strict=True`.**
+**152 checkpoint, tất cả nạp được `strict=True`.**
 
 ## 1. Trạng thái bàn giao
 
@@ -110,7 +110,7 @@ cả những seed trước.
 | TN1 LSTM 352 | `tn1_lstm_mse_corr0.9_seed2.zip` | 42,6 MB |
 | TN1 LSTM 67 | `tn1_lstm_h67_mse_corr0.9_seed2.zip` | 2,5 MB |
 | TN1 CNN-LSTM 58 | `tn1_cnn_lstm_h58.zip` | 2,5 MB |
-| Mốc G H I J | `tn1_lstm.zip`, `tn1_ghij_lstm_h67.zip` | 37,3 · 0,6 MB |
+| Mốc G H I J | `tn1_lstm.zip` | 37,3 MB |
 | TN2 | `tn2_rf_c64_4fold.zip` | |
 | TN3 | `tn3_ds_tcn_c64.zip`, `tn3_ds_tcn_c64_k5.zip` | |
 | TN4 | `tn4_<run_id>.zip`, mỗi seed một tệp | |
@@ -120,7 +120,7 @@ Danh mục đầy đủ: [docs/DANH_MUC_ZIP.md](docs/DANH_MUC_ZIP.md).
 
 ## 6. Checkpoint
 
-**155 tệp `final.pth`, đã commit**, trải khắp năm thực nghiệm. CV có hậu tố
+**152 tệp `final.pth`, đã commit**, trải khắp năm thực nghiệm. CV có hậu tố
 fold trong đường dẫn; test cuối chỉ có seed. Mỗi tệp là `state_dict` sau epoch cuối của một fold, không kèm
 trạng thái Adam.
 
@@ -145,7 +145,7 @@ for p in sorted(glob.glob('runs/*/**/final.pth', recursive=True)):
     build_model(name, **kw).load_state_dict(
         torch.load(p, map_location='cpu', weights_only=True), strict=True)
     n += 1
-print(n, '/ 155 nạp được')
+print(n, '/ 152 nạp được')
 "
 ```
 
@@ -160,7 +160,7 @@ print(n, '/ 155 nạp được')
 |---|---|---|
 | bốn cấu hình dựng đúng | `python3 scripts/check_model.py --model <tên> ...` | `TẤT CẢ ĐẠT` |
 | số tham số | như trên | 37.081 · 1.502.713 · 56.908 · 55.667 |
-| mọi checkpoint nạp được | đoạn mã ở mục 6 | 155 / 155 |
+| mọi checkpoint nạp được | đoạn mã ở mục 6 | 152 / 152 |
 | bảng kết quả dựng lại được | `compare_cv.py` cho cả năm thực nghiệm | khớp bảng ở [docs/BANG_TCN.md](docs/BANG_TCN.md) |
 | notebook có output | mở trên GitHub | mọi ô mã đều có kết quả in ra |
 
@@ -187,7 +187,7 @@ Mỗi lượt CV mất một tới ba giờ.
 Đủ khi tất cả các dòng dưới đây đúng:
 
 - `runs/` có đủ sáu thư mục: `tn0` `tn1` `tn1_ghij` `tn2_rf` `tn3` `tn4`
-- 155 tệp `final.pth` nạp được `strict=True`
+- 152 tệp `final.pth` nạp được `strict=True`
 - mọi cấu hình trong `runs/` truy được về một notebook có output
 - `compare_cv.py` dựng lại đúng các bảng trong [docs/BANG_TCN.md](docs/BANG_TCN.md)
 - TN0 đạt theo mục 4

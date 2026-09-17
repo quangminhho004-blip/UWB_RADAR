@@ -109,7 +109,6 @@ Giữ `RF61 + alpha 0,6` và `RF121 + alpha 0` mang xuống TN4.
 | **LSTM 352** *(mốc MobiVital)* | 1.502.713 | **0,810302** | 0,015402 | TN1 GHIJ |
 | **DS-TCN 64/RF61, alpha 0,6** | **37.081** | **0,803590** | 0,015350 | TN4 |
 | DS-TCN 64/RF121, Pearson thuần | 38.105 | 0,801739 | 0,009968 | TN4 |
-| LSTM 67 *(mốc cùng ngân sách)* | 56.908 | 0,801683 | 0,002506 | TN1 GHIJ |
 | DS-TCN 64/RF121, MSE thuần *(đối chứng)* | 38.105 | 0,762191 | 0,021433 | TN4 |
 
 
@@ -130,12 +129,11 @@ Và nó khớp chiều với TN3 trên tập phát triển.
 
 | | tham số | macro GHIJ | chênh |
 |---|---:|---:|---:|
-| LSTM 352 | 1.502.713 | 0,810302 | — |
-| DS-TCN 64/RF61 α0,6 | **37.081** | 0,803590 | **−0,0067** |
-| LSTM 67 | 56.908 | 0,801683 | −0,0086 |
+| LSTM 352 | 1.502.713 | **0,810302** ± 0,015402 | — |
+| DS-TCN 64/RF61 α0,6 | **37.081** | 0,803590 ± 0,015350 | **−0,0067** |
 
-DS-TCN **thấp hơn** LSTM 352 0,0067, và chỉ hơn LSTM 67 0,0019. Cả hai chênh
-lệch **nhỏ hơn** dao động seed của DS-TCN (0,0154), nên không xếp hạng được.
+DS-TCN **thấp hơn** mốc MobiVital 0,0067 — nhỏ hơn dao động seed của cả hai bên
+(0,0154 và 0,0154), nên không xếp hạng được.
 
 Phát biểu đúng: **DS-TCN 37 nghìn tham số cho kết quả ngang LSTM 1,5 triệu
 tham số trên tập kiểm tra độc lập** — ít hơn 40,5 lần. Không nói "tốt hơn".
@@ -146,15 +144,17 @@ tham số trên tập kiểm tra độc lập** — ít hơn 40,5 lần. Không 
 |---|---:|---:|
 | DS-TCN 64 | **0,760878** | 0,803590 |
 | LSTM 352 | 0,756998 | **0,810302** |
-| LSTM 67 | 0,753208 | 0,801683 |
 
 Trên tập dùng để chọn, DS-TCN đứng đầu. Trên tập không dùng để chọn, LSTM 352
 đứng đầu. Đây là dấu hiệu cấu hình được chọn hợp với tám người ABCDEFKL hơn là
 hợp với bài toán nói chung — **phải ghi rõ khi báo cáo**, đừng chỉ trình bảng CV.
 
 Khoảng cách đảo chiều chỉ 0,0039 → −0,0067, cả hai đều trong dao động seed, nên
-cách đọc chặt nhất là: **ba kiến trúc này không phân biệt được bằng dữ liệu hiện
-có; cái đáng nói là chênh lệch số tham số.**
+cách đọc chặt nhất là: **hai kiến trúc này không phân biệt được bằng dữ liệu
+hiện có; cái đáng nói là chênh lệch số tham số.**
+
+Các mốc còn lại của TN1 — LSTM 67 và CNN-LSTM 58 — **không** được mang đi chấm
+trên G H I J. TN4 chỉ chấm mô hình cuối, đối chứng hàm loss, và mốc MobiVital.
 
 
 ## 6. Giới hạn phải ghi khi báo cáo
