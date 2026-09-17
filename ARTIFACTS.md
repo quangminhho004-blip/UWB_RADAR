@@ -24,8 +24,10 @@
 **Đủ trong git:** mã nguồn, 11 notebook có output, và toàn bộ `runs/` của năm
 thực nghiệm.
 
-**Còn thiếu:** **link Drive chia sẻ được** cho dữ liệu và cho các tệp nén kết
-quả. Đó là mục duy nhất chưa xong.
+**Tùy chọn tải nhanh qua Drive:** chưa có liên kết chia sẻ dữ liệu đã xử lý
+và ZIP kết quả. Link Drive không bắt buộc để đọc kết quả và checkpoint trong
+repo. Người chạy lại có thể dựng dữ liệu từ nguồn theo mục 3; muốn dùng các ô
+khôi phục từ Drive thì cần tự cung cấp các tệp và đường dẫn tương ứng.
 
 | Mục người đóng gói cần điền | Trạng thái |
 |---|---|
@@ -35,9 +37,15 @@ quả. Đó là mục duy nhất chưa xong.
 **Không đánh dấu hoàn tất chỉ vì notebook có output.** Output chứng minh đã
 chạy; nó không phải là checkpoint và không phải là điểm từng phiên.
 
-**Ba notebook thiếu log ở vài ô** — ghi ra chứ không giấu:
-`TN2_..._c64_4fold` thiếu 1 trong 4 ô train, `TN2_..._c64` (vòng sàng lọc)
-thiếu 1 trong 6. Kết quả của những ô đó vẫn nằm trong `runs/`.
+**Mười một ô mã không có output:** bảy ô là
+`runtime.unassign()` (ngắt phiên Colab, không in gì theo thiết kế), hai ô khôi
+phục tệp nén chỉ in khi thật sự khôi phục, một ô đối chiếu checksum, một ô
+`compare_cv.py` chạy lại bảng đã có sẵn ở `runs/`.
+
+Trong 11 notebook được Git theo dõi, **44/44 ô gọi trực tiếp**
+`run_cv.py` hoặc `run_final_test.py` có output. Sự hiện diện của output không
+tự chứng minh mỗi lượt chạy đã hoàn tất thành công. Hai ô checksum và so bảng
+không có output cần chạy lại khi xác minh bản bàn giao.
 
 ## 2. Bộ code nộp gồm gì
 
@@ -46,8 +54,7 @@ src/         models.py, training.py, scoring.py, losses.py, results.py,
              mobivital_reference.py
 scripts/     chuẩn bị dữ liệu · run_cv.py · run_final_test.py · compare_cv.py
              · check_model.py · save_results.py · run_tn0.py
-notebooks/   11 notebook, tất cả đều có output
-docs/        THESIS.md là điểm vào
+notebooks/   11 notebook chạy thực nghiệm
 runs/        tn0, tn1, tn2_rf, tn3, tn4
 data/        chỉ giữ checksums.txt; dữ liệu tải riêng
 external/    mã MobiVital tải riêng, ghim commit
@@ -59,13 +66,20 @@ nhánh này. Bản gốc còn ở nhánh `submission`; `git log` giữ nguyên l
 
 ## 3. Dữ liệu — lấy ở đâu, giải nén vào đâu
 
-| tệp trên Drive | giải vào | dùng cho |
-|---|---|---|
-| `by_user.tar` | `data/processed/by_user/` | chấm điểm, đối chiếu TN0 |
-| `windows.tar.gz` | `data/processed/windows/` | train |
+**Đường chuẩn bị dữ liệu không cần liên kết Drive: dựng lại từ đầu** theo [README.md](README.md)
+mục "Chuẩn bị dữ liệu". Bộ script tải dataset từ Zenodo rồi dựng `by_user` và
+`windows`. Chưa chạy lại toàn bộ bước tải và xử lý dữ liệu trong lượt rà soát này.
 
-Hoặc dựng lại từ đầu theo [README.md](README.md) mục "Chuẩn bị dữ liệu". Dựng
-lại xong chạy `python scripts/checksums.py` rồi so với `data/checksums.txt` —
+Đường thứ hai — tải tệp đã xử lý từ Drive — **chưa bàn giao được** vì chưa có
+liên kết chia sẻ. Đường dẫn Drive trong notebook không thay thế liên kết tải
+dành cho người nhận.
+
+| tệp trên Drive | giải vào | dùng cho | liên kết |
+|---|---|---|---|
+| `by_user.tar` | `data/processed/by_user/` | chấm điểm, đối chiếu TN0 | **chưa có** |
+| `windows.tar.gz` | `data/processed/windows/` | train | **chưa có** |
+
+Dựng lại xong chạy `python scripts/checksums.py` rồi so với `data/checksums.txt` —
 script **ghi đè** tệp đó và không tự báo đạt/trượt, nên phải giữ bản mốc trước
 khi chạy rồi `git diff`.
 
@@ -75,7 +89,7 @@ Dữ liệu thô 13 GB **không** đưa lên GitHub.
 ## 4. TN0 — kiểm trước khi đọc TN1
 
 TN0 chứng minh pipeline của đồ án cho ra đúng số của pipeline MobiVital. Nếu TN0
-không đạt thì mọi so sánh ở TN1 đều vô nghĩa.
+không đạt, cần xác định sai khác trước khi khẳng định đã tái lập pipeline gốc.
 
 | bằng chứng | ở đâu | phải thấy gì |
 |---|---|---|
@@ -100,7 +114,11 @@ Ra `TN0a 537 phiên · micro 0.8195` và `TN0b 537 phiên · micro 0.8222`.
 
 ## 5. ZIP kết quả cần tìm trên Drive
 
-Tất cả dưới `MyDrive/mobivital/`. Các ZIP **tích luỹ**: bản của seed cuối chứa
+Tất cả dưới `MyDrive/mobivital/` — **Drive riêng của nhóm, chưa có liên kết chia
+sẻ**. Bảng dưới là danh mục để người trong nhóm tìm, không phải đường bàn giao.
+
+Mọi kết quả cần để đọc bản nộp **đã nằm trong `runs/`** của repo; các ZIP này chỉ
+cần khi muốn dựng lại từ nguồn gốc. Các ZIP **tích luỹ**: bản của seed cuối chứa
 cả những seed trước.
 
 | cấu hình | ZIP | dung lượng |
@@ -115,20 +133,19 @@ cả những seed trước.
 | TN3 | `tn3_ds_tcn_c64.zip`, `tn3_ds_tcn_c64_k5.zip` | |
 | TN4 | `tn4_<run_id>.zip`, mỗi seed một tệp | |
 
-Danh mục đầy đủ: `docs/DANH_MUC_ZIP.md` *(ngoài nhánh)*.
 
 
 ## 6. Checkpoint
 
-**149 tệp `final.pth`, đã commit**, trải khắp năm thực nghiệm. CV có hậu tố
-fold trong đường dẫn; test cuối chỉ có seed. Mỗi tệp là `state_dict` sau epoch cuối của một fold, không kèm
+**149 tệp `final.pth`, đã commit**, thuộc TN1–TN4. CV có hậu tố
+fold trong đường dẫn; test cuối chỉ có seed. Mỗi tệp là `state_dict` sau epoch cuối của một lượt train, không kèm
 trạng thái Adam.
 
-Kiểm cả 12 nạp được:
+Kiểm 149 checkpoint được Git theo dõi:
 
 ```bash
 python3 -c "
-import glob, torch, sys; sys.path.insert(0, '.')
+import subprocess, torch, sys; sys.path.insert(0, '.')
 from src.models import build_model
 DS = dict(channels=64, n_blocks=4, dropout=0.2, norm='none', dropout_kind='element')
 K  = {61: 3, 121: 5, 181: 7, 241: 9}
@@ -140,18 +157,20 @@ def doan(p):
     m = re.search(r'rf(\d+)|64-(\d+)__', p, re.IGNORECASE)
     return 'ds_tcn', dict(kernel_size=K[int(m.group(1) or m.group(2))], **DS)
 n = 0
-for p in sorted(glob.glob('runs/*/**/final.pth', recursive=True)):
+paths = subprocess.check_output(['git', 'ls-files', 'runs'], text=True).splitlines()
+for p in sorted(p for p in paths if p.endswith('/final.pth')):
     name, kw = doan(p)
     build_model(name, **kw).load_state_dict(
         torch.load(p, map_location='cpu', weights_only=True), strict=True)
     n += 1
+assert n == 149, n
 print(n, '/ 149 nạp được')
 "
 ```
 
 `final.pth` chứa trọng số, **không** chứa định nghĩa kiến trúc. Phải giữ
-`config_id` và lệnh tương ứng mới nạp đúng — `config_id` nằm trong
-`runs/tn1/summary.csv`.
+cấu hình và lệnh tương ứng mới nạp đúng. Tra `run_id` cùng các cột cấu hình
+trong `runs/<thực nghiệm>/summary.csv` và đối chiếu lệnh trong notebook.
 
 
 ## 7. Kiểm trước khi đánh dấu đủ
@@ -161,8 +180,9 @@ print(n, '/ 149 nạp được')
 | bốn cấu hình dựng đúng | `python3 scripts/check_model.py --model <tên> ...` | `TẤT CẢ ĐẠT` |
 | số tham số | như trên | 37.081 · 1.502.713 · 56.908 · 55.667 |
 | mọi checkpoint nạp được | đoạn mã ở mục 6 | 149 / 149 |
-| bảng kết quả dựng lại được | `compare_cv.py` cho cả năm thực nghiệm | khớp bảng ở `docs/BANG_TCN.md` *(ngoài nhánh)* |
-| notebook có output | mở trên GitHub | mọi ô mã đều có kết quả in ra |
+| bảng kết quả dựng lại được | bốn lệnh `compare_cv.py` trong README | bảng TN1–TN4 từ `runs/`; TN0 kiểm riêng ở mục 4 |
+| ô runner có output | mở notebook trên GitHub | 44/44 ô gọi trực tiếp `run_cv.py` hoặc `run_final_test.py` có output |
+| truy nguồn kết quả | đối chiếu cấu hình, seed, fold với lệnh và log notebook | không dùng số ô có output thay cho số cấu hình đã xác minh |
 
 Bảng G H I J đọc bằng `--final`; bảng CV đọc không cờ.
 
@@ -174,12 +194,13 @@ git clone --branch final_submission --single-branch \
     https://github.com/quangminhho004-blip/UWB_RADAR.git
 cd UWB_RADAR
 python scripts/setup_colab.py          # tải mã MobiVital, ghim commit
-# giải by_user.tar và windows.tar.gz vào data/processed/
+# Đọc bảng đã lưu không cần tải dữ liệu hoặc train lại.
 python scripts/compare_cv.py --experiment tn1
 ```
 
-Chạy lại một cấu hình: xem lệnh trong `docs/THESIS.md` *(ngoài nhánh)* mục 0.7.
-Mỗi lượt CV mất một tới ba giờ.
+Chạy lại một cấu hình: lấy lệnh từ chính notebook của cấu hình đó trong
+`notebooks/` — ô gọi `run_cv.py` hoặc `run_final_test.py` ghi đủ mọi cờ.
+Trước khi train lại, chuẩn bị dữ liệu theo mục 3. Thời gian chạy phụ thuộc cấu hình và thiết bị.
 
 
 ## 9. Điều kiện chốt phần thực nghiệm
@@ -189,9 +210,10 @@ Mỗi lượt CV mất một tới ba giờ.
 - `runs/` có đủ năm thư mục: `tn0` `tn1` `tn2_rf` `tn3` `tn4`
 - 149 tệp `final.pth` nạp được `strict=True`
 - mọi cấu hình trong `runs/` truy được về một notebook có output
-- `compare_cv.py` dựng lại đúng các bảng trong `docs/BANG_TCN.md` *(ngoài nhánh)*
+- Bốn lệnh `compare_cv.py` trong README dựng được bảng TN1–TN4 từ `runs/`
 - TN0 đạt theo mục 4
-- Link Drive chia sẻ được đã điền cho dữ liệu và cho từng ZIP kết quả
+- Người nhận có hướng dẫn chuẩn bị dữ liệu từ nguồn ở README; nếu chọn cung cấp thêm bản xử lý sẵn qua Drive, phải điền và thử các liên kết tải
 
-Hiện tại năm dòng đầu **đã đủ**. Còn thiếu **link Drive chia sẻ được** — mục
-duy nhất chưa xong.
+Các liên kết Drive chưa được điền; đường tải nhanh này chưa được cung cấp.
+Không cần tải lại ZIP kết quả từ Drive để đọc các artifact đã có trong `runs/`.
+Quy trình tải và xử lý dữ liệu từ đầu chưa được chạy lại trong lượt rà soát này.

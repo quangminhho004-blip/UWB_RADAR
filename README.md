@@ -13,9 +13,10 @@ Bản nộp trên nhánh **final_submission**, năm thực nghiệm nối nhau.
 **Mô hình cuối: DS-TCN 64, kernel 5, 4 khối, Pearson thuần (alpha 0) — 38.105 tham số.**
 
 Trên tập kiểm tra độc lập nó đạt **0,801739 ± 0,009968**, so với mốc LSTM-352 của
-MobiVital **0,810302 ± 0,015402** — thấp hơn 0,0086 với **ít hơn 39,4 lần tham
-số**. Chênh lệch đó nằm trong khoảng dao động giữa các seed, nên **không xếp
-hạng được**; không nói "vượt", cũng không nói "ngang điểm".
+MobiVital **0,810302 ± 0,015402** — điểm trung bình **thấp hơn 0,0086** với
+**ít hơn 39,4 lần tham số**. Đồ án **chưa thực hiện kiểm định thống kê** nào,
+nên chưa kết luận hai mô hình tương đương hay khác biệt có ý nghĩa thống kê.
+Dấu ± là độ lệch chuẩn giữa ba seed, không phải khoảng tin cậy.
 
 **Bàn giao cho thành viên đóng gói bản nộp:** [ARTIFACTS.md](ARTIFACTS.md).
 
@@ -59,7 +60,7 @@ cd UWB_RADAR
 python scripts/setup_colab.py
 ```
 
-Script setup tải mã MobiVital riêng vào external/mobivital và ghim commit `4319731d2769d4134c92088dd846666e262f18e9`. Dữ liệu và trọng số không nằm trong repo.
+Script setup tải mã MobiVital riêng vào external/mobivital và ghim commit `4319731d2769d4134c92088dd846666e262f18e9`. Dữ liệu tải riêng; 149 checkpoint thực nghiệm nằm trong `runs/`.
 
 ## Chuẩn bị dữ liệu
 
@@ -95,7 +96,6 @@ Các notebook thực nghiệm khôi phục dữ liệu đã xử lý bằng `scr
 notebooks/   Notebook theo danh mục bản nộp
 src/         Model, huấn luyện, loss, chọn ứng viên, kết quả
 scripts/     Chuẩn bị dữ liệu, runner và lưu/so sánh kết quả
-docs/        Tóm tắt thesis, báo cáo và sơ đồ
 data/        Dữ liệu tải riêng; repo giữ checksums.txt
 runs/        Artifact TN0–TN4; checkpoint có commit
 external/    Mã MobiVital tải riêng
@@ -103,7 +103,7 @@ external/    Mã MobiVital tải riêng
 
 `scripts/run_cv.py` đánh giá trên bốn fold thuộc ABCDEFKL. `scripts/run_final_test.py` train đủ ABCDEFKL rồi chấm một lần trên G H I J. Số chính của đồ án là Pearson macro theo người. Thư mục kết quả được đặt bằng `--experiment`; cấu hình và seed tạo tên run riêng.
 
-Output cũ trong notebook là bằng chứng lần chạy đã lưu, không phải kết quả chạy lại sau khi chỉnh bản nộp. Các tài liệu cũ được giữ để tra cứu; **THESIS.md là điểm vào của bản nộp hiện tại**.
+Output trong notebook là bằng chứng lần chạy đã lưu, không phải kết quả chạy lại sau khi chỉnh bản nộp. **Chính tệp README.md này là điểm vào của bản nộp**; tài liệu dài hơn được bàn giao riêng, không nằm trong repo.
 
 ### `data/checksums.txt` dùng để làm gì?
 
