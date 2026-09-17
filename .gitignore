@@ -73,3 +73,6 @@ notebooks/tn0_reproduce.ipynb
 !runs/tn2_rf/**/*.pth
 !runs/tn3/**/*.pth
 !runs/tn4/**/*.pth
+
+# Tài liệu đọc ở máy, không đưa lên nhánh nộp.
+*.md
