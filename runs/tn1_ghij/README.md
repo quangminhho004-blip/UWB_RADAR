@@ -10,16 +10,6 @@ cạnh nhau được.
 |---|---|---|---:|---:|
 | `LSTM-352/` | `TN1_LSTM.ipynb` | `lstm_mse_corr0.9_seed{0,1,2}` | **0,810302** ± 0,015402 | 0,805309 |
 
-## Vì sao chỉ có một dòng
-
-Bảng TN4 toàn cấu hình DS-TCN. Không có mốc ngoài họ đó thì không đọc được số
-nào. LSTM 352 là mốc duy nhất cần: nó là kiến trúc của bài báo mà đồ án cải
-tiến.
-
-Các mốc khác của TN1 — LSTM 67 và CNN-LSTM 58 — **không** mang đi chấm trên
-G H I J. Chúng làm nhiệm vụ so ở cùng ngân sách tham số trên tập phát triển,
-xong ở đó.
-
 ## Con số này nói gì
 
 Đặt cạnh TN4: **LSTM 352 (0,810302) đứng trên mô hình cuối của đồ án

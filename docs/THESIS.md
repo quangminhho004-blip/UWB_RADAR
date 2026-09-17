@@ -709,9 +709,6 @@ bảng CV.**
 Chênh lệch trên G H I J: DS-TCN thấp hơn LSTM 352 **0,0067** — nhỏ hơn dao động
 seed của cả hai bên (0,0154), nên không xếp hạng được.
 
-LSTM 67 và CNN-LSTM 58 **không** được mang đi chấm trên G H I J. TN4 chỉ chấm
-mô hình cuối, đối chứng hàm loss, và mốc MobiVital.
-
 **Phát biểu đúng:** DS-TCN **37.081** tham số cho kết quả **ngang** LSTM
 **1.502.713** tham số trên tập kiểm tra độc lập — ít hơn **40,5 lần**. Không nói
 "tốt hơn", ở cả hai chiều.

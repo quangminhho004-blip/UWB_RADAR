@@ -153,9 +153,6 @@ Khoảng cách đảo chiều chỉ 0,0039 → −0,0067, cả hai đều trong 
 cách đọc chặt nhất là: **hai kiến trúc này không phân biệt được bằng dữ liệu
 hiện có; cái đáng nói là chênh lệch số tham số.**
 
-Các mốc còn lại của TN1 — LSTM 67 và CNN-LSTM 58 — **không** được mang đi chấm
-trên G H I J. TN4 chỉ chấm mô hình cuối, đối chứng hàm loss, và mốc MobiVital.
-
 
 ## 6. Giới hạn phải ghi khi báo cáo
 
