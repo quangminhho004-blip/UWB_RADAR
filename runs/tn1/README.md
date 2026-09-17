@@ -18,12 +18,7 @@ Layout: `<cấu hình>/seed<N>/<fold>/{curve.csv, scores.csv, final.pth}`.
 Điểm G H I J của mốc LSTM 352 nằm cùng bảng TN4, ở [`runs/tn4/`](../tn4/README.md).
 Bảng đầy đủ kèm cách đọc: [docs/BANG_TCN.md](../../docs/BANG_TCN.md).
 
-## Ba thư mục baseline lấy ở đâu
-
-`LSTM-352`, `LSTM-67` và `CNN-LSTM-58` train xong từ trước nhưng tệp kết quả chỉ
-được nén lên Drive. Chúng được nạp về bằng
-[`notebooks/NAP_KET_QUA_TN1.ipynb`](../../notebooks/NAP_KET_QUA_TN1.ipynb), xếp
-đúng layout trên, và điểm tính lại từ `scores.csv` khớp bảng này.
+## Hai dòng `TONG` dựng lại
 
 Hai dòng `TONG` của seed2 (`LSTM-352` và `LSTM-67`) không có trong tệp nén:
 `run_cv.py` ghi dòng đó sau khi xong cả bốn fold, nên ô lưu kết quả chạy trước

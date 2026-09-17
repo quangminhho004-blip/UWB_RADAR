@@ -36,18 +36,12 @@ Link Drive: điền vào ô ARTIFACT ↓.
 | `tn1_lstm_h67_mse_corr0.9_seed2.zip` | `TN1_LSTM_small` | LSTM 67 — 56.908 ts | rồi | |
 | `tn1_cnn_lstm_h58.zip` | `TN1_CNN_LSTM` | CNN-LSTM 58 — 55.667 ts | rồi | |
 
-Nạp lại nếu cần bằng [`NAP_KET_QUA_TN1.ipynb`](../notebooks/NAP_KET_QUA_TN1.ipynb).
-
 
 ## Mốc LSTM 352 trên G H I J (3 seed)
 
 | tệp nén | notebook | cấu hình | trong git | ARTIFACT |
 |---|---|---|---|---|
 | `tn1_lstm.zip` *(thư mục `tn1_ghij/` bên trong)* | `TN1_LSTM` | LSTM 352 | rồi | |
-
-Nạp lại bằng [`NAP_MOC_GHIJ.ipynb`](../notebooks/NAP_MOC_GHIJ.ipynb). Chú ý
-`tn1_lstm.zip` nén **cả** `runs/tn1` lẫn `runs/tn1_ghij`, hai bên cùng
-`config_id` — phải lọc theo thư mục, không lọc theo tên cấu hình.
 
 
 ## TN2 — tầm nhìn (4 fold · 1 seed)
@@ -93,5 +87,5 @@ runs/<thực nghiệm>/
    README.txt                       sinh lúc nào · commit mã nào
 ```
 
-`NAP_KET_QUA_TN1.ipynb` xếp lại thành `runs/tn1/<tên>/seed<N>/<fold>/` — cùng
-nội dung, chỉ khác cách lồng thư mục.
+Trong repo, `runs/` xếp theo `<thực nghiệm>/<tên cấu hình>/seed<N>/<fold>/` —
+cùng nội dung, chỉ khác cách lồng thư mục.

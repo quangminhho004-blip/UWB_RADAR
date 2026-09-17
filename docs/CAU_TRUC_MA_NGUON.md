@@ -78,8 +78,6 @@ Drive; `scripts/` không biết gì về notebook nào gọi nó.
 | `TN2_ReceptiveField_*` | Khảo sát tầm nhìn qua kernel. Bản `_4fold` là vòng kết luận, bản kia là vòng sàng lọc một fold. |
 | `TN3_HybridLoss_*` | Quét 10 mức alpha của hàm loss lai. |
 | `TN4_final_test_*` | Chấm trên G H I J, 3 hạt giống mỗi tổ hợp. |
-| `NAP_KET_QUA_TN1`, `NAP_MOC_GHIJ` | Công cụ: lấy kết quả đã chạy từ tệp nén trên Drive về. Không train gì. |
-| `TAI_ZIP_TN123`, `TAI_ZIP_TN4` | Công cụ: gom tệp nén trên Drive về layout `runs/`. |
 
 Notebook nào cũng cùng một khuôn: gắn Drive → clone mã → lấy dữ liệu → khôi
 phục kết quả đã chạy → kiểm số tham số → các ô train → bảng kết quả → ngắt phiên.

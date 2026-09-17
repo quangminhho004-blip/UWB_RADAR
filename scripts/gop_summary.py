@@ -1,9 +1,9 @@
 """Chèn các dòng metric mới vào runs/<thực nghiệm>/summary.csv.
 
-    python scripts/gop_summary.py runs_TN1/tn1/summary_bo_sung.csv
+    python scripts/gop_summary.py <tệp.csv> --dich runs/tn1/summary.csv
 
-Dùng sau khi chạy notebooks/NAP_KET_QUA_TN1.ipynb: notebook lấy kết quả đã
-train từ tệp nén trên Drive về, script này ghép phần metric vào bảng chung.
+Dùng khi lấy kết quả của một lượt chạy cũ từ tệp nén trên Drive về: giải nén ra
+được phần metric riêng, script này ghép nó vào bảng chung của thực nghiệm.
 
 Khoá của một dòng là `run_id`. Dòng đã có thì GIỮ NGUYÊN bản trong repo và báo
 ra, không đè — để một lần chạy lại không lặng lẽ thay số đã công bố.

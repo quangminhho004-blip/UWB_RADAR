@@ -471,7 +471,7 @@ lệch chuẩn mẫu (`ddof=1`). "3 seed" không phải ba người hay ba fold.
 **Không đặt micro của TN0 cạnh macro của TN4 rồi lấy hiệu để kết luận cải
 thiện.** Hai con số đó khác cả thước đo lẫn mục đích.
 
-## 3. Mười bốn notebook
+## 3. Mười hai notebook
 
 Khi chạy Colab, ô setup tải mã của nhánh `final_submission`.
 
@@ -489,12 +489,6 @@ Khi chạy Colab, ô setup tải mã của nhánh `final_submission`.
 | **TN3** | [Loss, RF121](../notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb) | Quét alpha, giữ 0. |
 | **TN4** | [Test RF61](../notebooks/TN4_final_test_ds_tcn_c64.ipynb) | Mô hình cuối trên G H I J, 3 seed. |
 | **TN4** | [Test RF121](../notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb) | Pearson thuần và đối chứng MSE, mỗi loss 3 seed. |
-
-Hai notebook công cụ không train gì:
-[NAP_KET_QUA_TN1](../notebooks/NAP_KET_QUA_TN1.ipynb) và
-[NAP_MOC_GHIJ](../notebooks/NAP_MOC_GHIJ.ipynb) lấy kết quả đã chạy từ tệp nén
-trên Drive về; [TAI_ZIP_TN123](../notebooks/TAI_ZIP_TN123.ipynb) và
-[TAI_ZIP_TN4](../notebooks/TAI_ZIP_TN4.ipynb) gom tệp nén.
 
 **Ba notebook thiếu log ở vài ô**, ghi rõ để không ai hiểu nhầm là chưa chạy:
 `TN2_..._c64_4fold` thiếu 1 trong 4 ô train, `TN2_..._c64` (sàng lọc) thiếu 1
