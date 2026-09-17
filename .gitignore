@@ -52,7 +52,7 @@ notebooks/tn0_reproduce.ipynb
 *.ipynb
 !/notebooks/DATA_PREPARE.ipynb
 !/notebooks/TN0.ipynb
-!/notebooks/TN1_LSTM.ipynb
+!/notebooks/TN1-4_LSTM.ipynb
 !/notebooks/TN1_LSTM_small.ipynb
 !/notebooks/TN1_CNN_LSTM.ipynb
 !/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb
