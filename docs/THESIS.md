@@ -323,7 +323,7 @@ runs/tn1/ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_corr0.9_seed0_val_AB/final.pth
 
 Trong repo, `runs/tn1/` đã được xếp lại thành
 `<tên cấu hình>/seed<N>/<fold>/` cho dễ đọc — cùng nội dung, chỉ khác cách lồng
-thư mục. Xem [runs/tn1/README.md](../runs/tn1/README.md).
+thư mục. Xem [runs/README.md](../runs/README.md).
 
 `final.pth` chứa trọng số, **không** chứa định nghĩa kiến trúc; phải giữ
 `run_id` và lệnh tương ứng để nạp đúng. `last.pth` lưu trạng thái train để
@@ -533,7 +533,6 @@ Trong `runs/tn0/` hiện có `TN0a.txt`, `TN0b.txt`, `scores_TN0a.csv`, `scores_
 | Tệp / nhóm tệp | Trạng thái và cách dùng |
 |---|---|
 | `notebooks/TN0.ipynb` | Notebook tái lập được giữ trong bản nộp; dùng output hiện có cho bảng TN0 ở trên. |
-| `notebooks/TN0.md` | Ghi chú lịch sử, có phần từ MacBook/CPU ngày 02/09/2026, cách dựng `work` và kết quả TN0c cũ **0,798748**. Không thay số này vào bảng Colab hiện tại. Đã đánh dấu outdated ở đầu tệp. |
 | `runs/tn0/` | Các TXT/CSV đã lưu để truy vết; xem từng tệp, không suy ra thư mục đã có đủ a/b/c chỉ từ tên thư mục. |
 | Ghi chú giao thức trước đó (đã loại khỏi bản nộp) | Mô tả giai đoạn trước, gồm cách chia TN0 khác hiện tại. Dùng notebook/runner hiện tại và tài liệu này để mô tả bản nộp. |
 | `old_expreiment_outdated_donotuse/THUC_NGHIEM_1.ipynb`, `THUC_NGHIEM_2.ipynb`, `THUC_NGHIEM_3.ipynb`, `THUC_NGHIEM_4_alpha07.ipynb` | Notebook khảo sát cũ ở máy local, ngoài danh mục push. **Không phải TN0a/b**, cũng không tự động tương ứng TN1 hiện tại. Không trộn điểm khi khác split, metric hoặc cấu hình. |
@@ -754,7 +753,7 @@ và LSTM là một chiều.
 - [SO_DO_DU_LIEU.md](SO_DO_DU_LIEU.md) — dữ liệu đi từ CSV thô tới cửa sổ train
 - [CAU_TRUC_MA_NGUON.md](CAU_TRUC_MA_NGUON.md) — vai trò từng phần mã nguồn
 - [ARTIFACTS.md](../ARTIFACTS.md) — danh mục bàn giao
-- [notebooks/TN0.md](../notebooks/TN0.md) — ghi chú TN0, có phần đã lỗi thời
+- [runs/README.md](../runs/README.md) — layout kết quả và bảng của từng thực nghiệm
 
 **Nhánh này không trích dẫn kiến trúc từ bài báo nào.** Khối tích chập trong
 `src/models.py` là thiết kế của đồ án; không có câu nào nói "cài theo bài X".

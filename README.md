@@ -18,7 +18,7 @@ Trên tập kiểm tra độc lập nó **ngang** mốc LSTM-352 của MobiVital
 
 **Bắt đầu đọc:** [Tóm tắt thesis và danh mục thực nghiệm](docs/THESIS.md).
 
-Danh mục tài liệu và vai trò từng file: [docs/README.md](docs/README.md).
+Danh mục tài liệu và vai trò từng file: [THESIS.md](docs/THESIS.md) mục 7.
 
 **Bàn giao cho thành viên đóng gói bản nộp:** [ARTIFACTS.md](ARTIFACTS.md) — gói dữ liệu/kết quả cần lấy, checkpoint, kiểm TN0 và các link Drive cần điền.
 
