@@ -29,18 +29,58 @@ Link Drive: điền vào ô ARTIFACT ↓.
 
 ## TN1 — bốn cấu hình (4 fold · 3 seed)
 
-Mỗi tệp nén chứa `<config_id>_<fold>/{final.pth, curve.csv}` cho cả 4 fold ×
-3 seed, `scores_<config_id>_<fold>.csv` (Pearson từng buổi ghi), và `summary.csv`
-lọc riêng.
-
-| tệp nén | notebook | cấu hình | trong git chưa | ARTIFACT |
+| tệp nén | notebook | cấu hình | trong git | ARTIFACT |
 |---|---|---|---|---|
-| `tn1_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_corr0.9_seed2.zip` | `TN1_DS_TCN_RF61_no_norm_do02_c64` | **DS-TCN 64 — 37.081 ts** | **rồi**, `runs/tn1/DS-TCN-C64-RF61/` | |
+| `tn1_ds_tcn_c64_k3_n4_none_do0.2_dpel_mse_corr0.9_seed2.zip` | `TN1_DS_TCN_RF61_no_norm_do02_c64` | **DS-TCN 64 — 37.081 ts** | rồi | |
 | `tn1_lstm_mse_corr0.9_seed2.zip` | `TN1_LSTM` | LSTM 352 — 1.502.713 ts | rồi | |
 | `tn1_lstm_h67_mse_corr0.9_seed2.zip` | `TN1_LSTM_small` | LSTM 67 — 56.908 ts | rồi | |
 | `tn1_cnn_lstm_h58.zip` | `TN1_CNN_LSTM` | CNN-LSTM 58 — 55.667 ts | rồi | |
 
-Cả bốn đã nằm trong git. Nạp lại nếu cần bằng [`NAP_KET_QUA_TN1.ipynb`](../notebooks/NAP_KET_QUA_TN1.ipynb).
+Nạp lại nếu cần bằng [`NAP_KET_QUA_TN1.ipynb`](../notebooks/NAP_KET_QUA_TN1.ipynb).
+
+
+## Mốc LSTM trên G H I J (3 seed)
+
+| tệp nén | notebook | cấu hình | trong git | ARTIFACT |
+|---|---|---|---|---|
+| `tn1_lstm.zip` *(thư mục `tn1_ghij/` bên trong)* | `TN1_LSTM` | LSTM 352 | rồi | |
+| `tn1_ghij_lstm_h67.zip` | `TN1_LSTM_small` | LSTM 67 | rồi | |
+
+Nạp lại bằng [`NAP_MOC_GHIJ.ipynb`](../notebooks/NAP_MOC_GHIJ.ipynb). Chú ý
+`tn1_lstm.zip` nén **cả** `runs/tn1` lẫn `runs/tn1_ghij`, hai bên cùng
+`config_id` — phải lọc theo thư mục, không lọc theo tên cấu hình.
+
+
+## TN2 — tầm nhìn (4 fold · 1 seed)
+
+| tệp nén | notebook | cấu hình | trong git | ARTIFACT |
+|---|---|---|---|---|
+| `tn2_rf_c64_4fold.zip` | `TN2_ReceptiveField_DS_TCN_c64_4fold` | kernel 5, 7, 9 | rồi | |
+| `tn2_rf_ds_tcn_c64.zip` | `TN2_ReceptiveField_DS_TCN_c64` | vòng sàng lọc 1 fold, kernel 11 và 13 | **không** — ngoài phạm vi | |
+
+
+## TN3 — hàm loss lai (10 mức alpha · 4 fold · 1 seed)
+
+Mỗi tệp nén **tích luỹ**: sau mỗi alpha script chạy lại, nên bản mới nhất chứa
+mọi alpha đã xong tới lúc đó.
+
+| tệp nén | notebook | cấu hình | trong git | ARTIFACT |
+|---|---|---|---|---|
+| `tn3_ds_tcn_c64.zip` | `TN3_HybridLoss_DS_TCN_c64` | DS-TCN 64/RF61 — 10 mức alpha | rồi | |
+| `tn3_ds_tcn_c64_k5.zip` | `TN3_HybridLoss_DS_TCN_c64_rf121` | DS-TCN 64/RF121 — 10 mức alpha | rồi | |
+
+
+## TN4 — test trên G H I J (train đủ ABCDEFKL, 3 seed)
+
+`run_final_test.py` tự nén sau **mỗi seed**, tên `tn4_<run_id>.zip`. Mỗi tệp
+chứa `<run_id>/final.pth` + `curve.csv`, `<run_id>.txt` (bảng lựa chọn kênh 537
+dòng), `scores_<run_id>.csv`, `summary.csv`.
+
+| mẫu tên tệp | notebook | cấu hình | trong git | ARTIFACT |
+|---|---|---|---|---|
+| `tn4_ds_tcn_c64_k3_..._mse_pearson_a0.6_..._seed{0,1,2}.zip` | `TN4_final_test_ds_tcn_c64` | **DS-TCN 64/RF61 alpha 0,6 — mô hình cuối** | rồi | |
+| `tn4_ds_tcn_c64_k5_..._mse_pearson_a0_..._seed{0,1,2}.zip` | `TN4_final_test_ds_tcn_c64_rf121` | DS-TCN 64/RF121 Pearson thuần | rồi | |
+| `tn4_ds_tcn_c64_k5_..._mse_..._seed{0,1,2}.zip` | `TN4_final_test_ds_tcn_c64_rf121` | DS-TCN 64/RF121 MSE thuần — đối chứng | rồi | |
 
 
 ## Trong MỖI tệp nén luôn có

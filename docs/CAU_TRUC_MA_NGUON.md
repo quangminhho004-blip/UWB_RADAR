@@ -55,13 +55,14 @@ Drive; `scripts/` không biết gì về notebook nào gọi nó.
 | file | làm gì |
 |---|---|
 | `run_cv.py` | **Chọn cấu hình.** Chạy 4 fold trên tám người ABCDEFKL. Không bao giờ đụng G H I J. Fold nào đã xong thì bỏ qua, không train lại. |
+| `run_final_test.py` | **Test cuối.** Train đủ ABCDEFKL rồi chấm một lần trên 537 phiên G H I J. Chỉ chạy sau khi đã chốt cấu hình bằng `run_cv.py`. |
 | `run_tn0.py` | Chạy pipeline đồ án và pipeline MobiVital trên cùng dữ liệu rồi đối chiếu. Đây là bước chứng minh hai bên tương đương. |
 
 ### Đọc và cất kết quả
 
 | file | làm gì |
 |---|---|
-| `compare_cv.py` | In bảng so các cấu hình trong một thực nghiệm: `cv_mean`, `seed_std`, `fold_std`, điểm từng seed. |
+| `compare_cv.py` | In bảng so các cấu hình trong một thực nghiệm: `cv_mean`, `seed_std`, `fold_std`, điểm từng seed. Cờ `--final` đổi sang bảng G H I J, gộp nhiều seed thành trung bình ± độ lệch chuẩn mẫu. |
 | `save_results.py` | Nén toàn bộ kết quả một thực nghiệm thành `.zip` rồi chép sang Drive. |
 | `gop_summary.py` | Chèn các dòng metric lấy về từ tệp nén trên Drive vào `runs/tn1/summary.csv`. Không đè dòng đã có. |
 | `setup_colab.py` | Chuẩn bị môi trường Colab sau khi clone repo: cài gói, ghim đúng commit MobiVital, in thiết bị đang có. |
@@ -73,8 +74,12 @@ Drive; `scripts/` không biết gì về notebook nào gọi nó.
 |---|---|
 | `DATA_PREPARE` | Dựng dữ liệu từ đầu. Chạy một lần. |
 | `TN0`, `tn0_reproduce` | Tái lập MobiVital, chứng minh hai pipeline tương đương. |
-| `TN1_*` | Bốn cấu hình của TN1, mỗi notebook một cấu hình, 4 fold × 3 hạt giống. |
-| `NAP_KET_QUA_TN1` | Công cụ: lấy kết quả đã chạy từ tệp nén trên Drive về, xếp vào `runs/tn1/`. Không train gì. |
+| `TN1_*` | Bốn cấu hình của TN1, mỗi notebook một cấu hình, 4 fold × 3 hạt giống. Hai notebook LSTM còn chạy luôn nhánh G H I J. |
+| `TN2_ReceptiveField_*` | Khảo sát tầm nhìn qua kernel. Bản `_4fold` là vòng kết luận, bản kia là vòng sàng lọc một fold. |
+| `TN3_HybridLoss_*` | Quét 10 mức alpha của hàm loss lai. |
+| `TN4_final_test_*` | Chấm trên G H I J, 3 hạt giống mỗi tổ hợp. |
+| `NAP_KET_QUA_TN1`, `NAP_MOC_GHIJ` | Công cụ: lấy kết quả đã chạy từ tệp nén trên Drive về. Không train gì. |
+| `TAI_ZIP_TN123`, `TAI_ZIP_TN4` | Công cụ: gom tệp nén trên Drive về layout `runs/`. |
 
 Notebook nào cũng cùng một khuôn: gắn Drive → clone mã → lấy dữ liệu → khôi
 phục kết quả đã chạy → kiểm số tham số → các ô train → bảng kết quả → ngắt phiên.
@@ -93,6 +98,8 @@ phục kết quả đã chạy → kiểm số tham số → các ô train → b
     data/processed/windows/                     cửa sổ 200 vào / 25 ra
             |
             +--> dev_cv/       -> run_cv.py         -> chọn cấu hình
+            |
+            +--> final_train/  -> run_final_test.py -> điểm trên G H I J
             |
                                         |
                                         v

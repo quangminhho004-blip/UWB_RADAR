@@ -14,9 +14,9 @@ gọi model 52 lần mỗi ứng viên, rồi so từng cửa sổ 25 mẫu.
 
 PHẠM VI CỦA NHÁNH NÀY
 
-Nhánh nộp cuối chỉ giữ bốn cấu hình của thực nghiệm 1, và đúng mã cần để dựng
-lại chúng. Các kiến trúc khác từng thử trong quá trình chọn, và các thực nghiệm
-sau, không nằm ở nhánh này.
+Nhánh nộp cuối giữ đúng mã cần để dựng lại năm thực nghiệm TN0 tới TN4. Các
+kiến trúc khác từng thử trong quá trình chọn, và nhánh C192 (đối chứng dung
+lượng lớn), không nằm ở đây.
 
     hồi quy       đọc lần lượt từng mẫu, mang trạng thái đi theo
       lstm        LSTMMultiStep của MobiVital, làm mốc so sánh
@@ -26,16 +26,24 @@ sau, không nằm ở nhánh này.
       tcn         nhân quả, giãn dần
       ds_tcn      như trên, tách depthwise + pointwise, ít tham số hơn nhiều
 
-BỐN CẤU HÌNH CÔNG BỐ
+BỐN CẤU HÌNH CỦA TN1 — chọn kiến trúc
 
-    cấu hình             tham số   điểm CV macro (4 fold x 3 seed)
+    cấu hình             tham số   CV macro (4 fold x 3 seed)
     lstm-352           1.502.713   0,756998 +- 0,004141   baseline MobiVital
     lstm-67               56.908   0,753208 +- 0,001966
     cnn_lstm-58           55.667   0,752666 +- 0,003749
-    ds_tcn-64 k3n4        37.081   0,760878 +- 0,003095   cấu hình được chọn
+    ds_tcn-64 k3n4        37.081   0,760878 +- 0,003095   được chọn
 
-Ba cấu hình dưới cùng ngân sách tham số (khoảng 55-57 nghìn) nên so được trực
-tiếp với nhau. Bảng đầy đủ: docs/BANG_TCN.md
+MÔ HÌNH CUỐI — sau TN2 (tầm nhìn) và TN3 (hàm loss)
+
+    ds_tcn-64 k3n4, loss lai alpha 0,6      37.081 tham số
+    trên G H I J: macro 0,803590 +- 0,015350
+
+    Mốc lstm-352 trên cùng tập đó: 0,810302 +- 0,015402. Chênh 0,0067 nhỏ hơn
+    dao động seed, nên phát biểu đúng là NGANG ĐIỂM với ít hơn 40,5 lần tham
+    số — không phải "tốt hơn". Xem docs/BANG_TCN.md mục 5.
+
+Bảng đầy đủ: docs/BANG_TCN.md
 """
 
 import torch

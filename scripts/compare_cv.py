@@ -84,6 +84,44 @@ def win_tie_loss(a, b):
     return wins, len(shared) - wins - losses, losses, len(shared)
 
 
+def print_final_table(rows, experiment):
+    """Chế độ test GHIJ: gộp các seed của cùng một cấu hình thành mean ± std."""
+    # run_id của run_final_test.py kết thúc bằng _seed<N>. Bỏ phần đó đi thì
+    # các lần chạy khác seed của cùng một cấu hình gom về một nhóm.
+    groups = {}
+    for r in rows:
+        name = re.sub(r"_seed\d+$", "", r["run_id"])
+        groups.setdefault(name, []).append(r)
+
+    def group_mean(name):
+        return np.mean([float(x["score_macro"]) for x in groups[name]])
+
+    print()
+    print("TEST GHIJ — thực nghiệm %s" % experiment)
+    print("Train đủ 8 người A B C D E F K L, test 537 buổi ghi của G H I J.")
+    print()
+    print("%-34s %10s %6s %11s %10s   %s"
+          % ("cấu hình", "tham số", "seed", "mean", "std", "từng seed"))
+    print("-" * 100)
+
+    for name in sorted(groups, key=lambda k: -group_mean(k)):
+        seed_rows = sorted(groups[name], key=lambda x: int(x["seed"]))
+        scores = [float(x["score_macro"]) for x in seed_rows]
+        detail = "  ".join("s%s %.4f" % (x["seed"], s)
+                           for x, s in zip(seed_rows, scores))
+        print("%-34s %10s %6d %11.6f %10.6f   %s"
+              % (name, seed_rows[0]["n_params"], len(scores),
+                 float(np.mean(scores)),
+                 # ddof=1 cho khớp cột seed_std của bảng CV ở trên. Với 3 seed,
+                 # ddof=0 cho số nhỏ hơn khoảng 18% — hai bảng sẽ đá nhau.
+                 float(np.std(scores, ddof=1)), detail))
+
+    print()
+    print("std là độ lệch chuẩn giữa các seed — cho biết chênh lệch giữa hai cấu")
+    print("hình có lớn hơn nhiễu ngẫu nhiên hay không.")
+    print()
+
+
 def strip_seed(config_id):
     """Bỏ hậu tố _seed<N>. Nhiều seed của cùng một cấu hình gom về một tên."""
     return re.sub(r"_seed\d+$", "", config_id)
@@ -237,9 +275,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--experiment", required=True, help="tên thực nghiệm, ví dụ tn1")
 parser.add_argument("--baseline", default=None,
                     help="tên model làm mốc để đếm thắng/hoà/thua, ví dụ lstm")
+parser.add_argument("--final", action="store_true",
+                    help="chế độ test GHIJ: gộp nhiều seed thành mean +- std "
+                         "thay vì in bảng cv_score")
 args = parser.parse_args()
 
 rows = read_summary(args.experiment)
+
+if args.final:
+    print_final_table(rows, args.experiment)
+    raise SystemExit(0)
 
 totals = [r for r in rows if r["fold"] == "TONG"]
 if not totals:

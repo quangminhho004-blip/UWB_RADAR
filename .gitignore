@@ -58,6 +58,14 @@ notebooks/tn0_reproduce.ipynb
 !/notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb
 !/notebooks/NAP_KET_QUA_TN1.ipynb
 !/notebooks/NAP_MOC_GHIJ.ipynb
+!/notebooks/TN2_ReceptiveField_DS_TCN_c64_4fold.ipynb
+!/notebooks/TN2_ReceptiveField_DS_TCN_c64.ipynb
+!/notebooks/TN3_HybridLoss_DS_TCN_c64.ipynb
+!/notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb
+!/notebooks/TN4_final_test_ds_tcn_c64.ipynb
+!/notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb
+!/notebooks/TAI_ZIP_TN123.ipynb
+!/notebooks/TAI_ZIP_TN4.ipynb
 
 # Tài liệu giữ local để truy vết, không đưa vào bản nộp.
 /.submission_archive/

@@ -1,8 +1,18 @@
 # runs/ — kết quả thực nghiệm
 
-**Nhánh này có hai thực nghiệm:** [`tn0/`](tn0/) tái lập MobiVital, và
-[`tn1/`](tn1/README.md) chọn kiến trúc giữa bốn cấu hình. Không có thực nghiệm
-nào khác, cũng không có phần kiểm tra trên G H I J.
+**Năm thực nghiệm, nối nhau:**
+
+| | làm gì | ở đâu |
+|---|---|---|
+| **TN0** | tái lập MobiVital | [`tn0/`](tn0/) |
+| **TN1** | chọn kiến trúc giữa bốn ứng viên | [`tn1/`](tn1/README.md) |
+| **TN2** | chọn tầm nhìn: kernel 3, 5, 7, 9 | [`tn2_rf/`](tn2_rf/README.md) |
+| **TN3** | chọn hàm loss: quét 10 mức alpha | [`tn3/`](tn3/README.md) |
+| **TN4** | chấm trên G H I J | [`tn4/`](tn4/README.md) |
+| mốc | LSTM 352 và LSTM 67 trên G H I J | [`tn1_ghij/`](tn1_ghij/README.md) |
+
+G H I J chỉ xuất hiện ở TN0, TN4 và thư mục mốc. Không dùng để chọn bất cứ
+thứ gì.
 
 Mỗi thực nghiệm một thư mục. Mọi thứ của nó nằm chung một chỗ: checkpoint, đường
 cong loss, bảng lựa chọn kênh, điểm từng buổi ghi, metric.
@@ -24,10 +34,12 @@ runs/
 │   ├── <cấu hình>_val_AB/final.pth  curve.csv
 │   ├── scores_<cấu hình>_val_AB.csv
 │   └── summary.csv  README.txt
-└── tn1.zip
+├── tn1.zip
+│
+└── tn4/                 <- scripts/run_final_test.py --experiment tn4
 ```
 
-`--experiment` **bắt buộc** ở `run_cv.py`; nó quyết định
+`--experiment` **bắt buộc** ở `run_cv.py` và `run_final_test.py`; nó quyết định
 tên thư mục. Không có thùng dùng chung, không thực nghiệm nào ghi đè thực nghiệm
 khác.
 
@@ -85,7 +97,8 @@ nhìn đáp án. `score_macro` đo trên buổi ghi thô, model tự chọn kên
 
 ### `scores_*.csv` — điểm từng buổi ghi
 
-Một dòng một buổi ghi của hai người trong fold đó.
+Một dòng một buổi ghi: hai người của fold đó khi CV, hoặc đủ 537 phiên
+G H I J khi test cuối.
 
 | cột | nghĩa |
 |---|---|

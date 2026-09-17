@@ -11,8 +11,12 @@ Layout: `<cấu hình>/seed<N>/<fold>/{curve.csv, scores.csv, final.pth}`.
 | `LSTM-67/` | `TN1_LSTM_small.ipynb` | `lstm_h67_mse_corr0.9_seed{0,1,2}` | 0,753208 ± 0,001966 |
 | `CNN-LSTM-58/` | `TN1_CNN_LSTM.ipynb` | `cnn_lstm_h58_c32_k5_mse_corr0.9_seed{0,1,2}` | 0,752666 ± 0,003749 |
 
-`DS-TCN-C64-RF61` là cấu hình được chọn. Bảng đầy đủ kèm cách đọc:
-[docs/BANG_TCN.md](../../docs/BANG_TCN.md).
+`DS-TCN-C64-RF61` là cấu hình được chọn, mang xuống [TN2](../tn2_rf/README.md)
+để chọn tầm nhìn, rồi [TN3](../tn3/README.md) để chọn hàm loss, rồi
+[TN4](../tn4/README.md) để chấm trên G H I J.
+
+Điểm G H I J của hai mốc LSTM ở [`runs/tn1_ghij/`](../tn1_ghij/README.md).
+Bảng đầy đủ kèm cách đọc: [docs/BANG_TCN.md](../../docs/BANG_TCN.md).
 
 ## Ba thư mục baseline lấy ở đâu
 

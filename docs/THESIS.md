@@ -1,31 +1,29 @@
-# Tóm tắt thesis — chọn kiến trúc dự báo cho pipeline MobiVital
+# Tóm tắt thesis — mô hình dự báo gọn cho pipeline MobiVital
 
 **Đề tài:** Contactless and Robust Respiration Monitoring based on UWB Radar
 
 **Nhánh nộp:** `final_submission`
 
-**Phạm vi nhánh này:** hai thực nghiệm.
+**Năm bước, nối nhau:**
 
-- **TN0** — tái lập MobiVital, chứng minh pipeline chạy đúng trước khi so kiến trúc.
-- **TN1** — so bốn kiến trúc trên cùng dữ liệu, cùng giao thức, cùng cách chấm.
+| | làm gì | kết quả |
+|---|---|---|
+| **TN0** | tái lập MobiVital | micro 0,8195 trên 537 phiên G H I J, khớp bài báo |
+| **TN1** | chọn kiến trúc giữa bốn ứng viên | DS-TCN 64 k3n4 — **37.081 tham số** |
+| **TN2** | chọn tầm nhìn: kernel 3, 5, 7, 9 | tầm nhìn **61** — càng rộng càng tệ |
+| **TN3** | chọn hàm loss: quét 10 mức alpha | đưa Pearson vào loss hơn MSE thuần **0,019** |
+| **TN4** | chấm trên G H I J, chưa dùng để chọn gì | **0,803590 ± 0,015350** |
 
-**Cấu hình được chọn: DS-TCN 64, kernel 3, 4 khối — 37.081 tham số, CV macro
-0,760878 ± 0,003095.**
+**Mô hình cuối: DS-TCN 64, kernel 3, 4 khối, loss lai alpha 0,6 — 37.081 tham số.**
 
-| Cấu hình | Tham số | CV macro (4 fold × 3 seed) |
-|---|---:|---:|
-| **DS-TCN 64, k3 n4** | **37.081** | **0,760878 ± 0,003095** |
-| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756998 ± 0,004141 |
-| LSTM 67 | 56.908 | 0,753208 ± 0,001966 |
-| CNN-LSTM 58 | 55.667 | 0,752666 ± 0,003749 |
-
-Các thực nghiệm sau — khảo sát tầm nhìn, hàm loss lai, kiểm tra trên G H I J —
-**không** nằm ở nhánh này.
+Trên tập kiểm tra độc lập nó **ngang** mốc LSTM-352 của MobiVital (0,810302) với
+**ít hơn 40,5 lần tham số**; chênh 0,0067 nhỏ hơn dao động seed của chính nó
+(0,0154). Không phát biểu là "tốt hơn". Xem [BANG_TCN.md](BANG_TCN.md) mục 5.
 
 **Cách đọc:** mục **0** là hướng dẫn setup → dữ liệu/Drive → chạy → lưu kết quả;
-mục **1–2** là bài toán và giao thức; mục **3–4** là notebook và kết quả TN0, TN1;
-mục **5–7** giải thích lựa chọn và nguồn chi tiết. Các lệnh là hướng dẫn tái chạy,
-không phải thông báo vừa train lại.
+mục **1–2** là bài toán và giao thức; mục **3–4** là notebook và kết quả TN0–TN4;
+mục **5–7** giải thích lựa chọn cuối và nguồn chi tiết. Các lệnh là hướng dẫn
+tái chạy, không phải thông báo vừa train lại.
 
 ## 0. Hướng dẫn thực hiện từ setup đến test cuối
 
@@ -235,53 +233,78 @@ Kỳ vọng đối chiếu lịch sử: TN0a micro **0,819481**, TN0b micro **0,
 
 Gói tạo ra: `runs/tn0.zip` → Drive `mobivital/tn0.zip`. Phải giữ TXT lựa chọn, scores từng phiên, `compare.csv`, log/output và checkpoint train lại nếu cần tái lập inference. **Repo hiện chưa chứa đầy đủ các artifact này**, dù notebook có output; kiểm trong ZIP của lần chạy thực tế trước khi bàn giao. `summary.csv` ít hoặc không có dòng không tự có nghĩa TN0 thất bại, vì bảng so TN0 dùng `compare.csv` và `scores_*.csv`.
 
-### 0.7. TN0 và TN1: chạy gì, thay gì?
+### 0.7. TN0 → TN1 → TN2 → TN3 → TN4: chạy gì, thay gì?
 
-Các cấu hình đã định sẵn trong notebook; mỗi lượt dựng model và train từ đầu
-theo seed.
+Mũi tên đi tiếp nghĩa là giữ **cấu hình**, không phải huấn luyện tiếp từ
+checkpoint của bước trước. Mỗi lượt dựng model và train lại từ đầu theo seed.
 
 | Bước | Phạm vi chạy | Đầu vào train → đầu vào chấm | Đầu ra quyết định |
 |---|---|---|---|
-| TN0 | Chạy lại pipeline MobiVital trên G H I J | Checkpoint của tác giả → 537 phiên G H I J | Micro theo phiên, so với con số bài báo công bố |
-| TN1 | 4 cấu hình, mỗi cấu hình seed 0/1/2 × 4 fold | Cửa sổ của 6 người train → phiên radar của 2 người validation | CV macro; chọn cấu hình |
+| TN0 | Chạy lại pipeline MobiVital | Checkpoint của tác giả → 537 phiên G H I J | Micro theo phiên, so với con số bài báo |
+| TN1 | 4 kiến trúc × seed 0/1/2 × 4 fold | Cửa sổ 6 người → phiên radar 2 người validation | CV macro; chọn DS-TCN 64 k3n4 |
+| TN2 | kernel 5, 7, 9 × seed 0 × 4 fold; k3 dùng lại TN1 | như TN1 | Giữ RF61; mang thêm RF121 sang TN3 |
+| TN3 | 2 kiến trúc × alpha 0,0…0,9 × seed 0 × 4 fold | như TN1 | Chọn alpha riêng cho từng kiến trúc |
+| TN4 | 3 tổ hợp × seed 0/1/2 | `windows/final_train/` ABCDEFKL → `by_user/` G H I J | Macro từng seed, trung bình ± độ lệch chuẩn mẫu |
 
 Bốn fold: `val_AB` train CDEFKL; `val_CE` train ABDFKL; `val_DF` train ABCEKL;
 `val_KL` train ABCDEF. Cửa sổ validation đã lọc bằng GT chỉ dùng cho đường cong
 `val_mse`/`val_pearson`; **chọn cấu hình bằng điểm chọn ứng viên trên toàn bộ
 phiên validation**, không chọn bằng loss trên cửa sổ đã lọc.
 
-**Bốn lệnh của TN1** — mỗi lệnh chạy tiếp seed 1 và 2 trong notebook:
+**TN1** — bốn lệnh, mỗi lệnh chạy tiếp seed 1 và 2 trong notebook:
 
 ```python
-# DS-TCN 64, k3, 4 khối — cấu hình được chọn
-!python scripts/check_model.py --model ds_tcn --channels 64 --kernel_size 3 --n_blocks 4 --dropout 0.2 --norm none --dropout_kind element
 !python scripts/run_cv.py --experiment tn1 --model ds_tcn --channels 64 --kernel_size 3 --n_blocks 4 --dropout 0.2 --norm none --dropout_kind element --seed 0
-
-# LSTM 352 — kiến trúc MobiVital, hidden mặc định nên không cần cờ
 !python scripts/run_cv.py --experiment tn1 --model lstm --seed 0
-
-# LSTM 67 — cùng ngân sách tham số với hai cấu hình gọn
 !python scripts/run_cv.py --experiment tn1 --model lstm --hidden 67 --seed 0
-
-# CNN-LSTM 58
 !python scripts/run_cv.py --experiment tn1 --model cnn_lstm --hidden 58 --seed 0
 ```
 
-Không thêm `--folds` khi đang chạy CV bốn fold; cờ đó chỉ dành cho vòng sàng lọc
-một fold, và vòng sàng lọc không được đưa vào bảng kết luận.
+**TN2** — cùng cấu trúc bốn khối, chỉ đổi `--kernel_size` và `--experiment`:
 
-**Chấm một phiên validation:** radar 120 bin → 240 ứng viên abs/phase → chuẩn
-hoá mỗi chuỗi → inversion detector → cửa sổ 200→25 → model → Pearson dự báo với
-tương lai của chính ứng viên → cộng điểm 52 cửa sổ → chọn ứng viên → Pearson
-sóng đã chọn với GT của phiên. `invert_detector` trả 0/1; phép so `< 0.8` trong
-mã giữ 0 và loại 1, không phải lọc Pearson với đai ở ngưỡng 0,8.
+```python
+!python scripts/run_cv.py --experiment tn2_rf --model ds_tcn --channels 64 --kernel_size 5 --n_blocks 4 --dropout 0.2 --norm none --dropout_kind element --seed 0
+```
+
+Chạy tiếp với `--kernel_size 7` và `9`. Không thêm `--folds` khi đang chạy CV
+bốn fold; cờ đó chỉ dành cho vòng sàng lọc một fold, và vòng sàng lọc không được
+đưa vào bảng kết luận.
+
+**TN3** — thêm `--loss mse_pearson --alpha`, quét 0,0 tới 0,9:
+
+```python
+!python scripts/run_cv.py --experiment tn3 --model ds_tcn --channels 64 --kernel_size 3 --n_blocks 4 --dropout 0.2 --norm none --dropout_kind element --loss mse_pearson --alpha 0.6 --seed 0
+```
+
+`--alpha` là trọng số của **MSE**, không phải ngưỡng chọn kênh. `--alpha 0` là
+Pearson thuần. Mốc `alpha = 1` (MSE thuần) lấy lại từ TN1 và TN2, không train lại
+chỉ để đổi tên thực nghiệm.
+
+**TN4** — đổi sang `run_final_test.py`, chạy đủ ba seed:
+
+```python
+!python scripts/run_final_test.py --experiment tn4 --model ds_tcn --channels 64 --kernel_size 3 --n_blocks 4 --dropout 0.2 --norm none --dropout_kind element --loss mse_pearson --alpha 0.6 --seed 0
+```
+
+| tổ hợp | đổi gì trong lệnh trên |
+|---|---|
+| **DS-TCN 64/RF61, alpha 0,6** — mô hình cuối | (đúng lệnh trên) |
+| DS-TCN 64/RF121, Pearson thuần | `--kernel_size 5 --alpha 0.0` |
+| DS-TCN 64/RF121, MSE thuần — đối chứng loss | `--kernel_size 5 --loss mse`, bỏ `--alpha` |
+| Mốc LSTM 352 và LSTM 67 | `--experiment tn1_ghij --model lstm` (thêm `--hidden 67` cho bản nhỏ) |
+
+**Chấm một phiên validation hoặc test:** radar 120 bin → 240 ứng viên abs/phase
+→ chuẩn hoá mỗi chuỗi → inversion detector → cửa sổ 200→25 → model → Pearson dự
+báo với tương lai của chính ứng viên → cộng điểm 52 cửa sổ → chọn ứng viên →
+Pearson sóng đã chọn với GT của phiên. `invert_detector` trả 0/1; phép so `< 0.8`
+trong mã giữ 0 và loại 1, không phải lọc Pearson với đai ở ngưỡng 0,8.
 
 ### 0.8. Kết quả lưu file gì? Tên trên Drive là gì?
 
 ```text
 runs/
 ├── summary.csv                       metric chung, runner tra để bỏ qua lượt đã xong
-└── <experiment>/                     tn0, tn1
+└── <experiment>/                     tn0, tn1, tn1_ghij, tn2_rf, tn3, tn4
     ├── summary.csv                   bản lọc theo experiment khi save_results
     ├── README.txt                    lúc đóng gói, commit đóng gói
     ├── scores_<run_id>.csv           điểm + bin/method từng phiên
@@ -318,6 +341,10 @@ tệp trên Drive, không chỉ thấy model train xong.
 | TN1 LSTM 352 | `tn1_lstm_mse_corr0.9_seed{1,2}.zip`, `tn1_lstm.zip` |
 | TN1 LSTM 67 | `tn1_lstm_h67_mse_corr0.9_seed{0,1,2}.zip` |
 | TN1 CNN-LSTM 58 | `tn1_cnn_lstm_h58_c32_k5_mse_corr0.9_seed{0,1,2}.zip`, `tn1_cnn_lstm_h58.zip` |
+| Mốc LSTM trên GHIJ | `tn1_lstm.zip` (bên trong có `tn1_ghij/`), `tn1_ghij_lstm_h67.zip` |
+| TN2 tầm nhìn | `tn2_rf_c64_4fold.zip` |
+| TN3 hàm loss | `tn3_ds_tcn_c64.zip` (RF61), `tn3_ds_tcn_c64_k5.zip` (RF121) |
+| TN4 | `tn4_<run_id>.zip`, runner tự tạo sau mỗi seed |
 
 Các ZIP **tích luỹ**: `save_results.py` chạy lại sau mỗi seed, nên bản của seed
 cuối chứa cả những seed trước. Danh mục đầy đủ: [DANH_MUC_ZIP.md](DANH_MUC_ZIP.md).
@@ -326,7 +353,14 @@ cuối chứa cả những seed trước. Danh mục đầy đủ: [DANH_MUC_ZIP
 
 ```python
 !python scripts/compare_cv.py --experiment tn1
+!python scripts/compare_cv.py --experiment tn2_rf
+!python scripts/compare_cv.py --experiment tn3
+!python scripts/compare_cv.py --experiment tn4 --final
+!python scripts/compare_cv.py --experiment tn1_ghij --final
 ```
+
+Chế độ `--final` gộp nhiều seed thành trung bình ± độ lệch chuẩn mẫu, dùng cho
+bảng G H I J; nó không có cột `cv_score` vì test cuối không chia fold.
 
 - **CV:** dòng `fold=TONG` ghi điểm gộp của một cấu hình ở một seed; kiểm đủ bốn
   fold trước khi gọi là CV đầy đủ. `score_std` của dòng đó là dao động giữa
@@ -352,7 +386,8 @@ checkpoint/CSV nếu mới chỉ có output notebook.
 Nguồn cho hướng dẫn vận hành: [make_npz.py](../scripts/make_npz.py),
 [make_windows.py](../scripts/make_windows.py),
 [restore_processed_data_on_drive.py](../scripts/restore_processed_data_on_drive.py),
-[run_cv.py](../scripts/run_cv.py), [save_results.py](../scripts/save_results.py),
+[run_cv.py](../scripts/run_cv.py), [run_final_test.py](../scripts/run_final_test.py),
+[save_results.py](../scripts/save_results.py),
 [training.py](../src/training.py), [results.py](../src/results.py).
 
 ## 1. Mục tiêu và bài toán
@@ -373,20 +408,27 @@ số nào?**
 
 - Tập phát triển: **ABCDEFKL**; bốn fold validation **AB, CE, DF, KL**, mỗi fold
   train trên sáu người còn lại.
-- **G H I J để riêng.** Nhánh này không dùng chúng để chọn cấu hình, cũng không
-  có bước test cuối trên chúng. Chúng chỉ xuất hiện ở TN0, là phần tái lập
-  MobiVital chứ không phải phép so kiến trúc.
-- TN1: **3 seed × 4 fold** cho cả bốn cấu hình. Không cấu hình nào chạy ít hơn.
-- Điểm chính TN1: **Pearson macro theo người**. Riêng bảng tái lập TN0 dùng
-  **micro theo phiên**, giải thích ngay dưới.
-- Nền train giống hệt nhau ở cả bốn cấu hình: Adam, LR 1e-4, weight decay 0,
-  batch 64, 20 epoch, MSE, checkpoint sau epoch cuối.
+- Tập kiểm tra: **G H I J**, 537 phiên. Mô hình cuối train đủ tám người phát
+  triển rồi chấm một lần trên đó.
+- **G H I J không dùng để chọn bất cứ thứ gì** — không chọn kiến trúc, không
+  chọn tầm nhìn, không chọn alpha. Mọi lựa chọn nằm ở TN1, TN2, TN3, đều trên
+  validation.
+- TN1 và TN4: **3 seed**. TN2 và TN3: **seed 0** cho mỗi cấu hình.
+- Điểm chính: **Pearson macro theo người**. Riêng bảng tái lập TN0 dùng **micro
+  theo phiên**, giải thích ngay dưới.
+- Nền train giống nhau ở mọi cấu hình: Adam, LR 1e-4, weight decay 0, batch 64,
+  20 epoch, checkpoint sau epoch cuối. MSE ở TN1 và TN2; TN3 và TN4 đổi loss,
+  không đổi gì khác.
 
-Tập test tách theo người. Tài liệu lịch sử có ghi nhận G H I J từng được xem
-trong quá trình làm đồ án; không mô tả chúng là chưa từng được nhìn.
+Các phép sàng lọc một fold được ghi riêng và **không** đưa vào bảng kết luận.
+Không lấy điểm của riêng fold KL thay cho CV macro.
 
 Độ lệch chuẩn giữa các seed **không phải kiểm định thống kê**. Nó chỉ nói: chênh
 lệch nhỏ hơn con số đó thì chưa xếp hạng được.
+
+Tập kiểm tra tách theo người. **G H I J đã được chấm ở TN0**, phần tái lập
+MobiVital — không mô tả nó là chưa từng được nhìn, cũng không nói "chỉ mở đúng
+một lần".
 
 ### 2.1. Macro theo người và micro theo phiên là gì?
 
@@ -420,16 +462,17 @@ Trong tài liệu này, “micro” là **trung bình điểm Pearson theo phiê
 
 | Thực nghiệm | Dữ liệu đánh giá | Điểm dùng trong bảng chính |
 |---|---|---|
-| **TN0** | 537 phiên của G H I J | **Micro theo phiên**, khớp cách bài báo MobiVital báo cáo. |
-| **TN1** | Validation AB, CE, DF, KL | **Macro theo người**. Mỗi người xuất hiện đúng một lần ở validation; tám người có trọng số bằng nhau. |
+| **TN0** | 537 phiên G H I J | **Micro theo phiên**, khớp cách bài báo MobiVital báo cáo. |
+| **TN1, TN2, TN3** | Validation AB, CE, DF, KL | **Macro theo người**. Mỗi người xuất hiện đúng một lần ở validation; tám người có trọng số bằng nhau. |
+| **TN4** | G H I J, sau khi train đủ tám người | **Macro theo người** là điểm chính; micro có ghi kèm, dán nhãn riêng. |
 
 Với nhiều seed: tính điểm của **từng seed** trước, rồi báo cáo trung bình ± độ
-lệch chuẩn giữa các seed. "3 seed" không phải ba người hay ba fold.
+lệch chuẩn mẫu (`ddof=1`). "3 seed" không phải ba người hay ba fold.
 
-**Không đặt micro của TN0 cạnh macro của TN1 rồi lấy hiệu để kết luận cải
-thiện.** Hai con số đó khác cả thước đo lẫn tập dữ liệu.
+**Không đặt micro của TN0 cạnh macro của TN4 rồi lấy hiệu để kết luận cải
+thiện.** Hai con số đó khác cả thước đo lẫn mục đích.
 
-## 3. Sáu notebook
+## 3. Mười bốn notebook
 
 Khi chạy Colab, ô setup tải mã của nhánh `final_submission`.
 
@@ -437,13 +480,27 @@ Khi chạy Colab, ô setup tải mã của nhánh `final_submission`.
 |---|---|---|
 | Chuẩn bị | [DATA_PREPARE](../notebooks/DATA_PREPARE.ipynb) | Dựng và lưu dữ liệu đã xử lý để dùng chung. |
 | **TN0** | [TN0](../notebooks/TN0.ipynb) | Tái lập điểm và đối chiếu bộ chọn kênh với MobiVital. |
-| **TN1** | [DS-TCN 64 k3 n4](../notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb) | Cấu hình được chọn, 3 seed × 4 fold. |
-| **TN1** | [LSTM 352](../notebooks/TN1_LSTM.ipynb) | Kiến trúc MobiVital, làm mốc. |
-| **TN1** | [LSTM 67](../notebooks/TN1_LSTM_small.ipynb) | Mốc cùng ngân sách tham số. |
+| **TN1** | [DS-TCN 64 k3n4](../notebooks/TN1_DS_TCN_RF61_no_norm_do02_c64.ipynb) | Cấu hình được chọn, 3 seed × 4 fold. |
+| **TN1** | [LSTM 352](../notebooks/TN1_LSTM.ipynb) | Kiến trúc MobiVital, làm mốc. CV và cả nhánh G H I J. |
+| **TN1** | [LSTM 67](../notebooks/TN1_LSTM_small.ipynb) | Mốc cùng ngân sách tham số. CV và cả nhánh G H I J. |
 | **TN1** | [CNN-LSTM 58](../notebooks/TN1_CNN_LSTM.ipynb) | Mốc lai tích chập + hồi quy, cùng ngân sách. |
+| **TN2** | [Tầm nhìn, 4 fold](../notebooks/TN2_ReceptiveField_DS_TCN_c64_4fold.ipynb) | kernel 5, 7, 9 — vòng kết luận. |
+| **TN2** | [Tầm nhìn, 1 fold](../notebooks/TN2_ReceptiveField_DS_TCN_c64.ipynb) | Vòng **sàng lọc**, không đưa vào bảng kết luận. |
+| **TN3** | [Loss, RF61](../notebooks/TN3_HybridLoss_DS_TCN_c64.ipynb) | Quét alpha, giữ 0,6. |
+| **TN3** | [Loss, RF121](../notebooks/TN3_HybridLoss_DS_TCN_c64_rf121.ipynb) | Quét alpha, giữ 0. |
+| **TN4** | [Test RF61](../notebooks/TN4_final_test_ds_tcn_c64.ipynb) | Mô hình cuối trên G H I J, 3 seed. |
+| **TN4** | [Test RF121](../notebooks/TN4_final_test_ds_tcn_c64_rf121.ipynb) | Pearson thuần và đối chứng MSE, mỗi loss 3 seed. |
 
-Notebook thứ bảy, [NAP_KET_QUA_TN1](../notebooks/NAP_KET_QUA_TN1.ipynb), không
-train gì — nó lấy kết quả đã chạy từ Drive về và xếp vào `runs/tn1/`.
+Hai notebook công cụ không train gì:
+[NAP_KET_QUA_TN1](../notebooks/NAP_KET_QUA_TN1.ipynb) và
+[NAP_MOC_GHIJ](../notebooks/NAP_MOC_GHIJ.ipynb) lấy kết quả đã chạy từ tệp nén
+trên Drive về; [TAI_ZIP_TN123](../notebooks/TAI_ZIP_TN123.ipynb) và
+[TAI_ZIP_TN4](../notebooks/TAI_ZIP_TN4.ipynb) gom tệp nén.
+
+**Ba notebook thiếu log ở vài ô**, ghi rõ để không ai hiểu nhầm là chưa chạy:
+`TN2_..._c64_4fold` thiếu 1 trong 4 ô train, `TN2_..._c64` (sàng lọc) thiếu 1
+trong 6. Kết quả của những ô đó vẫn nằm trong `runs/`, chỉ là log không được lưu
+lại trong notebook.
 
 ## 4. Quá trình lựa chọn
 
@@ -561,23 +618,127 @@ giải thích nào được kiểm chứng.
 
 Bảng đầy đủ kèm cách đọc: [BANG_TCN.md](BANG_TCN.md).
 
-## 5. Vì sao cấu hình được chọn có các tham số này?
+### TN2 — tầm nhìn
+
+Giữ nguyên DS-TCN 64, 4 khối, không chuẩn hoá, dropout 0,2 theo phần tử. Đổi
+**đúng một thứ**: kernel. Tầm nhìn tính bằng `1 + 2 × (kernel − 1) × Σ dilation`.
+
+| kernel | tầm nhìn | tham số | CV macro | seed × fold |
+|---:|---:|---:|---:|---|
+| **3** | **61** | **37.081** | **0,760878** ± 0,003095 | 3 × 4 *(lấy lại từ TN1)* |
+| 5 | 121 | 38.105 | 0,757855 | 1 × 4 |
+| 7 | 181 | 39.129 | 0,743657 | 1 × 4 |
+| 9 | 241 | 40.153 | 0,736970 | 1 × 4 |
+
+**Tầm nhìn càng rộng điểm càng thấp, đơn điệu.** Cửa sổ vào chỉ có 200 mẫu nên
+k9 đã phủ dư (241 > 200) mà vẫn không giúp gì.
+
+Chênh RF61 với RF121 là **0,0030**, xấp xỉ dao động seed của RF61 — chưa tách
+được hai cái này. Vì vậy **cả hai** được mang xuống TN3, để xem hàm loss có đổi
+thứ hạng không. Chênh với RF181 và RF241 thì đủ lớn để loại.
+
+Một chi tiết phải ghi: cấu hình được chọn chỉ nhìn **61 mẫu gần nhất**, tức
+**1,2 giây** ở tần số 50 Hz, trong khi một nhịp thở khoảng 4 giây. Nó không nhìn
+đủ một chu kỳ thở mà vẫn cho điểm cao nhất. Đây là quan sát đo được, chưa có
+giải thích nào được kiểm chứng.
+
+### TN3 — hàm loss lai
+
+`loss = alpha × MSE + (1 − alpha) × (1 − Pearson)`. `alpha` là trọng số của
+**MSE**; `alpha = 0` là Pearson thuần, `alpha = 1` là MSE thuần.
+
+**Vì sao thử:** mọi sóng ứng viên đã được kéo về `[-1, 1]` trước khi vào model,
+nên biên độ không còn mang thông tin phân biệt. MSE thì phạt sai biên độ. Model
+dành sức khớp một thứ đã bị chuẩn hoá mất là phí.
+
+| alpha | DS-TCN 64/RF61 | DS-TCN 64/RF121 |
+|---:|---:|---:|
+| 0 | 0,776667 | **0,780306** |
+| 0,1 | 0,769390 | 0,763183 |
+| 0,2 | 0,775264 | 0,771996 |
+| 0,3 | 0,771931 | 0,776213 |
+| 0,4 | 0,779266 | 0,771848 |
+| 0,5 | 0,779419 | 0,763457 |
+| 0,6 | **0,780028** | 0,752386 |
+| 0,7 | 0,771665 | 0,761892 |
+| 0,8 | 0,776611 | 0,760013 |
+| 0,9 | 0,764941 | 0,758236 |
+| **1 — MSE thuần** | 0,760878 *(TN1)* | 0,757855 *(TN2)* |
+
+**19 trong 20 mức alpha hơn MSE thuần.** Mức tốt nhất hơn **0,0192** (RF61) và
+**0,0225** (RF121). Ngoại lệ duy nhất là RF121 ở alpha 0,6 — 0,752386, thấp hơn
+mốc MSE của chính nó 0,0055. Một seed nên đọc là nhiễu, nhưng ghi ra chứ không
+làm tròn thành "mọi mức đều hơn".
+
+**Đừng đọc từng mức alpha như một xếp hạng.** Dải 0,776–0,780 của RF61 trải
+trong khoảng 0,004 — đúng cỡ dao động seed — mà bảng này chỉ có **một** seed.
+Kết luận đọc được là *"đưa Pearson vào loss thì tốt hơn MSE thuần"*, không phải
+*"0,6 là mức tối ưu"*.
+
+Giữ `RF61 + alpha 0,6` và `RF121 + alpha 0` mang xuống TN4.
+
+### TN4 — kiểm tra trên G H I J
+
+Train đủ tám người ABCDEFKL rồi chấm 537 phiên của bốn người chưa dùng để chọn
+bất cứ thứ gì. Ba seed mỗi tổ hợp.
+
+| cấu hình | tham số | macro | micro | thực nghiệm |
+|---|---:|---:|---:|---|
+| **LSTM 352** *(mốc MobiVital)* | 1.502.713 | **0,810302** ± 0,015402 | 0,805309 | TN1 GHIJ |
+| **DS-TCN 64/RF61, alpha 0,6** | **37.081** | **0,803590** ± 0,015350 | — | TN4 |
+| DS-TCN 64/RF121, Pearson thuần | 38.105 | 0,801739 ± 0,009968 | — | TN4 |
+| LSTM 67 *(mốc cùng ngân sách)* | 56.908 | 0,801683 ± 0,002506 | 0,796531 | TN1 GHIJ |
+| DS-TCN 64/RF121, MSE thuần *(đối chứng)* | 38.105 | 0,762191 ± 0,021433 | — | TN4 |
+
+**Hàm loss là thứ có tác dụng rõ nhất.** Cùng kiến trúc 64/RF121, chỉ đổi loss:
+Pearson thuần **0,801739** so với MSE thuần **0,762191** — chênh **0,0395**, gần
+bốn lần dao động seed. Đây là phép so sạch nhất trong cả đồ án: cùng kiến trúc,
+cùng ba seed, cùng dữ liệu, khác đúng một thứ. Và nó khớp chiều với TN3.
+
+**Nhưng thứ hạng của TN1 không giữ nguyên sang TN4.**
+
+| | CV (ABCDEFKL) | G H I J |
+|---|---:|---:|
+| DS-TCN 64 | **0,760878** | 0,803590 |
+| LSTM 352 | 0,756998 | **0,810302** |
+| LSTM 67 | 0,753208 | 0,801683 |
+
+Trên tập dùng để chọn, DS-TCN đứng đầu. Trên tập không dùng để chọn, LSTM 352
+đứng đầu. Đó là dấu hiệu cấu hình được chọn hợp với tám người ABCDEFKL hơn là
+hợp với bài toán nói chung. **Phải ghi rõ chuyện này khi báo cáo, đừng chỉ trình
+bảng CV.**
+
+Chênh lệch trên G H I J: DS-TCN thấp hơn LSTM 352 **0,0067**, cao hơn LSTM 67
+**0,0019**. Cả hai **nhỏ hơn** dao động seed của DS-TCN (0,0154), nên không xếp
+hạng được.
+
+**Phát biểu đúng:** DS-TCN **37.081** tham số cho kết quả **ngang** LSTM
+**1.502.713** tham số trên tập kiểm tra độc lập — ít hơn **40,5 lần**. Không nói
+"tốt hơn", ở cả hai chiều.
+
+Bảng đầy đủ kèm cách đọc: [BANG_TCN.md](BANG_TCN.md).
+
+## 5. Vì sao mô hình cuối có các tham số này?
+
+**Mô hình cuối: DS-TCN 64, kernel 3, 4 khối, không chuẩn hoá, dropout 0,2 theo
+phần tử, loss lai alpha 0,6 — 37.081 tham số.**
 
 | Thành phần | Thiết lập | Lý do và mức bằng chứng |
 |---|---|---|
 | Tích chập tách rời | Depthwise theo thời gian + pointwise trộn kênh | Ở C=64, k=3: 12.352 tham số xuống 4.416. Giảm trọng số là mục tiêu của đồ án. |
-| Số kênh | 64 | Nhánh gọn có điểm CV tốt ở ngân sách nhỏ. |
-| Khối / dilation | 4 khối; 1, 2, 4, 8 | Giữ độ sâu cố định. **Không** khẳng định 4 khối là tối ưu. |
-| Tầm nhìn | 61 | Kết quả của k=3 và 4 khối, không phải thứ chọn trước. Ngắn hơn một nhịp thở mà vẫn cho điểm cao nhất — chưa giải thích được. |
-| Chuẩn hoá | Không có trong khối | Giữ cấu trúc đơn giản. Đây là lý do để đưa vào khảo sát, **chưa** chứng minh bỏ chuẩn hoá tự làm tăng điểm. |
+| Số kênh | 64 | Nhánh gọn có điểm CV tốt ở ngân sách nhỏ. **Không** khảo sát riêng số kênh trên nhánh này. |
+| Số khối | 4 | Giữ độ sâu cố định để TN2 khảo sát tầm nhìn qua kernel. **Không** khẳng định 4 khối tối ưu. |
+| Kernel / tầm nhìn | 3 / 61 | **Có bằng chứng: TN2.** Tầm nhìn rộng hơn cho điểm thấp hơn, đơn điệu qua 61 → 121 → 181 → 241. |
+| Chuẩn hoá | Không có trong khối | Giữ cấu trúc đơn giản. Lý do để đưa vào khảo sát, **chưa** chứng minh bỏ chuẩn hoá tự làm tăng điểm. |
 | Dropout | Theo phần tử, p = 0,2 | Cửa sổ 200 mẫu trượt 25 mẫu chồng lấn rất nhiều, nên số cửa sổ không phải số quan sát độc lập. Đó là động cơ dùng regularization, **không** chứng minh riêng p = 0,2 tối ưu. |
-| Loss | MSE | Giống hệt ba mốc còn lại, để phép so chỉ đổi kiến trúc. |
+| Hàm loss | Lai, alpha 0,6 | **Có bằng chứng mạnh nhất: TN3 và TN4.** Hơn MSE thuần 0,0192 trên CV và 0,0395 trên G H I J với đối chứng cùng kiến trúc. Riêng **mức** 0,6 thì chỉ dựa trên một seed. |
 | Vào / ra | 200 → 25 | Giữ giao diện và cách chấm của pipeline MobiVital. |
 | LR / batch / epoch | 1e-4 / 64 / 20 | Thiết lập chung cho mọi cấu hình; không tối ưu riêng cho cái nào. |
 
 Phải phân biệt **lý do đưa một thiết lập vào khảo sát** và **bằng chứng cho hiệu
-quả của cả cấu hình**. TN1 đổi nhiều thành phần cùng lúc giữa các ứng viên;
-không quy toàn bộ chênh lệch cho dropout hay cho việc bỏ chuẩn hoá.
+quả của nó**. Trong bảng trên chỉ có hai dòng — kernel và hàm loss — được một
+thực nghiệm cô lập riêng. Các dòng còn lại là lựa chọn thiết kế đi kèm cả cấu
+hình, không quy được chênh lệch cho riêng chúng.
 
 ## 6. Kiểm mã trước khi train
 
@@ -596,11 +757,12 @@ và LSTM là một chiều.
 
 ## 7. Tài liệu đọc tiếp
 
-- [BANG_TCN.md](BANG_TCN.md) — bảng kết quả TN1 và những gì đọc được từ nó
+- [BANG_TCN.md](BANG_TCN.md) — bảng kết quả TN1 đến TN4 và những gì đọc được
 - [CHIA_DU_LIEU.md](CHIA_DU_LIEU.md) — vì sao chia theo người, bốn fold cố định
 - [PIPELINE_2.md](PIPELINE_2.md) — sơ đồ train và inference từng khối
 - [DANH_MUC_ZIP.md](DANH_MUC_ZIP.md) — tệp nén kết quả trên Drive
-- [runs/tn1/README.md](../runs/tn1/README.md) — layout kết quả và cách dựng lại bảng
+- [SO_DO_DU_LIEU.md](SO_DO_DU_LIEU.md) — dữ liệu đi từ CSV thô tới cửa sổ train
+- [CAU_TRUC_MA_NGUON.md](CAU_TRUC_MA_NGUON.md) — vai trò từng phần mã nguồn
 - [ARTIFACTS.md](../ARTIFACTS.md) — danh mục bàn giao
 - [notebooks/TN0.md](../notebooks/TN0.md) — ghi chú TN0, có phần đã lỗi thời
 

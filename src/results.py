@@ -47,6 +47,9 @@ SUMMARY_COLUMNS = [
     # lúc chấm
     "score_macro", "score_micro", "score_std", "n_sessions", "n_negative",
     "minutes_score",
+    # chỉ run_final_test.py điền. Ghi ở đây để bảng GHIJ đọc được mà không
+    # phải tự cộng lại từ scores.csv.
+    "test_ghij_macro",
 ]
 
 SESSION_COLUMNS = ["run_id", "user", "session_file", "bin", "method",

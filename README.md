@@ -1,16 +1,20 @@
 # Contactless and Robust Respiration Monitoring based on UWB Radar
 
-Bản nộp trên nhánh **final_submission** có hai thực nghiệm: **TN0** tái lập
-MobiVital, **TN1** so bốn kiến trúc trên cùng dữ liệu và cùng giao thức.
+Bản nộp trên nhánh **final_submission**, năm thực nghiệm nối nhau.
 
-**Cấu hình được chọn: DS-TCN 64, kernel 3, 4 khối — 37.081 tham số, CV macro 0,760878 ± 0,003095.**
+| | làm gì | kết quả |
+|---|---|---|
+| **TN0** | tái lập MobiVital | micro 0,8195 trên 537 phiên G H I J |
+| **TN1** | chọn kiến trúc giữa bốn ứng viên | DS-TCN 64 k3n4 — **37.081 tham số** |
+| **TN2** | chọn tầm nhìn: kernel 3, 5, 7, 9 | tầm nhìn **61**; càng rộng càng tệ |
+| **TN3** | chọn hàm loss: quét 10 mức alpha | Pearson trong loss hơn MSE thuần **0,019** |
+| **TN4** | chấm trên G H I J | **0,803590 ± 0,015350** |
 
-| Cấu hình | Tham số | CV macro (4 fold × 3 seed) |
-|---|---:|---:|
-| **DS-TCN 64, k3 n4** | **37.081** | **0,760878 ± 0,003095** |
-| LSTM 352 — kiến trúc MobiVital | 1.502.713 | 0,756998 ± 0,004141 |
-| LSTM 67 | 56.908 | 0,753208 ± 0,001966 |
-| CNN-LSTM 58 | 55.667 | 0,752666 ± 0,003749 |
+**Mô hình cuối: DS-TCN 64, kernel 3, 4 khối, loss lai alpha 0,6 — 37.081 tham số.**
+
+Trên tập kiểm tra độc lập nó **ngang** mốc LSTM-352 của MobiVital (0,810302) với
+**ít hơn 40,5 lần tham số**. Chênh 0,0067 nhỏ hơn dao động seed của chính nó
+(0,0154) nên không phát biểu là "tốt hơn".
 
 **Bắt đầu đọc:** [Tóm tắt thesis và danh mục thực nghiệm](docs/THESIS.md).
 
@@ -22,7 +26,7 @@ Danh mục tài liệu và vai trò từng file: [docs/README.md](docs/README.md
 - [Vì sao chia dữ liệu như vậy](docs/CHIA_DU_LIEU.md).
 - [Pipeline train và inference](docs/PIPELINE_2.md).
 
-Nhánh này chỉ giữ mã của bốn kiến trúc đã công bố. Các kiến trúc từng thử mà không công bố, và các thực nghiệm sau TN1, không nằm ở đây. Các commit lịch sử không bị viết lại.
+Nhánh này giữ mã của bốn kiến trúc đã công bố. Các kiến trúc từng thử mà không công bố, và nhánh C192 (đối chứng dung lượng lớn), không nằm ở đây — bản gốc còn ở nhánh `submission`. Các commit lịch sử không bị viết lại.
 
 ## Bài toán
 
@@ -66,8 +70,11 @@ Các notebook thực nghiệm khôi phục dữ liệu đã xử lý bằng `scr
 |---|---|---|
 | TN0 | Đối chiếu pipeline với MobiVital | Theo từng phép kiểm chứng trong notebook |
 | TN1 | So bốn kiến trúc: DS-TCN 64, LSTM 352, LSTM 67, CNN-LSTM 58 | 3 seed × 4 fold, đủ cho cả bốn |
+| TN2 | Khảo sát tầm nhìn qua kernel 5, 7, 9 | seed 0 × 4 fold; kernel 3 dùng lại TN1 |
+| TN3 | Quét 10 mức alpha của hàm loss lai | seed 0 × 4 fold mỗi alpha |
+| TN4 | Train đủ ABCDEFKL, chấm G H I J | 3 seed mỗi tổ hợp |
 
-Không cấu hình nào chạy ít seed hay ít fold hơn cấu hình khác. G H I J không dùng để chọn cấu hình, và nhánh này không có bước test cuối trên chúng. Danh mục notebook nằm trong [THESIS.md](docs/THESIS.md).
+**G H I J không dùng để chọn bất cứ thứ gì** — kiến trúc, tầm nhìn và alpha đều chọn trên validation. Vòng sàng lọc một fold ghi riêng, không trộn vào bảng kết luận. Danh mục notebook nằm trong [THESIS.md](docs/THESIS.md).
 
 ## Mã và kết quả
 
@@ -77,11 +84,11 @@ src/         Model, huấn luyện, loss, chọn ứng viên, kết quả
 scripts/     Chuẩn bị dữ liệu, runner và lưu/so sánh kết quả
 docs/        Tóm tắt thesis, báo cáo và sơ đồ
 data/        Dữ liệu tải riêng; repo giữ checksums.txt
-runs/        Artifact thực nghiệm; checkpoint của tn1 có commit
+runs/        Artifact TN0–TN4; checkpoint có commit
 external/    Mã MobiVital tải riêng
 ```
 
-`scripts/run_cv.py` đánh giá trên bốn fold thuộc ABCDEFKL. Số chính của đồ án là Pearson macro theo người. Thư mục kết quả được đặt bằng `--experiment`; cấu hình và seed tạo tên run riêng.
+`scripts/run_cv.py` đánh giá trên bốn fold thuộc ABCDEFKL. `scripts/run_final_test.py` train đủ ABCDEFKL rồi chấm một lần trên G H I J. Số chính của đồ án là Pearson macro theo người. Thư mục kết quả được đặt bằng `--experiment`; cấu hình và seed tạo tên run riêng.
 
 Output cũ trong notebook là bằng chứng lần chạy đã lưu, không phải kết quả chạy lại sau khi chỉnh bản nộp. Các tài liệu cũ được giữ để tra cứu; **THESIS.md là điểm vào của bản nộp hiện tại**.
 
