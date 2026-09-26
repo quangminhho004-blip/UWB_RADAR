@@ -106,11 +106,13 @@ parser.add_argument("--folds", default="all",
                          "không phải vòng kết luận")
 parser.add_argument("--experiment", required=True,
                     help="tên thực nghiệm, ví dụ tn1 — quyết định thư mục runs/<tên>/")
+# đọc lệnh chạy vào args: vd --alpha 0 -> args.alpha = 0.0; không gõ thì lấy default
 args = parser.parse_args()
 
-# Mỗi thực nghiệm một thư mục riêng.
+# Bước 1: mỗi thực nghiệm một thư mục riêng, vd --experiment tn3 -> runs/tn3
 EXP_DIR = "runs/" + args.experiment
 
+# Bước 2: arch_tag = phần tên cho kiến trúc, vd "_c64_k5_n4_none_do0.2_dpel"
 # Tên cấu hình phải chứa channels: TCN-64 và TCN-200 cùng model, cùng loss,
 # cùng seed — không đưa channels vào thì hai cấu hình ra CÙNG một tên, ghi đè
 # kết quả của nhau. Model lstm không có channels nên bỏ qua.
@@ -131,7 +133,7 @@ else:
         arch_tag += "_k%d_n%d" % (args.kernel_size, args.n_blocks)
     if args.norm != "batch":
         arch_tag += "_" + args.norm
-
+# (vẫn bước 2) thêm phần dropout, áp cho mọi loại mô hình
 if args.dropout != 0.0:
     arch_tag += "_do%g" % args.dropout
 if args.dropout_kind != "channel":
@@ -139,6 +141,7 @@ if args.dropout_kind != "channel":
     # khác loại dropout không đè tên nhau.
     arch_tag += "_dp" + args.dropout_kind[:2]
 
+# Bước 3: loss_tag = phần tên cho loss, vd "mse_pearson_a0"
 # alpha PHẢI nằm trong tên. Không có nó thì --alpha 0.3, 0.5, 0.7 ra CÙNG
 # một config_id, và cơ chế bỏ qua fold đã xong sẽ nuốt luôn hai lần chạy
 # sau — bảng in ra ba dòng giống hệt nhau, trông như đã chạy đủ.
@@ -147,16 +150,22 @@ loss_tag = args.loss
 if args.loss == "mse_pearson":
     loss_tag += "_a%g" % args.alpha
 
+# Bước 4: ghép thành 1 tên, vd ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0
 config_id = "%s%s_%s_corr%s_seed%d" % (
     args.model, arch_tag, loss_tag, args.corr, args.seed)
 
+# Bước 5: tạo thư mục (có rồi thì thôi) và in cấu hình ra màn hình
 os.makedirs(EXP_DIR, exist_ok=True)
 
 print("thực nghiệm", args.experiment, " ->", EXP_DIR + "/")
 print("cấu hình", config_id)
 print("thiết bị ", results.device_name())
 print()
-
+# Hết phần chuẩn bị, chưa train gì. Kết quả là các biến để phần dưới dùng:
+#   args      = các tham số đọc từ lệnh chạy (model, loss, alpha, seed...)
+#   EXP_DIR   = thư mục lưu kết quả, vd runs/tn3
+#   config_id = tên cấu hình, vd ds_tcn_c64_k5_n4_none_do0.2_dpel_mse_pearson_a0_corr0.9_seed0
+# Hai hàm dưới chỉ là định nghĩa, chưa chạy; chạy thật bắt đầu từ vòng for chọn fold ở cuối file.
 
 def run_one_fold(fold_name, val_users):
     """Train trên 6 người, chấm điểm 2 người còn lại. Trả về điểm macro.

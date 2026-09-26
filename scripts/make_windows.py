@@ -63,6 +63,7 @@ FUTURE_LENGTH = 25        # số mẫu model phải đoán
 
 # Cho Python biết tìm code MobiVital ở đâu, rồi mượn hàm cắt cửa sổ của tác giả.
 sys.path.append(os.path.abspath(MOBIVITAL_DIR))
+# pyrefly: ignore [missing-import]
 from training.utils.model_utils import generate_dataset
 
 
@@ -88,7 +89,9 @@ def cut_windows(uwb, gt, threshold):
     # bên trong không dùng tới, nên điền gì cũng được.
     dataset = generate_dataset(uwb, gt, 64,
                                HISTORY_LENGTH, FUTURE_LENGTH, threshold)
-    return dataset.x.numpy(), dataset.y.numpy()
+    # đối tượng dataset chứa 2 tensor fl32
+
+    return dataset.x.numpy(), dataset.y.numpy() # ÉP VỀ MẢNG 2 CHIỀU
 
 
 def save(path, X, y):
@@ -108,8 +111,8 @@ def read_mobivital_npy(path):
     nên phải gọi np.load hai lần trên cùng một file đang mở.
     """
     opened_file = open(path, "rb")
-    uwb = np.load(opened_file)
-    gt = np.load(opened_file)
+    uwb = np.load(opened_file)   # đọc từ đầu file → ra mảng 1, con trỏ dừng cuối mảng 1
+    gt = np.load(opened_file)    # đọc tiếp từ đó → ra mảng 2
     opened_file.close()
     return uwb, gt
 
@@ -137,7 +140,10 @@ def make_dev_cv_windows():
         for user in USERS:
             start = time.time()
 
+            # NpzFile 3 ngăn uwb / gt / files, chưa đọc mảng nào
             data = np.load(BY_USER_DIR + "/" + user + ".npz")
+            # data["uwb"] -> (số_session, 1500, 120) complex64
+            # data["gt"]  -> (số_session, 1500) float32
             X, y = cut_windows(data["uwb"], data["gt"], threshold)
 
             save(out + "/" + file_name(user, threshold), X, y)
@@ -158,6 +164,7 @@ def make_final_train_windows():
     print("PHẦN 2 — pipeline GỐC, cắt gộp 8 người")
     print("-" * 70)
 
+    # uwb_all (1289, 1500, 120), gt_all (1289, 1500) — 8 người gộp chung
     uwb_all, gt_all = read_mobivital_npy(MOBIVITAL_NPY)
     print("đọc", MOBIVITAL_NPY, "->", len(gt_all), "session")
 
@@ -165,8 +172,11 @@ def make_final_train_windows():
         start = time.time()
 
         X, y = cut_windows(uwb_all, gt_all, threshold)
+        # X: (47996, 200), mỗi hàng là 200 mẫu lịch sử của một cửa sổ.
+        # y: (47996, 25), mỗi hàng là 25 mẫu tương lai.
 
-        save(out + "/" + file_name("train", threshold), X, y)
+        save(out + "/" + file_name("train", threshold), X, y) # LƯU RA .NPZ chứa 2 mảng 2 chiều
+
         print("      mất %.0f giây" % (time.time() - start))
 
 

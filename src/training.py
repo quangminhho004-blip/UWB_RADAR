@@ -78,12 +78,16 @@ def load_windows(users, corr_threshold=None, folder=None):
 
     all_X = []
     all_y = []
-    for user in users:
+    for user in users:      # chỉ các người được chọn, vd 6 người train của 1 fold
         data = np.load(folder + "/" + window_file_name(user, corr_threshold))
-        all_X.append(data["X"])
-        all_y.append(data["y"])
+        all_X.append(data["X"])     # (số cửa sổ người này, 200)
+        all_y.append(data["y"])     # (số cửa sổ người này, 25)
 
+    # all_X: list các mảng riêng lẻ, mỗi người 1 mảng (vd fold val_AB: 6 mảng (47996,200), (53300,200), ...)
+    # all_y: tương tự, 6 mảng (số cửa sổ, 25)
+    # concatenate nối đuôi theo hàng
     return np.concatenate(all_X), np.concatenate(all_y)
+    # trả về cặp (X, y): 2 mảng 2 chiều, vd X (210964, 200), y (210964, 25)
 
 
 def make_loader(X, y, batch_size=None, shuffle=True):
@@ -98,10 +102,12 @@ def make_loader(X, y, batch_size=None, shuffle=True):
     trước. Không ghim thì cờ non_blocking bị bỏ qua, chép vẫn phải chờ.
     """
     if batch_size is None:
-        batch_size = mv.BATCH_SIZE
+        batch_size = mv.BATCH_SIZE #default 64
 
+    # đổi X, y sang tensor float32, ghép thành từng cặp (input, đáp án) cho mỗi cửa sổ; chưa chia batch
     dataset = torch.utils.data.TensorDataset(torch.from_numpy(X).float(),
                                              torch.from_numpy(y).float())
+    # chia thành từng batch 64 cặp: X (64, 200), y (64, 25); shuffle=True xáo thứ tự cặp mỗi epoch
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                        shuffle=shuffle,
                                        pin_memory=torch.cuda.is_available())
@@ -135,11 +141,12 @@ def run_one_pass(model, loader, device, loss_fn, optimizer=None):
         y = y.to(device, non_blocking=True)
 
         if is_training:
-            optimizer.zero_grad()
-            pred = model(X)
-            value = loss_fn(pred, y)
-            value.backward()
-            optimizer.step()
+            # học 1 batch: dự đoán -> tính loss -> tính gradient -> cập nhật trọng số
+            optimizer.zero_grad()           # xoá gradient của batch trước (PyTorch cộng dồn)
+            pred = model(X)                 # chạy TCN.forward: X (64, 200) -> pred (64, 25)
+            value = loss_fn(pred, y)        # so pred với y -> 1 số loss
+            value.backward()                # tính gradient: mỗi trọng số nên tăng/giảm bao nhiêu
+            optimizer.step()                # Adam cập nhật cả 38.105 trọng số một bước nhỏ
         else:
             with torch.no_grad():
                 pred = model(X)
@@ -211,7 +218,7 @@ def train(model, train_loader, val_loader, run_dir,
     for epoch in range(start_epoch, epochs):
         train_mse, train_pearson, train_loss = run_one_pass(
             model, train_loader, device, loss_fn, optimizer)
-
+# chạy run_one_pass 20 lần
         val_mse = ""
         val_pearson = ""
         if val_loader is not None:

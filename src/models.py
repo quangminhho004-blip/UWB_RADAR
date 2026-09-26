@@ -132,7 +132,7 @@ class TCNBlock(nn.Module):
     def __init__(self, channels, kernel_size, dilation, dropout, separable,
                  norm="batch", dropout_kind="channel"):
         super().__init__()
-        self.left_pad = (kernel_size - 1) * dilation
+        self.left_pad = (kernel_size - 1) * dilation # padding bên trái
 
         # Hai tầng giống hệt nhau, cùng độ giãn.
         self.layer_one = self._one_layer(channels, kernel_size, dilation,
@@ -143,31 +143,32 @@ class TCNBlock(nn.Module):
     def _one_layer(self, channels, kernel_size, dilation, dropout, separable,
                    norm, dropout_kind="channel"):
         """Một tầng: tích chập giãn -> chuẩn hoá -> ReLU -> dropout."""
-        if separable:
+        if separable:#dsTCN
             # Depthwise: mỗi kênh một bộ lọc riêng, không trộn kênh.
             # Pointwise: kernel 1, chỉ trộn kênh.
             # Ở C kênh, kernel k: tích chập thường tốn C*C*k tham số, tách ra
             # còn C*k + C*C. Với C=64, k=3 là 12.352 xuống 4.416.
             conv = nn.Sequential(
                 nn.Conv1d(channels, channels, kernel_size,
-                          dilation=dilation, groups=channels),
-                nn.Conv1d(channels, channels, 1))
+                          dilation=dilation, groups=channels),#chia 64 kênh thành 64 nhóm mỗi nhóm 1 bộ lọc riêng
+                nn.Conv1d(channels, channels, 1)) #trộn kênh ko có group mặc đinh là 1
+                # với k size =1 
         else:
             conv = nn.Conv1d(channels, channels, kernel_size, dilation=dilation)
 
-        if norm == "weight":
+        if norm == "weight":  # ko dùng
             conv = apply_weight_norm(conv)
-            norm_layer = nn.Identity()      # WeightNorm nằm trong chính conv
-        elif norm == "batch":
+            norm_layer = nn.Identity()      # WeightNorm nằm trong chính conv  # ko dùng
+        elif norm == "batch": # ko dùng
             norm_layer = nn.BatchNorm1d(channels)
-        elif norm == "none":
+        elif norm == "none": # cấu hình được chọn dùng nhánh này
             # Không đặt lớp chuẩn hoá nào. Dùng cho cấu hình DS-TCN mà
             # nhóm tối ưu riêng, vốn không có chuẩn hoá.
             norm_layer = nn.Identity()
         else:
             raise ValueError("norm phải là 'batch', 'weight' hoặc 'none', "
                              "nhận " + str(norm))
-
+        # gói 4 bước xử lý của một tầng: tích chập, chuẩn hoá (không làm gì), ReLU, dropout
         return nn.ModuleDict({
             "conv": conv,
             "norm": norm_layer,
@@ -176,18 +177,18 @@ class TCNBlock(nn.Module):
                      else nn.Dropout(dropout)),
         })
 
-    def _run_layer(self, layer, x):
-        x = nn.functional.pad(x, (self.left_pad, 0))   # đệm bên trái
-        x = layer["conv"](x)
-        x = layer["norm"](x)
-        x = layer["act"](x)
-        return layer["drop"](x)
+    def _run_layer(self, layer, x):  # chạy các phép của một tầng
+        x = nn.functional.pad(x, (self.left_pad, 0))   # đệm left_pad số 0 bên trái, vd khối 1: 200 -> 204 mốc
+        x = layer["conv"](x)      # tích chập chiều sâu + điểm: 204 -> 200 mốc, mỗi mốc chỉ nhìn quá khứ
+        x = layer["norm"](x)      # chuẩn hoá: cấu hình được chọn là none nên không làm gì
+        x = layer["act"](x)       # ReLU: số âm -> 0
+        return layer["drop"](x)   # dropout 0,2: lúc train tắt ngẫu nhiên 20% giá trị; ra (64, 64, 200)
 
     def forward(self, x):
-        residual = x
-        x = self._run_layer(self.layer_one, x)
-        x = self._run_layer(self.layer_two, x)
-        return x + residual        # không có phi tuyến sau phép cộng
+        residual = x                                  # cất bản sao đầu vào khối (64, 64, 200)
+        x = self._run_layer(self.layer_one, x)        # qua tầng 1
+        x = self._run_layer(self.layer_two, x)        # qua tầng 2
+        return x + residual        # đường tắt: cộng đầu vào vào đầu ra, cùng shape; không có phi tuyến sau phép cộng
 
 
 class TCN(nn.Module):
@@ -225,22 +226,25 @@ class TCN(nn.Module):
                  dropout=0.0, separable=False, norm="batch",
                  dropout_kind="channel"):
         super().__init__()
+        # tầng vào: ở từng mốc trong 200 mốc, 1 số -> 64 số; input (1 kênh, 200) -> (64 kênh, 200)
         self.input_conv = nn.Conv1d(1, channels, 1)
 
+
+        # tạo 4 khối TCNBlock giống nhau, mỗi khối trọng số riêng, chỉ khác độ giãn / dilation = 1, 2, 4, 8
         blocks = []
         for i in range(n_blocks):
             blocks.append(TCNBlock(channels, kernel_size, 2 ** i,
-                                   dropout, separable, norm, dropout_kind))
-        self.blocks = nn.Sequential(*blocks)
+                                   dropout, separable, norm, dropout_kind)) #tham số từ build_model ở runcv run_final_test ghi chạy hàm python với tham số
+        self.blocks = nn.Sequential(*blocks) #nối các khối cho dữ liệu chạy qua lần lượt
 
-        self.output_linear = nn.Linear(channels, mv.FUTURE_LENGTH)
+        self.output_linear = nn.Linear(channels, mv.FUTURE_LENGTH)# (channels, future_length) -> (64, 25)
 
     def forward(self, x):
-        x = x.unsqueeze(1)          # (batch, 200) -> (batch, 1, 200)
+        x = x.unsqueeze(1)          # (batch, 200) -> (batch, 1, 200) thêm 1 chiều
         x = self.input_conv(x)
-        x = self.blocks(x)
-        x = x[:, :, -1]             # chỉ lấy mẫu cuối cùng
-        return self.output_linear(x)      # -> (batch, 25)
+        x = self.blocks(x)          # qua 4 khối TCNBlock nối tiếp (dilation 1, 2, 4, 8); nhận kết quả khối 4, vẫn (batch, 64, 200)
+        x = x[:, :, -1]             # chỉ lấy mẫu cuối cùng -> 64 số tượng trưng cho 64 kênh
+        return self.output_linear(x)      # -> (64, 25) -> 25
 
 
 class CNNLSTM(nn.Module):
